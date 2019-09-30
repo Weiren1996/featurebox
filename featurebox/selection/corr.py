@@ -34,13 +34,46 @@ class Corr(MutiBase):
         self.cov_shrink = None
         self.shrink_list = []
 
-    def fit(self, data):
-
-        cov = np.corrcoef(data, rowvar=False)
-        cov = np.nan_to_num(cov-1)+1
+    def fit(self, data, pre_cal=None, method="max"):
+        if pre_cal is None:
+            cov = np.corrcoef(data, rowvar=False)
+        elif isinstance(pre_cal, np.ndarray) and pre_cal.shape[0] == data.shape[1]:
+            cov = pre_cal
+        else:
+            raise TypeError("pre_cal is None or coef of data with shape(data[0],data[0])")
+        cov = np.nan_to_num(cov - 1) + 1
         self.cov = cov
         self.shrink_list = list(range(self.cov.shape[0]))
-        self._shrink_coef()
+        self._shrink_coef(method=method)
+
+    def _shrink_coef(self, method="mean" or "max"):
+
+        if self.check_muti:
+            self.shrink_list = list(range(self.cov.shape[0]))
+            self.shrink_list = list(self.feature_fold(self.shrink_list))
+
+            cov = self.cov
+            single = tuple([i for i in self.shrink_list if i not in self.check_muti])
+            muti = tuple([i for i in self.shrink_list if i in self.check_muti])
+
+            cov_muti_all = []
+            le = self.muti_grade
+            while le:
+                index = []
+                index.extend(single)
+                index.extend([i + le - 1 for i in muti])
+                index.sort()
+                cov_muti_all.append(cov[index][:, index])
+                le -= 1
+            cov_muti_all = np.array(cov_muti_all)
+            if method is "mean":
+                cov_new = np.mean(cov_muti_all, axis=0)
+            else:
+                cov_new = np.max(cov_muti_all, axis=0)
+            self.cov_shrink = cov_new
+            return self.cov_shrink
+        else:
+            pass
 
     def transform_index(self, data):
         if isinstance(data, int):
@@ -66,30 +99,6 @@ class Corr(MutiBase):
         else:
             pass
 
-    def _shrink_coef(self):
-        if self.check_muti:
-            self.shrink_list = list(range(self.cov.shape[0]))
-            self.shrink_list = list(self.feature_fold(self.shrink_list))
-
-            cov = self.cov
-            single = tuple([i for i in self.shrink_list if i not in self.check_muti])
-            muti = tuple([i for i in self.shrink_list if i in self.check_muti])
-
-            cov_muti_all = []
-            le = self.muti_grade
-            while le:
-                index = []
-                index.extend(single)
-                index.extend([i+le-1 for i in muti])
-                index.sort()
-                cov_muti_all.append(cov[index][:, index])
-                le -= 1
-            cov_muti_all = np.array(cov_muti_all)
-            cov_new = np.max(cov_muti_all, axis=0)
-            self.cov_shrink = cov_new
-            return self.cov_shrink
-        else:
-            pass
 
     def count_cof(self, cof=None):
 

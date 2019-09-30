@@ -22,7 +22,7 @@ warnings.filterwarnings("ignore")
 
 
 ######################
-# generate pop
+# generate_ pop
 ######################
 
 
@@ -39,7 +39,7 @@ class Comp(list):
 
 
 def generate(pset0, dim_list):
-    """generate core method"""
+    """generate_ core method"""
 
     same = False
     # same = True
@@ -96,7 +96,7 @@ def generate(pset0, dim_list):
 
 
 def generate2(pset0):
-    """generate core method"""
+    """generate_ core method"""
     comp = pset0.terminals_comp
     prop = pset0.terminals_prop
 
@@ -391,7 +391,7 @@ def remove_coef(cof__list_all):
 @time_this_function
 def gen_filter(pset, x_feai, xi):
     """
-    generate pop flow
+    generate_ pop flow
     --------
     pop1: deap pop
     pop2: sympy pop
@@ -444,7 +444,7 @@ def gen_filter(pset, x_feai, xi):
 
 def produce(x, x_unit, x_name, y, store_path=r'C:\Users\Administrator\Desktop\gap\inter_data'):
     """
-    generate combination feature from all element feature.
+    generate_ combination feature from all element feature.
     --------
 
     :param store_path: str, path

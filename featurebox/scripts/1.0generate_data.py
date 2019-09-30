@@ -19,9 +19,10 @@ if __name__ == "__main__":
     com_data = pd.read_excel(r'C:\Users\Administrator\Desktop\band_gap_exp_last\init_band_data.xlsx',
                              sheet_name='binary_4_structure')
     composition = pd.Series(map(eval, com_data['composition']))
+
+
     composition_mp = pd.Series(map(Composition, composition))
     composition_mp = pd.Series([i.to_reduced_dict for i in composition_mp])
-
     com = [[j[i] for i in j] for j in composition_mp]
     com = pd.DataFrame(com)
     colu_name = {}

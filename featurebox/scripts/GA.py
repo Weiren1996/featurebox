@@ -59,7 +59,7 @@ def mainPart(random_seed):
     creator.create("FitnessMax", base.Fitness, weights=(-1.0,))
     creator.create("Individual", np.ndarray, fitness=creator.FitnessMax)
     toolbox = base.Toolbox()
-    toolbox.register("generate", generator)
+    toolbox.register("generate_", generator)
     # Structure initializers
     toolbox.register("individual", myInitRepeat, creator.Individual, toolbox.generate, len(mesh_list))
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)

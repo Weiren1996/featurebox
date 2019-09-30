@@ -30,7 +30,7 @@ warnings.filterwarnings("ignore")
 this is a description
 """
 
-store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp_last\3.MMGS')
+store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp_last\3.MMGS\3.0')
 data = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data')
 all_import_structure = data.csv.all_import_structure
 data_import = all_import_structure

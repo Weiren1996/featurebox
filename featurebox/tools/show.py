@@ -261,7 +261,7 @@ def cof_plot(x_cof0, x_name):
             ax.spines['top'].set_color('w')
             ax.spines['left'].set_color('w')
             ax.spines['bottom'].set_color('w')
-            ax.text(0.5, 0.5, round(size[i, j], 2), fontdict={"color": "w"}, fontsize=8,
+            ax.text(0.5, 0.5, round(size[i, j], 2), fontdict={"node_color": "w"}, fontsize=8,
                     horizontalalignment='center', verticalalignment='center')
             ax.set_xticks([])
             ax.set_yticks([])
@@ -304,7 +304,7 @@ def cof_sel_plot(x_cof0, x_name, threshold=None):
                 ax.spines['top'].set_color('w')
                 ax.spines['left'].set_color('w')
                 ax.spines['bottom'].set_color('w')
-                ax.text(0.5, 0.5, round(size[i, j], 2), fontdict={"color": "w"}, fontsize=8,
+                ax.text(0.5, 0.5, round(size[i, j], 2), fontdict={"node_color": "w"}, fontsize=8,
                         horizontalalignment='center', verticalalignment='center')
                 ax.set_xticks([])
                 ax.set_yticks([])

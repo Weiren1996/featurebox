@@ -32,13 +32,8 @@ y_frame = data225_import['exp_gap']
 X = X_frame.values
 y = y_frame.values
 
-corr = Corr(threshold=0.90, muti_grade=2, muti_index=[4, len(X)])
-corr.fit(X_frame)
-cof_list = corr.count_cof()
 
-
-# plot
-def get_abbr():
+def get_abbr(X_frame_name):
     element_table = pd.read_excel(r'F:\machine learning\feature_toolbox1.0\featurebox\data\element_table.xlsx',
                                   skiprows=0, index_col=0)
     name = list(element_table.loc["name"])
@@ -49,10 +44,16 @@ def get_abbr():
     abbr = np.array(abbr)[index]
     return abbr
 
+corr = Corr(threshold=0.90, muti_grade=2, muti_index=[4, len(X)])
+corr.fit(X_frame)
+cof_list = corr.count_cof()
+
+
+# plot
 
 X_frame_name = corr.transform(X_frame.columns.values)
 X_frame_name = [i.replace("_0", "") for i in X_frame_name]
-X_frame_abbr = get_abbr()
+X_frame_abbr = get_abbr(X_frame_name)
 cov = pd.DataFrame(corr.cov_shrink)
 cov = cov.set_axis(X_frame_abbr, axis='index', inplace=False)
 cov = cov.set_axis(X_frame_abbr, axis='columns', inplace=False)
@@ -79,7 +80,7 @@ abbr = np.array(X_frame_abbr)[index]
 cov_select = corr.cov_shrink[index][:, index]
 
 store.to_csv(cov_select, "cov_select")
-store.to_txt(list_name, "list_name")
+store.to_csv(list_name, "list_name")
 store.to_txt(list_abbr, "list_abbr")
 
 store.to_csv(cov, "cov")

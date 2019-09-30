@@ -467,7 +467,7 @@ def main_part(x, y, x2, y2, pset, pop_n=100, cxpb=0.8, mutpb=0.1, ngen=5, max_=N
     creator.create("Individual", ExpressionTree, fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
-    toolbox.register("generate", genHalfAndHalf, pset=pset, min_=2, max_=max_)
+    toolbox.register("generate_", genHalfAndHalf, pset=pset, min_=2, max_=max_)
     toolbox.register("individual", tools.initIterate, container=creator.Individual, generator=toolbox.generate)
     toolbox.register('population', tools.initRepeat, container=list, func=toolbox.individual)
     # def selection

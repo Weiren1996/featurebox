@@ -1854,7 +1854,7 @@ def main_part(x, y, pset, pop_n=100, random_seed=1, cxpb=0.8, mutpb=0.1, ngen=5,
     seed1, seed2, seed3, seed4, seed5, seed6, seed7 = [check_Random_state(i) for i in random_state.sample(range(10), 7)]
 
     toolbox = Toolbox()
-    toolbox.register("generate", generate, pset=pset, min_=None, max_=max_)
+    toolbox.register("generate_", generate, pset=pset, min_=None, max_=max_)
     toolbox.register("individual", produce, container1=PrimitiveTrees, generator1=toolbox.generate)
     toolbox.register('population', initRepeat, container=list, func=toolbox.individual, random_state=seed1)
     # def selection
@@ -1887,7 +1887,7 @@ def main_part(x, y, pset, pop_n=100, random_seed=1, cxpb=0.8, mutpb=0.1, ngen=5,
 
 # print(time.time())
 # for i in range(10):
-#     individual = generate(pset1, random_state=check_Random_state(i), max_=60)
+#     individual = generate_(pset1, random_state=check_Random_state(i), max_=60)
 #     individual = PrimitiveTree(individual)
 #     expr_no = sympy.sympify(compile_(individual, pset1))
 #     cxOnePoint_index(individual, individual, pset1, random_state=None)
