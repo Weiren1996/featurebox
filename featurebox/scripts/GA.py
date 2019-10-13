@@ -66,7 +66,7 @@ def mainPart(random_seed):
     toolbox.register("evaluate", myScore, classifer=classifer)
     toolbox.register("mate", tools.cxTwoPoint)
     toolbox.register("mutate", myMut, indpb=0.05)
-    toolbox.register("select", tools.selTournament, tournsize=3)
+    toolbox.register("select_gs", tools.selTournament, tournsize=3)
 
     random.seed(random_seed)
 

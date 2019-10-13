@@ -4,7 +4,7 @@ import time
 from sklearn.metrics import davies_bouldin_score, silhouette_score
 from sklearn.model_selection import GridSearchCV
 
-from featurebox.selection.mmgs import GS, MMGS
+from featurebox.selection.ugs import GS, UGS
 from featurebox.selection.score import dict_method_reg
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
@@ -85,13 +85,13 @@ if __name__ == '__main__':
 
     index_all_abbr = [get_abbr(i) for i in index_all_name2]
 
-    gs = MMGS(estimator_all)
+    gs = UGS(estimator_all)
     gs.fit(X, y)
     re = gs.score_all(index_all, estimator_i=2)
 
-    # slice_g = gs.cal_binary_score_all(index_all, estimator_i=3, n_jobs=4)
-    # groups = gs.group(eps=0.10, estimator_i=3, printting=True, pre_binary_score_all=slice_g, print_noise=1)
-    # gs.group(eps=0.10, estimator_i=1, printting=True, pre_binary_score_all=slice_g, print_noise=0.1,label_name=index_all_abbr)
+    # slice_g = gs.cal_binary_distance_all(index_all, estimator_i=3, n_jobs=4)
+    # groups = gs.cal_group(eps=0.10, estimator_i=3, printing=True, pre_binary_distance_all=slice_g, print_noise=1)
+    # gs.cal_group(eps=0.10, estimator_i=1, printing=True, pre_binary_distance_all=slice_g, print_noise=0.1,node_name=index_all_abbr)
     # da = davies_bouldin_score(X.T, groups)
     # si = silhouette_score(X.T, groups)
     # import numpy as np
@@ -100,11 +100,11 @@ if __name__ == '__main__':
     # [store.to_csv(predict_yi,"predict_y_sort_of_%s" %namei) for predict_yi,namei in zip(predict_y, [method_name1, method_name2, method_name3, method_name4])]
 
 
-    # slice_group = gs.mmgroup(index_all, eps=0.10)
-    # present = gs.mmselect(index_all, slice_group[1], theshold=0.1, greater_is_better=True)
+    # slice_group = gs.cal_t_group(index_all, eps=0.10)
+    # present = gs.select_ugs(index_all, slice_group[1], theshold=0.1, greater_is_better=True)
     # present_name = index_to_name([i for i in present[1]], X_frame.columns.values)
     #
-    # store.to_pkl_pd(slice_group, "group of different model and tournment set")
+    # store.to_pkl_pd(slice_group, "cal_group of different model and tournment set")
     # store.to_pkl_pd(index_all, "index_all")
     #
     # store.to_csv(index_all_name, "index_all_name")

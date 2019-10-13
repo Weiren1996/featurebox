@@ -75,7 +75,7 @@ for i in clf.score_ex[:10]:
 for i in name:
     print(i)
 
-t = clf.predict(X)
+t = clf.predict(X)[0]
 p = BasePlot()
 p.scatter(y, t, strx='$E_{gap}$ true', stry='$E_{gap}$ predict')
 plt.show()

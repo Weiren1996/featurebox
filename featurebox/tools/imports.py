@@ -44,7 +44,7 @@ class Call(object):
         """
         :param backend:default imported type to show
         :param prefix: prefix for all file
-        :type paths: None, ..|data, or F:data|data1
+        :type paths: None, ..|data_cluster, or F:data_cluster|data1
         """
         self._backend = backend
         self.index_col = index_col
@@ -72,7 +72,7 @@ class Call(object):
                 return lambda s: s.__extension__[s._backend][1](f_)
 
             for f in files:
-                # selection data
+                # selection data_cluster
                 f = Path(f).resolve()
                 parent = re.split(r'[\\/]', str(f.parent))[-1]
                 # parent = str(f.parent).split('/')[-1]

@@ -24,7 +24,7 @@ class Store(object):
         """
         store file in path
         :param filename: str,universal filename
-        :param paths: None, ..\data, or F:data\data1
+        :param paths: None, ..\data_cluster, or F:data_cluster\data1
         """
 
         if not prefix:
@@ -78,7 +78,7 @@ class Store(object):
                         mode=model, encoding=None, )
 
         else:
-            raise TypeError("Not support data type:%s for csv" % type(data))
+            raise TypeError("Not support data_cluster type:%s for csv" % type(data))
 
     def to_txt(self, data, file_new_name=None, model="w"):
         self._check_name("txt", file_new_name, model=model)

@@ -3,7 +3,7 @@
 # @Time   : 2019/6/13 18:47
 # @Author : Administrator
 # @Project : feature_toolbox
-# @FileName: 3.0select_method.py
+# @FileName: 3.0.0select_method.py
 # @Software: PyCharm
 
 import pandas as pd
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         'charge nuclear effective(slater)',
         'charge nuclear effective(clementi)',
         'periodic number',
-        'group number',
+        'cal_group number',
         'electronegativity(martynov&batsanov)',
         'electronegativity(pauling)',
         'electronegativity(alfred-rochow)',

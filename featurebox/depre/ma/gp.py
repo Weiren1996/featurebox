@@ -63,5 +63,5 @@ if __name__ == "__main__":
     # x = scal.fit_transform(x)
 
     # x, y = utils.shuffle(x, y, random_state=5)
-    est_gp.fit(x, y)
+    est_gp._fit(x, y)
     print(est_gp._program)

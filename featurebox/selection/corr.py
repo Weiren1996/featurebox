@@ -7,7 +7,7 @@
 # @License: BSD 3-Clause
 
 """
-# calculate the the correction of columns,or group columns
+# calculate the the correction of columns,or cal_group columns
 """
 import copy
 import random
@@ -17,14 +17,14 @@ from .mutibase import MutiBase
 
 class Corr(MutiBase):
     """
-    fit-->shrink_cof-->count_coef-->remove_coef
+    _fit-->shrink_cof-->count_coef-->remove_coef
     """
 
     def __init__(self, threshold=0.85, muti_grade=2, muti_index=None, must_index=None):
         """
 
         :param threshold:
-        :param muti_grade:group size,calculate the correction between group
+        :param muti_grade:cal_group size,calculate the correction between cal_group
         :param muti_index:the range of muti_grade
         :param must_index:the columns force to index
         """
@@ -40,7 +40,7 @@ class Corr(MutiBase):
         elif isinstance(pre_cal, np.ndarray) and pre_cal.shape[0] == data.shape[1]:
             cov = pre_cal
         else:
-            raise TypeError("pre_cal is None or coef of data with shape(data[0],data[0])")
+            raise TypeError("pre_cal is None or coef of data_cluster with shape(data_cluster[0],data_cluster[0])")
         cov = np.nan_to_num(cov - 1) + 1
         self.cov = cov
         self.shrink_list = list(range(self.cov.shape[0]))

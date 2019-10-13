@@ -55,7 +55,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
     Parameters
     ----------
     estimator :
-        A supervised learning estimator with a ``fit`` method that provides
+        A supervised learning estimator with a ``_fit`` method that provides
         information about feature importance either through a ``coef_``
         attribute or through a ``feature_importances_`` attribute.
 
@@ -72,7 +72,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         The mask of selected feature.
 
     estimator_ : object
-        The external estimator fit on the reduced dataset.
+        The external estimator _fit on the reduced dataset.
 
     """
 
@@ -178,7 +178,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
                 slices = self.feature_unfold(slices)
                 data_x0 = x0[:, slices]
 
-                self.estimator.fit(data_x0, y0)
+                self.estimator._fit(data_x0, y0)
                 if hasattr(self.estimator, 'best_score_'):
                     score0 = np.mean(self.estimator.best_score_)
                 else:
@@ -218,7 +218,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         su[select_feature] = 1
         self.support_ = su
         self.estimator_ = clone(self.estimator)
-        self.estimator_.fit(x[:, select_feature], y)
+        self.estimator_._fit(x[:, select_feature], y)
         self.n_feature_ = len(select_feature)
 
         return self
@@ -273,7 +273,7 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
     Parameters
     ----------
     estimator : object
-        A supervised learning estimator with a ``fit`` method that provides
+        A supervised learning estimator with a ``_fit`` method that provides
         information about feature importance either through a ``coef_``
         attribute or through a ``feature_importances_`` attribute.
 
@@ -322,7 +322,7 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
         The mask of selected feature.
 
     estimator_ : object
-        The external estimator fit on the reduced dataset.
+        The external estimator _fit on the reduced dataset.
     """
 
     def __init__(self, estimator, n_type_feature_to_select=None, primary_feature=None, muti_grade=2, muti_index=None,
@@ -363,7 +363,7 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
             regression).
 
         groups : array-like, shape = [n_samples], optional
-            Group labels for the samples used while splitting the dataset into
+            cal_group labels for the samples used while splitting the dataset into
             train/test set.
         """
         X, y = check_X_y(X, y, "csr")
@@ -400,7 +400,7 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
         self.score_cv = scores
         self.score_ = best_score
         self.estimator_ = clone(self.estimator)
-        self.estimator_.fit(X[:, self.support_], y)
+        self.estimator_._fit(X[:, self.support_], y)
         self.n_feature_ = np.count_nonzero(support)
         return self
 

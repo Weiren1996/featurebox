@@ -14,7 +14,8 @@ setup(
     # keywords = ('chinesename',),
     description = 'get a chinesename by random',
     license = 'MIT License',
-    install_requires = ['pymatgen', 'pandas', "deap", 'numpy', 'sympy', 'scipy', 'scikit-learn'],
+    install_requires = ['pymatgen', 'pandas', "deap", 'numpy', 'sympy', 'scipy', 'scikit-learn', 'joblib', 'matplotlib',
+                        'networkx'],
     packages = ['chinesename'],  # 要打包的项目文件夹
     include_package_data=True,   # 自动打包文件夹内所有数据
     author = 'pengshiyu',

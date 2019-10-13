@@ -23,20 +23,20 @@ from featurebox.tools.imports import Call
 warnings.filterwarnings("ignore")
 # if __name__ == "__main__":
 #     store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp_last\4.symbollearning')
-#     data = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
+#     data_cluster = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
 #                 r'C:\Users\Administrator\Desktop\band_gap_exp_last\3.MMGS')
 #
-#     all_import_structure = data.csv.all_import_structure
+#     all_import_structure = data_cluster.csv.all_import_structure
 #     data_import = all_import_structure
 #
-#     select = ['destiny', 'radii covalent', 'electronegativity(martynov&batsanov)']
-#     select = ['destiny'] + [j + "_%i" % i for j in select[1:] for i in range(2)]
+#     select_gs = ['destiny', 'radii covalent', 'electronegativity(martynov&batsanov)']
+#     select_gs = ['destiny'] + [j + "_%i" % i for j in select_gs[1:] for i in range(2)]
 #
 #     data216_import = data_import.iloc[np.where(data_import['group_number'] == 216)[0]]
 #     data225_import = data_import.iloc[np.where(data_import['group_number'] == 225)[0]]
 #     data216_225_import = pd.concat((data216_import, data225_import))
 #
-#     X_frame = data216_import[select]
+#     X_frame = data216_import[select_gs]
 #     y_frame = data216_import['exp_gap']
 #
 #     X = X_frame.values
@@ -80,20 +80,20 @@ warnings.filterwarnings("ignore")
 
 # if __name__ == "__main__":
 #     store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp_last\4.symbollearning')
-#     data = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
+#     data_cluster = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
 #                 r'C:\Users\Administrator\Desktop\band_gap_exp_last\3.MMGS')
 #
-#     all_import_structure = data.csv.all_import_structure
+#     all_import_structure = data_cluster.csv.all_import_structure
 #     data_import = all_import_structure
 #
-#     select = ['destiny', 'enthalpy vaporization', 'electronegativity(martynov&batsanov)']
-#     select = ['destiny'] + [j + "_%i" % i for j in select[1:] for i in range(2)]
+#     select_gs = ['destiny', 'enthalpy vaporization', 'electronegativity(martynov&batsanov)']
+#     select_gs = ['destiny'] + [j + "_%i" % i for j in select_gs[1:] for i in range(2)]
 #
 #     data216_import = data_import.iloc[np.where(data_import['group_number'] == 216)[0]]
 #     data225_import = data_import.iloc[np.where(data_import['group_number'] == 225)[0]]
 #     data216_225_import = pd.concat((data216_import, data225_import))
 #
-#     X_frame = data225_import[select]
+#     X_frame = data225_import[select_gs]
 #     y_frame = data225_import['exp_gap']
 #
 #     X = X_frame.values
@@ -143,20 +143,20 @@ warnings.filterwarnings("ignore")
 
 # if __name__ == "__main__":
 #     store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp_last\4.symbollearning')
-#     data = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
+#     data_cluster = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
 #                 r'C:\Users\Administrator\Desktop\band_gap_exp_last\3.MMGS')
 #
-#     all_import_structure = data.csv.all_import_structure
+#     all_import_structure = data_cluster.csv.all_import_structure
 #     data_import = all_import_structure
 #
-#     select = ['destiny','electronegativity(martynov&batsanov)']
-#     select = ['destiny'] + [j + "_%i" % i for j in select[1:] for i in range(2)]
+#     select_gs = ['destiny','electronegativity(martynov&batsanov)']
+#     select_gs = ['destiny'] + [j + "_%i" % i for j in select_gs[1:] for i in range(2)]
 #
 #     data216_import = data_import.iloc[np.where(data_import['group_number'] == 216)[0]]
 #     data225_import = data_import.iloc[np.where(data_import['group_number'] == 225)[0]]
 #     data216_225_import = pd.concat((data216_import, data225_import))
 #
-#     X_frame = data225_import[select]
+#     X_frame = data225_import[select_gs]
 #     y_frame = data225_import['exp_gap']
 #
 #     X = X_frame.values
@@ -200,20 +200,20 @@ warnings.filterwarnings("ignore")
 
 # if __name__ == "__main__":
 #     store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp_last\4.symbollearning')
-#     data = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
+#     data_cluster = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
 #                 r'C:\Users\Administrator\Desktop\band_gap_exp_last\3.MMGS')
 #
-#     all_import_structure = data.csv.all_import_structure
+#     all_import_structure = data_cluster.csv.all_import_structure
 #     data_import = all_import_structure
 #
-#     select = ['destiny', 'energy cohesive brewer', 'distance core electron(schubert)']
-#     select = ['destiny'] + [j + "_%i" % i for j in select[1:] for i in range(2)]
+#     select_gs = ['destiny', 'energy cohesive brewer', 'distance core electron(schubert)']
+#     select_gs = ['destiny'] + [j + "_%i" % i for j in select_gs[1:] for i in range(2)]
 #
 #     data216_import = data_import.iloc[np.where(data_import['group_number'] == 216)[0]]
 #     data225_import = data_import.iloc[np.where(data_import['group_number'] == 225)[0]]
 #     data216_225_import = pd.concat((data216_import, data225_import))
 #
-#     X_frame = data225_import[select]
+#     X_frame = data225_import[select_gs]
 #     y_frame = data225_import['exp_gap']
 #
 #     X = X_frame.values
@@ -263,20 +263,20 @@ warnings.filterwarnings("ignore")
 
 # if __name__ == "__main__":
 #     store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp_last\4.symbollearning')
-#     data = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
+#     data_cluster = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
 #                 r'C:\Users\Administrator\Desktop\band_gap_exp_last\3.MMGS')
 #
-#     all_import_structure = data.csv.all_import_structure
+#     all_import_structure = data_cluster.csv.all_import_structure
 #     data_import = all_import_structure
 #
-#     select = ['destiny', 'energy cohesive brewer', 'volume atomic(villars,daams)']
-#     select = ['destiny'] + [j + "_%i" % i for j in select[1:] for i in range(2)]
+#     select_gs = ['destiny', 'energy cohesive brewer', 'volume atomic(villars,daams)']
+#     select_gs = ['destiny'] + [j + "_%i" % i for j in select_gs[1:] for i in range(2)]
 #
 #     data216_import = data_import.iloc[np.where(data_import['group_number'] == 216)[0]]
 #     data225_import = data_import.iloc[np.where(data_import['group_number'] == 225)[0]]
 #     data216_225_import = pd.concat((data216_import, data225_import))
 #
-#     X_frame = data225_import[select]
+#     X_frame = data225_import[select_gs]
 #     y_frame = data225_import['exp_gap']
 #
 #     X = X_frame.values
@@ -326,20 +326,20 @@ warnings.filterwarnings("ignore")
 
 # if __name__ == "__main__":
 #     store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp_last\4.symbollearning')
-#     data = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
+#     data_cluster = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
 #                 r'C:\Users\Administrator\Desktop\band_gap_exp_last\3.MMGS')
 #
-#     all_import_structure = data.csv.all_import_structure
+#     all_import_structure = data_cluster.csv.all_import_structure
 #     data_import = all_import_structure
 #
-#     select = ['destiny', 'energy cohesive brewer', 'radii covalent']
-#     select = ['destiny'] + [j + "_%i" % i for j in select[1:] for i in range(2)]
+#     select_gs = ['destiny', 'energy cohesive brewer', 'radii covalent']
+#     select_gs = ['destiny'] + [j + "_%i" % i for j in select_gs[1:] for i in range(2)]
 #
 #     data216_import = data_import.iloc[np.where(data_import['group_number'] == 216)[0]]
 #     data225_import = data_import.iloc[np.where(data_import['group_number'] == 225)[0]]
 #     data216_225_import = pd.concat((data216_import, data225_import))
 #
-#     X_frame = data225_import[select]
+#     X_frame = data225_import[select_gs]
 #     y_frame = data225_import['exp_gap']
 #
 #     X = X_frame.values

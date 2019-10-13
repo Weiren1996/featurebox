@@ -20,7 +20,7 @@ class DepartElementProPFeaturizer(BaseFeaturizer):
         elements: panda.DataFrame
             Elements information in `pandas.DataFrame` object. indexed by element symbol.
         n_jobs: int
-            The number of jobs to run in parallel for both fit and predict.
+            The number of jobs to run in parallel for both _fit and predict.
             Set -1 to use all cpu cores (default).
             Inputs ``X`` will be split into some blocks then run on each cpu cores.
         on_errors: string

@@ -1,1 +1,1 @@
-__all__ = ["backforward", "cluster", "corr", "exhaustion", "mutibase", "mmgs", "score"]
+__all__ = ["backforward", "cluster", "corr", "exhaustion", "mutibase", "ugs.py", "score"]

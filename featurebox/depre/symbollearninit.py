@@ -385,8 +385,8 @@ def multieaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     data_all = {}
     # Begin the generational process
     for gen in range(1, ngen + 1):
-        # Select the next generation individuals
-        offspring = toolbox.select(population, len(population))
+        # select_gs the next generation individuals
+        offspring = toolbox.select_gs(population, len(population))
         # Vary the pool of individuals
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
         if halloffame is not None:

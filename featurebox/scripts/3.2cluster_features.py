@@ -4,7 +4,7 @@ import time
 from sklearn.model_selection import GridSearchCV
 
 from featurebox.selection.corr import Corr
-from featurebox.selection.mmgs import GS, MMGS, cluster_printting
+from featurebox.selection.ugs import GS, UGS, cluster_printting
 from featurebox.selection.score import dict_method_reg
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     label[0] = 2
     label[2] = 3
     label[6] = 4
-    cluster_printting(slices=X_frame_abbr, node_color=label, edge_color_pen=0.5, binary_score=co.cov_shrink, print_noise=0, label_name=X_frame_abbr,
+    cluster_printting(slices=X_frame_abbr, node_color=label, edge_color_pen=0.5, binary_distance=co.cov_shrink, print_noise=0, node_name=X_frame_abbr,
                       )
 
 

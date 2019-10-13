@@ -168,7 +168,7 @@ class Fitness(object):
 
        When comparing fitness values that are **minimized**, ``a > b`` will
 
-       return :data:`True` if *a* is **smaller** than *b*.
+       return :data_cluster:`True` if *a* is **smaller** than *b*.
 
     """
 
@@ -588,7 +588,7 @@ class Statistics(object):
         self.fields.append(name)
 
     def compile(self, data):
-        """Apply to the input sequence *data* each registered function
+        """Apply to the input sequence *data_cluster* each registered function
 
         and return the results as a dictionnary.
 
@@ -612,7 +612,7 @@ class MultiStatistics(dict):
 
     def compile(self, data):
 
-        """Calls :meth:`Statistics.compile` with *data* of each
+        """Calls :meth:`Statistics.compile` with *data_cluster* of each
 
         :class:`Statistics` object.
 
@@ -1792,8 +1792,8 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
             else:
                 data = [{"score": i.fitness.values[0], "expr": i.expr} for i in halloffame.items[-5:]]
             data_all['gen%s' % gen] = data
-        # Select the next generation individuals
-        offspring = toolbox.select(population, len(population))
+        # select_gs the next generation individuals
+        offspring = toolbox.select_gs(population, len(population))
         # Vary the pool of individuals
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
         if halloffame is not None:

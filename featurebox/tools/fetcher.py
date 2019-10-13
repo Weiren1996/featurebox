@@ -25,7 +25,7 @@ def data_fetcher(api_key, mp_ids, elasticity=True):
         """"
         split requests into fixed number groups
         eg: grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
-        Collect data into fixed-length chunks or blocks"""
+        Collect data_cluster into fixed-length chunks or blocks"""
         args = [iter(iterable)] * n
         return zip_longest(fillvalue=fillvalue, *args)
 

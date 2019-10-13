@@ -172,7 +172,7 @@ class Fitness(object):
 
        When comparing fitness values that are **minimized**, ``a > b`` will
 
-       return :data:`True` if *a* is **smaller** than *b*.
+       return :data_cluster:`True` if *a* is **smaller** than *b*.
 
     """
 
@@ -592,7 +592,7 @@ class Statistics(object):
         self.fields.append(name)
 
     def compile(self, data):
-        """Apply to the input sequence *data* each registered function
+        """Apply to the input sequence *data_cluster* each registered function
 
         and return the results as a dictionnary.
 
@@ -616,7 +616,7 @@ class MultiStatistics(dict):
 
     def compile(self, data):
 
-        """Calls :meth:`Statistics.compile` with *data* of each
+        """Calls :meth:`Statistics.compile` with *data_cluster* of each
 
         :class:`Statistics` object.
 
@@ -1796,8 +1796,8 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
             else:
                 data = [{"score": i.fitness.values[0], "expr": i.expr} for i in halloffame.items[-5:]]
             data_all['gen%s' % gen] = data
-        # Select the next generation individuals
-        offspring = toolbox.select(population, len(population))
+        # select_gs the next generation individuals
+        offspring = toolbox.select_gs(population, len(population))
         # Vary the pool of individuals
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
         if halloffame is not None:
@@ -1861,8 +1861,8 @@ def main_part(x, y, pset, pop_n=100, random_seed=1, cxpb=0.8, mutpb=0.1, ngen=5,
     toolbox.register("generate_", generate, pset=pset, min_=None, max_=max_)
     toolbox.register("individual", produce, container1=PrimitiveTrees, generator1=toolbox.generate)
     toolbox.register('population', initRepeat, container=list, func=toolbox.individual, random_state=seed1)
-    # def select
-    toolbox.register("select", selTournament, tournsize=2, seed=seed2)
+    # def select_gs
+    toolbox.register("select_gs", selTournament, tournsize=2, seed=seed2)
 
     # def mate
     toolbox.register("mate", cxoneooint_index, pset=pset, random_state=seed3)

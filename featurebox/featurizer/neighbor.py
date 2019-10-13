@@ -27,7 +27,7 @@ class Neighborizer(BaseFeaturizer, ABC):
         ----------
         tol:
         n_jobs: int
-            The number of jobs to run in parallel for both fit and predict. Set -1 to use all cpu cores (default).
+            The number of jobs to run in parallel for both _fit and predict. Set -1 to use all cpu cores (default).
         on_errors: string
             How to handle exceptions in feature calculations. Can be 'nan', 'keep', 'raise'.
             When 'nan', return a column with ``np.nan``.

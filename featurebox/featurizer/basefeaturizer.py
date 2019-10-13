@@ -19,7 +19,7 @@ from sklearn.base import TransformerMixin, BaseEstimator
 
 class BaseFeaturizer(BaseEstimator, TransformerMixin):
     """
-    Abstract class to calculate features from :class:`pandas.Series` input data.
+    Abstract class to calculate features from :class:`pandas.Series` input data_cluster.
     Each entry can be any format such a compound formula or a pymatgen crystal structure
     dependent on the featurizer implementation.
 
@@ -41,7 +41,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
         features = featurizer.fit_transform(X)
 
     You can also employ the featurizer as part of a ScikitLearn Pipeline object.
-    You would then provide your input data as an array to the Pipeline, which would
+    You would then provide your input data_cluster as an array to the Pipeline, which would
     output the featurers as an :class:`pandas.DataFrame`.
 
     :class:`BaseFeaturizer` also provide you to retrieving proper references for a featurizer.
@@ -88,7 +88,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
         Parameters
         ----------
         n_jobs: int
-            The number of jobs to run in parallel for both fit and predict. Set -1 to use all cpu cores (default).
+            The number of jobs to run in parallel for both _fit and predict. Set -1 to use all cpu cores (default).
             Inputs ``X`` will be split into some blocks then run on each cpu cores.
             When set to 0, input X will be treated as a block and pass to ``Featurizer.featurize`` directly.
         on_errors: string
@@ -122,9 +122,9 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
             self._n_jobs = n_jobs
 
     def fit(self, X, y=None, **fit_kwargs):
-        """Update the parameters of this featurizer based on available data
+        """Update the parameters of this featurizer based on available data_cluster
         Args:
-            X - [list of tuples], training data
+            X - [list of tuples], training data_cluster
         Returns:
             self
             """
@@ -132,7 +132,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
 
     # todo: Dose fit_transform need to pass paras to transform?
     def fit_transform(self, X, y=None, **fit_params):
-        """Fit to data, then transform it.
+        """Fit to data_cluster, then transform it.
 
         Fits transformer to X and y with optional parameters fit_params
         and returns a transformed version of X.
@@ -154,10 +154,10 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
         # non-optimized default implementation; override when a better
         # method is possible for a given clustering algorithm
         if y is None:
-            # fit method of arity 1 (unsupervised transformation)
+            # _fit method of arity 1 (unsupervised transformation)
             return self.fit(X, **fit_params).transform(X, **fit_params)
         else:
-            # fit method of arity 2 (supervised transformation)
+            # _fit method of arity 2 (supervised transformation)
             return self.fit(X, y, **fit_params).transform(X, **fit_params)
 
     def transform(self, entries, *, return_type=None, **kwargs):
@@ -229,7 +229,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
         featurize_dataframe. featurize_wrapper changes the behavior of featurize
         when ignore_errors is True in featurize_many/dataframe.
         Args:
-             x: input data to featurize (type depends on featurizer).
+             x: input data_cluster to featurize (type depends on featurizer).
         Returns:
             (list) one or more features.
         """
@@ -254,7 +254,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
         Args
         ====
         x: depends on featurizer
-            input data to featurize.
+            input data_cluster to featurize.
 
         Returns
         =======

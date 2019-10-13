@@ -993,8 +993,8 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
             else:
                 data = [{"score": i.fitness.values[0], "expr": i.expr} for i in halloffame.items[-5:]]
             data_all['gen%s' % gen] = data
-        # Select the next generation individuals
-        offspring = toolbox.select(population, len_pop)
+        # select_gs the next generation individuals
+        offspring = toolbox.select_gs(population, len_pop)
 
         # Vary the pool of individuals
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
@@ -1095,8 +1095,8 @@ def multiEaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     data_all = {}
     # Begin the generational process
     for gen in range(1, ngen + 1):
-        # Select the next generation individuals
-        offspring = toolbox.select(population, len(population))
+        # select_gs the next generation individuals
+        offspring = toolbox.select_gs(population, len(population))
         # Vary the pool of individuals
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
         if halloffame is not None:
@@ -1288,7 +1288,7 @@ def generate(pset, min_, max_, condition, type_=None):
 
 
 def cxOnePoint(ind1, ind2):
-    """Randomly select in each individual and exchange each subtree with the
+    """Randomly select_gs in each individual and exchange each subtree with the
     point as root between each individual.
 
     :param ind1: First tree participating in the crossover.
@@ -1412,12 +1412,12 @@ def mutNodeReplacement(individual, pset):
     return individual,
 
 def selRandom(individuals, k):
-    """Select *k* individuals at random from the input *individuals* with
+    """select_gs *k* individuals at random from the input *individuals* with
     replacement. The list returned contains references to the input
     *individuals*.
 
-    :param individuals: A list of individuals to select from.
-    :param k: The number of individuals to select.
+    :param individuals: A list of individuals to select_gs from.
+    :param k: The number of individuals to select_gs.
     :returns: A list of selected individuals.
 
     This function uses the :func:`~random.choice` function from the
@@ -1426,12 +1426,12 @@ def selRandom(individuals, k):
     return [random.choice(individuals) for i in range(k)]
 
 def selTournament(individuals, k, tournsize, fit_attr="fitness"):
-    """Select the best individual among *tournsize* randomly chosen
+    """select_gs the best individual among *tournsize* randomly chosen
     individuals, *k* times. The list returned contains
     references to the input *individuals*.
 
-    :param individuals: A list of individuals to select from.
-    :param k: The number of individuals to select.
+    :param individuals: A list of individuals to select_gs from.
+    :param k: The number of individuals to select_gs.
     :param tournsize: The number of individuals participating in each tournament.
     :param fit_attr: The attribute of individuals to use as selection criterion
     :returns: A list of selected individuals.
@@ -1548,7 +1548,7 @@ def mainPart(x_, y_, pset, pop_n=100, random_seed=1, cxpb=0.8, mutpb=0.1, ngen=5
     toolbox.register("individual", initIterate, container=creator.PTrees_, generator=toolbox.generate_)
     toolbox.register('population', initRepeat, container=list, func=toolbox.individual)
     # def selection
-    toolbox.register("select", selTournament, tournsize=tournsize)
+    toolbox.register("select_gs", selTournament, tournsize=tournsize)
     # def mate
     toolbox.register("mate", mate)
     # def mutate

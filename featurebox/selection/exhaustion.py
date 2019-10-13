@@ -76,7 +76,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
                 slices = self.feature_unfold(slices)
                 data_x0 = x0[:, slices]
 
-                self.estimator.fit(data_x0, y0)
+                self.estimator._fit(data_x0, y0)
                 if hasattr(self.estimator, 'best_score_'):
                     score0 = np.mean(self.estimator.best_score_)
                 else:
@@ -115,7 +115,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         self.score_ = scores
         self.support_ = su
         self.estimator_ = clone(self.estimator)
-        self.estimator_.fit(x[:, select_feature], y)
+        self.estimator_._fit(x[:, select_feature], y)
         self.n_feature_ = len(select_feature)
         self.score_ex = list(zip(feature_combination, scores))
         self.scatter = list(zip([len(i) for i in slice_all], scores))
