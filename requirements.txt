@@ -1,0 +1,11 @@
+pymatgen
+pandas
+deap
+numpy
+sympy
+scipy
+scikit-learn
+joblib
+matplotlib
+networkx
+seaborn
