@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="https://www.github.org/boliqq07/featurebox/timg.png">
+  <img src="https://github.com/boliqq07/featurebox/timg.png">
 
 </div>
 
