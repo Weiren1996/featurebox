@@ -40,4 +40,5 @@ setup(
     ],
 
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests", 'deprecated'], ),
+    package_data={'featurebox': ['data/*.xlsx'],}
 )
