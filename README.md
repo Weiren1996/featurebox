@@ -1,5 +1,5 @@
 <div align="center">
-  <img alt="featurebox" src="https://github.com/boliqq07/featurebox/blob/master/timg.jpg">
+  <img alt="featurebox" src="https://github.com/boliqq07/featurebox/blob/master/img.jpg">
 </div>
 
 
