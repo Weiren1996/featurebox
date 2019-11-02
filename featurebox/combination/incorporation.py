@@ -11,10 +11,12 @@ import copy
 import random
 import warnings
 from itertools import product, chain
+
 import numpy as np
 import sympy
 from deap import creator, gp
 from sympy.physics.units import Dimension
+
 from .incorporationbase import Dim, dim_func, fea_compile, spilt_couple
 from ..tools.tool import time_this_function
 
@@ -343,7 +345,7 @@ def count_cof(cof):
     for i in range(cof.shape[0]):
         e = np.where(g[0] == i)
         com = list(g[1][e])
-        # com.remove(i)
+        # ele_ratio.remove(i)
         list_count2.append(com)
         list_coef.append([cof[i, j] for j in com])
     return list_coef, list_count2

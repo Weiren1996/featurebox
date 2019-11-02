@@ -16,8 +16,8 @@ import random
 import time
 from collections import Iterable
 from functools import partial, wraps
+
 import numpy as np
-import pandas as pd
 from joblib import Parallel, delayed, effective_n_jobs
 
 
@@ -80,13 +80,13 @@ def parallize(n_jobs, func, iterable, **kwargs):
     Parameters
     ----------
     n_jobs:int
-    cpu numbers
+        cpu numbers
     func:
-    function to calculate
+        function to calculate
     iterable:
-    interable object
+        interable object
     kwargs:
-    kwargs for function
+        kwargs for function
 
     Returns
     -------
@@ -109,11 +109,11 @@ def logg(func, printting=True, reback=False):
     Parameters
     ----------
     func:
-    function to calculate
+        function to calculate
     printting:
-    print or not
+        print or not
     reback:
-    return result or not
+        return result or not
 
     Returns
     -------
@@ -144,30 +144,68 @@ def logg(func, printting=True, reback=False):
     return wrapper
 
 
-def index_to_name(index, name):
-    """
+# def index_to_name(index, name):
+#     """
+#
+#     Parameters
+#     ----------
+#     index:
+#     index
+#     name:
+#     name
+#
+#     Returns
+#     -------
+#     results
+#     """
+#
+#     if isinstance(name, pd.Series):
+#         name = name.values
+#     if isinstance(index[0], Iterable):
+#         results0 = []
+#         for index_i in index:
+#             results0.append(index_to_name(index_i, name))
+#         return results0
+#     if len(index) <= len(name):
+#         results = [name[i] for i in index]
+#         return results
+#     else:
+#         raise IndexError("len name large than index")
 
-    Parameters
-    ----------
-    index:
-    index
-    name:
-    name
 
-    Returns
-    -------
-    results
-    """
+def name_to_name(*iters, search=None, search_which=1, return_which=(1,), two_layer=False):
+    if isinstance(return_which, int):
+        return_which = tuple([return_which, ])
+    if two_layer:
 
-    if isinstance(name, pd.Series):
-        name = name.values
-    if isinstance(index[0], Iterable):
-        results0 = []
-        for index_i in index:
-            results0.append(index_to_name(index_i, name))
-        return results0
-    if len(index) <= len(name):
-        results = [name[i] for i in index]
-        return results
+        results_all = []
+        if isinstance(search, Iterable):
+            for index_i in search:
+                results_all.append(
+                    name_to_name(*iters, search=index_i, search_which=search_which,
+                                 return_which=return_which, two_layer=False))
+
+            if len(return_which) >= 2:
+                return list(zip(*results_all))
+            else:
+                return results_all
+        else:
+            raise IndexError("search_name or search should be iterable")
+
     else:
-        raise IndexError("len name large than index")
+        zeros = [list(range(len(iters[0])))]
+        zeros.extend([list(_) for _ in iters])
+        iters = zeros
+        zips = list(zip(*iters))
+
+        if isinstance(search, Iterable):
+            search_index = [iters[search_which].index(i) for i in search]
+            results = [zips[i] for i in search_index]
+        else:
+            raise IndexError("search_name or search should be iterable")
+
+        res = list(zip(*results))
+        return_res = [res[_] for _ in return_which]
+        if len(return_which) == 1:
+            return_res = return_res[0]
+        return return_res

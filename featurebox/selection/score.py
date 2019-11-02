@@ -11,6 +11,7 @@
 """
 
 import warnings
+
 from sklearn import utils, kernel_ridge, gaussian_process, ensemble, linear_model, neighbors, preprocessing
 from sklearn.ensemble import AdaBoostClassifier, AdaBoostRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
@@ -397,4 +398,3 @@ def score_muti(x_select, y, me="reg", paras=True, method_name=None, shrink=2, st
 if __name__ == "__main__":
     a = dict_method_clf()
     b = dict_method_reg()
-    print("ok")

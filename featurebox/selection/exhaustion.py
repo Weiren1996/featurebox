@@ -13,6 +13,7 @@ the estimator_ is the model with the best feature rather than all feature combin
 import warnings
 from functools import partial
 from itertools import combinations
+
 import numpy as np
 from joblib import effective_n_jobs, Parallel, delayed
 from sklearn.base import BaseEstimator
@@ -22,6 +23,7 @@ from sklearn.feature_selection.base import SelectorMixin
 from sklearn.model_selection import cross_val_score
 from sklearn.utils.metaestimators import if_delegate_has_method
 from sklearn.utils.validation import check_is_fitted, check_X_y
+
 from .mutibase import MutiBase
 
 warnings.filterwarnings("ignore")
@@ -32,7 +34,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
     the estimator_ is the model with the best feature rather than all feature combination
     """
 
-    def __init__(self, estimator, n_select=(3, 4), muti_grade=2, muti_index=None, must_index=None, n_jobs=1):
+    def __init__(self, estimator, n_select=(2, 3, 4), muti_grade=2, muti_index=None, must_index=None, n_jobs=1):
         """
 
         :param estimator: and sklearn model or GridSearchCV
@@ -125,7 +127,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
 
     @if_delegate_has_method(delegate='estimator')
     def predict(self, X):
-        """Reduce X to the selected feature and then predict using the
+        """Reduce X to the selected feature and then Fit using the
            underlying estimator.
 
         Parameters
@@ -139,7 +141,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
             The predicted target values.
         """
         check_is_fitted(self, 'estimator_')
-        return self.estimator_.predict(self.transform(X))
+        return self.estimator_.Fit(self.transform(X))
 
     @if_delegate_has_method(delegate='estimator')
     def score(self, X, y):

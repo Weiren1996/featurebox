@@ -11,7 +11,9 @@
 """
 import copy
 import random
+
 import numpy as np
+
 from .mutibase import MutiBase
 
 
@@ -99,7 +101,6 @@ class Corr(MutiBase):
         else:
             pass
 
-
     def count_cof(self, cof=None):
 
         """check cof and count the number"""
@@ -114,7 +115,7 @@ class Corr(MutiBase):
         for i in range(cof.shape[0]):
             e = np.where(g[0] == i)
             com = list(g[1][e])
-            # com.remove(i)
+            # ele_ratio.remove(i)
             list_count.append(com)
             list_coef.append([cof[i, j] for j in com])
         self.list_coef = list_coef

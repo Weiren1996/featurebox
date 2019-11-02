@@ -10,7 +10,9 @@
 
 import copy
 from functools import partial
+
 import numpy as np
+from joblib import effective_n_jobs, Parallel, delayed
 from sklearn.base import BaseEstimator, is_classifier
 from sklearn.base import MetaEstimatorMixin
 from sklearn.base import clone
@@ -18,9 +20,9 @@ from sklearn.feature_selection.base import SelectorMixin
 from sklearn.metrics import check_scoring
 from sklearn.model_selection import check_cv
 from sklearn.model_selection._validation import _score, cross_val_score
-from joblib import effective_n_jobs, Parallel, delayed
 from sklearn.utils.metaestimators import if_delegate_has_method, _safe_split
 from sklearn.utils.validation import check_is_fitted, check_X_y, check_random_state
+
 from .mutibase import MutiBase
 
 
@@ -46,7 +48,7 @@ def _baf_single_fit(baf, estimator, X, y, train, test, scorer, random_state):
     baf_i = clone(baf)
     baf_i.random_state = random_state
     baf_i._fit(X_train, y_train)
-    return baf_i.support_, _score(baf_i.estimator_, baf_i.transform(X_test), y_test, scorer), baf_i.score_
+    return baf_i.support_, _score(baf_i.estimator_, baf_i.transform(X_test, ), y_test, scorer), baf_i.score_
 
 
 class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
@@ -225,7 +227,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
 
     @if_delegate_has_method(delegate='estimator')
     def predict(self, X):
-        """Reduce X to the selected feature and then predict using the
+        """Reduce X to the selected feature and then Fit using the
            underlying estimator.
 
         Parameters
@@ -239,7 +241,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
             The predicted target values.
         """
         check_is_fitted(self, 'estimator_')
-        return self.estimator_.predict(self.transform(X))
+        return self.estimator_.Fit(self.transform(X))
 
     @if_delegate_has_method(delegate='estimator')
     def score(self, X, y):
@@ -406,7 +408,7 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
 
     @if_delegate_has_method(delegate='estimator')
     def predict(self, X):
-        """Reduce X to the selected feature and then predict using the
+        """Reduce X to the selected feature and then Fit using the
            underlying estimator.
 
         Parameters
@@ -420,7 +422,7 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
             The predicted target values.
         """
         check_is_fitted(self, 'estimator_')
-        return self.estimator_.predict(self.transform(X))
+        return self.estimator_.Fit(self.transform(X))
 
     @if_delegate_has_method(delegate='estimator')
     def score(self, X, y):

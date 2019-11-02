@@ -30,14 +30,12 @@ eg:
 plt.sca(ax1)
 plt.sca(ax2)
 """
+import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib import rcParams
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import numpy as np
 from scipy.stats import pearsonr
 
 
@@ -327,4 +325,4 @@ if __name__ == '__main__':
 
     x_cof = lin_cof(datax)
     cof_sel_plot(x_cof, name0, threshold=0.4)
-    cof_plot(x_cof, name0)
+    # cof_plot(x_cof, name0)
