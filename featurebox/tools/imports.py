@@ -17,15 +17,17 @@ from collections import defaultdict
 from functools import partial
 from pathlib import Path
 from warnings import warn
+
+import joblib
 import pandas as pd
 import requests
-import joblib
 
 
 class Call(object):
     """
     call file in paths
     """
+
     @staticmethod
     def extension(index_col=0):
         read_csv = partial(pd.read_csv, index_col=index_col)
@@ -188,4 +190,3 @@ class Call(object):
         if name in self.__extension__:
             return self.__class__(*self._paths, backend=name, prefix=self._prefix)
         raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
-

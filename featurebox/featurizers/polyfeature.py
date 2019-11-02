@@ -35,7 +35,7 @@ class PolyFeaturizer(BaseFeaturizer, ABC):
 
     @staticmethod
     def _combinations(n_features, degree):
-        assert len(degree)**n_features <= 1e6, "too much degree to calculate, plese depress the degree"
+        assert len(degree) ** n_features <= 1e6, "too much degree to calculate, plese depress the degree"
         return permutations(degree, n_features)
 
     def fit(self, X, **kwargs):
@@ -52,12 +52,12 @@ class PolyFeaturizer(BaseFeaturizer, ABC):
         if n_features != self.n_input_features_:
             raise ValueError("X shape does not match training shape")
 
-        combinations = self._combinations(n_features, self.degree,)
+        combinations = self._combinations(n_features, self.degree, )
         columns = []
         for comb in combinations:
             out_col = 1
             for col_idx, combi in enumerate(comb):
-                out_col = X[:, col_idx]**combi*out_col
+                out_col = X[:, col_idx] ** combi * out_col
             columns.append(out_col)
         XP = np.vstack(columns).T
         return XP

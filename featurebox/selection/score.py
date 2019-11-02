@@ -210,7 +210,8 @@ def dict_method_reg():
     """6GPR"""
     # kernel = 1.0 * RBF(1.0)
     kernel = 2 * Matern(nu=1.5)
-    me6 = gaussian_process.GaussianProcessRegressor(kernel=kernel, alpha=1e-10, optimizer='fmin_l_bfgs_b', n_restarts_optimizer=0,
+    me6 = gaussian_process.GaussianProcessRegressor(kernel=kernel, alpha=1e-10, optimizer='fmin_l_bfgs_b',
+                                                    n_restarts_optimizer=0,
                                                     normalize_y=False, copy_X_train=True, random_state=0)
     cv6 = 5
     scoring6 = 'explained_variance'
@@ -276,7 +277,7 @@ def dict_method_reg():
 
     cv12 = 5
     scoring12 = 'explained_variance'
-    param_grid12 = [{'alpha': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1,10,100,1000]}, ]
+    param_grid12 = [{'alpha': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 10, 100, 1000]}, ]
     dict_method.update({"Lasso-L1": [me12, cv12, scoring12, param_grid12]})
 
     """SGDRL1"""

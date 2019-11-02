@@ -11,6 +11,7 @@ cluster the feature and plot
 """
 
 import warnings
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -22,7 +23,6 @@ warnings.filterwarnings("ignore")
 
 
 def cluster(data_t, eps=1, dra=False):
-
     distance_cof = pairwise_distances(data_t, metric='correlation')
 
     def my_ravel(data_cof):
@@ -79,7 +79,8 @@ def cluster(data_t, eps=1, dra=False):
         # pos = {i: j for i, j in enumerate(poss)}
 
         nx.draw(g, pos, labels={i: i for i in core}, edgelist=edges, edge_color=np.around(weights, decimals=1) ** 0.5,
-                edge_cmap=plt.cm.Blues_r, edge_labels=nx.get_edge_attributes(g, 'weight'), edge_vmax=0.7, node_color=np.array(label) + 1, vmin=0,
+                edge_cmap=plt.cm.Blues_r, edge_labels=nx.get_edge_attributes(g, 'weight'), edge_vmax=0.7,
+                node_color=np.array(label) + 1, vmin=0,
                 node_cmap=plt.cm.tab20c, node_size=nodesize, width=weights,
                 )
 

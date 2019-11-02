@@ -247,7 +247,8 @@ def cof_plot(x_cof0, x_name):
         for j in range(i):
             ax = plt.subplot(gs[i, j])
             ax.pie((size[i, j], or_size[i, j]), explode=explode, labels=None, autopct=None, shadow=False, startangle=90,
-                   colors=[outer_colors[i, j], 'w'], wedgeprops=dict(width=1, edgecolor='black',linewidth=0.5), counterclock=False,
+                   colors=[outer_colors[i, j], 'w'], wedgeprops=dict(width=1, edgecolor='black', linewidth=0.5),
+                   counterclock=False,
                    frame=False, center=(0, 0), )
             ax.set_xlim(-1, 1)
             ax.axis('equal')
@@ -289,7 +290,8 @@ def cof_sel_plot(x_cof0, x_name, threshold=None):
         for j in range(i):
             ax = plt.subplot(gs[i, j])
             ax.pie((size[i, j], or_size[i, j]), explode=explode, labels=None, autopct=None, shadow=False, startangle=90,
-                   colors=[outer_colors[i, j], 'w'], wedgeprops=dict(width=1, edgecolor='black',linewidth=0.5), counterclock=False,
+                   colors=[outer_colors[i, j], 'w'], wedgeprops=dict(width=1, edgecolor='black', linewidth=0.5),
+                   counterclock=False,
                    frame=False, center=(0, 0), )
             ax.set_xlim(-1, 1)
             ax.axis('equal')

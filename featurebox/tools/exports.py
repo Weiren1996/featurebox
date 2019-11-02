@@ -14,9 +14,9 @@
 import os
 from os import remove
 
+import joblib
 import numpy as np
 import pandas as pd
-import joblib
 
 
 class Store(object):

@@ -259,7 +259,6 @@ if __name__ == "__main__":
                       inter_add=True, iner_add=False, random_add=False, score=[explained_variance_score, r2_score])
     ret = result[2][1]
 
-
 # if __name__ == "__main__":
 #     store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp_last\4.symbollearning')
 #     data_cluster = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',

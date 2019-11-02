@@ -1,1 +1,1 @@
-__all__ = ["incorporation","symbolbase"]
+__all__ = ["incorporation", "symbolbase"]

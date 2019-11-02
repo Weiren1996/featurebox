@@ -112,7 +112,6 @@ if __name__ == '__main__':
     label[0] = 2
     label[2] = 3
     label[6] = 4
-    cluster_printting(slices=X_frame_abbr, node_color=label, edge_color_pen=0.5, binary_distance=co.cov_shrink, print_noise=0, node_name=X_frame_abbr,
+    cluster_printting(slices=X_frame_abbr, node_color=label, edge_color_pen=0.5, binary_distance=co.cov_shrink,
+                      print_noise=0, node_name=X_frame_abbr,
                       )
-
-

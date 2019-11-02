@@ -40,6 +40,7 @@ warnings.filterwarnings("ignore")
 
 __type__ = object
 
+
 class FixedTerminal(object):
     """
 
@@ -1268,8 +1269,8 @@ def generate(pset, min_, max_, condition, type_=None):
             except IndexError:
                 _, _, traceback = sys.exc_info()
                 raise IndexError("The gp.generate function tried to add " \
-                                  "a terminal of type '%s', but there is " \
-                                  "none available." % (type_,)).with_traceback(traceback)
+                                 "a terminal of type '%s', but there is " \
+                                 "none available." % (type_,)).with_traceback(traceback)
             if isclass(term):
                 term = term()
             expr.append(term)
@@ -1279,8 +1280,8 @@ def generate(pset, min_, max_, condition, type_=None):
             except IndexError:
                 _, _, traceback = sys.exc_info()
                 raise IndexError("The gp.generate function tried to add " \
-                                  "a primitive of type '%s', but there is " \
-                                  "none available." % (type_,)).with_traceback(traceback)
+                                 "a primitive of type '%s', but there is " \
+                                 "none available." % (type_,)).with_traceback(traceback)
             expr.append(prim)
             for arg in reversed(prim.args):
                 stack.append((depth + 1, arg))
@@ -1325,6 +1326,7 @@ def cxOnePoint(ind1, ind2):
         ind1[slice1], ind2[slice2] = ind2[slice2], ind1[slice1]
 
     return ind1, ind2
+
 
 def genFull(pset, min_, max_, type_=None):
     """Generate an expression where each leaf has a the same depth
@@ -1411,6 +1413,7 @@ def mutNodeReplacement(individual, pset):
 
     return individual,
 
+
 def selRandom(individuals, k):
     """select_gs *k* individuals at random from the input *individuals* with
     replacement. The list returned contains references to the input
@@ -1424,6 +1427,7 @@ def selRandom(individuals, k):
     python base :mod:`random` module.
     """
     return [random.choice(individuals) for i in range(k)]
+
 
 def selTournament(individuals, k, tournsize, fit_attr="fitness"):
     """select_gs the best individual among *tournsize* randomly chosen
@@ -1444,6 +1448,7 @@ def selTournament(individuals, k, tournsize, fit_attr="fitness"):
         aspirants = selRandom(individuals, tournsize)
         chosen.append(max(aspirants, key=attrgetter(fit_attr)))
     return chosen
+
 
 def varAnd(population, toolbox, cxpb, mutpb):
     """Part of an evolutionary algorithm applying only the variation part
@@ -1495,6 +1500,7 @@ def varAnd(population, toolbox, cxpb, mutpb):
             del offspring[i].fitness.values
 
     return offspring
+
 
 @time_this_function
 def mainPart(x_, y_, pset, pop_n=100, random_seed=1, cxpb=0.8, mutpb=0.1, ngen=5, alpha=1,
