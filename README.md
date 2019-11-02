@@ -1,7 +1,5 @@
 <div align="center">
-
   <img src="https://github.com/boliqq07/featurebox/timg.png">
-
 </div>
 
 # What is featurebox project
