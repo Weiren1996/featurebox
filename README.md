@@ -1,10 +1,8 @@
-<p align="center">
-2
-  <img height="200" src="https://github.com/boliqq07/featurebox/timg.png" alt="featurebox">
-3
-</p>
-4
+<div align="center">
 
+  <img src="https://www.github.org/boliqq07/featurebox/timg.png">
+
+</div>
 
 # What is featurebox project
 
