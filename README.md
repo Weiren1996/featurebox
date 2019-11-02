@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/boliqq07/featurebox/blob/master/timg.jpg">
+  <img alt="featurebox" src="https://github.com/boliqq07/featurebox/blob/master/timg.jpg">
 </div>
 
 [![Version](https://img.shields.io/github/tag/boliqq07/featurebox.svg?maxAge=360)](https://github.com/boliqq07/featurebox/releases/latest)
