@@ -7,45 +7,14 @@ sample
 """
 import warnings
 from collections.abc import Iterable
-from functools import partial
 
-import joblib
+import numpy as np
 import sklearn.utils
-from joblib import Parallel, delayed, effective_n_jobs
 from sklearn.utils import check_array
 
+from featurebox.tools.tool import parallize
+
 warnings.filterwarnings("ignore")
-
-
-def parallize(n_jobs, func, iterable, **kwargs):
-    """
-    parallize the function for iterable.
-    use in if __name__ == "__main__":
-
-    Parameters
-    ----------
-    n_jobs:int
-        cpu numbers
-    func:
-        function to calculate
-    iterable:
-        interable object
-    kwargs:
-        kwargs for function
-
-    Returns
-    -------
-    function results
-    """
-
-    func = partial(func, **kwargs)
-    if effective_n_jobs(n_jobs) == 1:
-        parallel, func = list, func
-    else:
-        parallel = Parallel(n_jobs=n_jobs)
-        func = delayed(func)
-
-    return parallel(func(iter_i) for iter_i in iterable)
 
 
 def search_space(*arg):
@@ -96,7 +65,7 @@ class MutilplyEgo:
         def fit_parllize(random_state):
             data_train, y_train = sklearn.utils.resample(x, y, n_samples=None, replace=True,
                                                          random_state=random_state)
-            regclf0.fit()
+            regclf0.fit(data_train, y_train)
             predict_data = regclf0.predict(searchspace0)
             predict_data.ravel()
             return predict_data
@@ -150,7 +119,7 @@ class MutilplyEgo:
         n = y.shape[1]
         if not sign:
             sign = np.array([1] * n)
-        y = y * sign
+        y *= sign
         front_point = []
         for i in range(m):
             data_new = y[i, :].reshape(1, -1) - y
@@ -232,45 +201,44 @@ class MutilplyEgo:
         result1 = result1[max_paixu]
         return result1
 
-
-if __name__ == '__main__':
-    import numpy as np
-    import pandas as pd
-    from sklearn.decomposition import PCA
-    from sklearn.preprocessing import StandardScaler
-    import os
-
-    warnings.filterwarnings("ignore")
-
-    os.chdir(r'C:/Users/Administrator/Desktop/')
-    svr = joblib.load("SVR")
-    svr_el = joblib.load("svr-el")
-    file_path = r'C:/Users/Administrator/Desktop/对应版.csv'
-    data = pd.read_csv(file_path)
-    X = data.iloc[:, :-2].values
-    y = data.iloc[:, -2:].values
-
-    pca = PCA()
-    X = pca.fit_transform(X)
-
-    scalar = StandardScaler()
-    X = scalar.fit_transform(X)
-
-    searchspace = [
-        np.arange(0, 0.6, 0.3),
-        np.arange(0, 2, 1),
-        np.arange(0, 2, 1),
-        np.array([8, 16]),
-        np.array([9, 18]),
-        np.arange(0, 5, 2.5),
-        np.arange(800, 1300, 250),
-        np.arange(200, 800, 300),
-        np.array([20, 80, 138, 250]),
-    ]
-    searchspace = search_space(*searchspace)
-    searchspace = pca.transform(searchspace)
-    searchspace = scalar.transform(searchspace)
-    me = MutilplyEgo(searchspace, X, y, 100, [svr, svr_el], feature_slice=None, n_jobs=2)
-    meanandstd = me.Fit()
-    front_point = me.pareto_front_point()
-    pi = me.CalculateEi()
+# if __name__ == '__main__':
+#     import numpy as np
+#     import pandas as pd
+#     from sklearn.decomposition import PCA
+#     from sklearn.preprocessing import StandardScaler
+#     import os
+#
+#     warnings.filterwarnings("ignore")
+#
+#     os.chdir(r'C:/Users/Administrator/Desktop/')
+#     svr = joblib.load("SVR")
+#     svr_el = joblib.load("svr-el")
+#     file_path = r'C:/Users/Administrator/Desktop/对应版.csv'
+#     data = pd.read_csv(file_path)
+#     X = data.iloc[:, :-2].values
+#     y = data.iloc[:, -2:].values
+#
+#     pca = PCA()
+#     X = pca.fit_transform(X)
+#
+#     scalar = StandardScaler()
+#     X = scalar.fit_transform(X)
+#
+#     searchspace = [
+#         np.arange(0, 0.6, 0.3),
+#         np.arange(0, 2, 1),
+#         np.arange(0, 2, 1),
+#         np.array([8, 16]),
+#         np.array([9, 18]),
+#         np.arange(0, 5, 2.5),
+#         np.arange(800, 1300, 250),
+#         np.arange(200, 800, 300),
+#         np.array([20, 80, 138, 250]),
+#     ]
+#     searchspace = search_space(*searchspace)
+#     searchspace = pca.transform(searchspace)
+#     searchspace = scalar.transform(searchspace)
+#     me = MutilplyEgo(searchspace, X, y, 100, [svr, svr_el], feature_slice=None, n_jobs=2)
+#     meanandstd = me.Fit()
+#     front_point = me.pareto_front_point()
+#     pi = me.CalculateEi()

@@ -1,1 +1,1 @@
-__all__ = ["exports", "fetcher", "imports", "show", "tool"]
+__all__ = ["exports", "fetcher", "imports", "show", "tool", "quickmethod"]

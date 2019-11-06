@@ -16,9 +16,9 @@ from sklearn import utils, preprocessing
 from sklearn.model_selection import GridSearchCV
 
 from featurebox.selection.exhaustion import Exhaustion
-from featurebox.selection.score import dict_method_reg
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
+from featurebox.tools.quickmethod import dict_method_reg
 from featurebox.tools.show import BasePlot
 from featurebox.tools.tool import name_to_name
 

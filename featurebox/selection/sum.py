@@ -3,7 +3,7 @@
 # @Time   : 2019/7/13 19:27
 # @Author : Administrator
 # @Project : feature_toolbox
-# @FileName: sum.py
+# @FileName: test_sum.py
 # @Software: PyCharm
 
 """
@@ -90,11 +90,12 @@ class SUM(UGS):
 
     def distance_method(self):
         cal_binary_distance_all_model = [self.cal_binary_distance_all(estimator_i=i) for i in self.estimator_n]
-        score_all_model = [self.score_all(estimator_i=i)[:, 0] for i in self.estimator_n]
+        score_all_model = [self.cv_score_all(estimator_i=i) for i in self.estimator_n]
         max_node = [[np.argmax(_)] for _ in score_all_model]
-        l = len(score_all_model[0])
+        print("best node for different model", max_node)
+        long = len(score_all_model[0])
         iter_ = np.linspace(np.min(np.array(cal_binary_distance_all_model)),
-                            np.max(np.array(cal_binary_distance_all_model)), num=100 * l)
+                            np.max(np.array(cal_binary_distance_all_model)), num=100 * long)
 
         # unify = [np.max(_) for _ in cal_binary_distance_all_model]
         # cal_binary_distance_all_model = [i / j for i, j in zip(cal_binary_distance_all_model, unify)]
@@ -102,20 +103,21 @@ class SUM(UGS):
         rank = []
         distance = []
         for steps in iter_:
-            circle = set(list(range(l)))
+            circle = set(list(range(long)))
             for dis_all, score_all, max_node_i in zip(cal_binary_distance_all_model, score_all_model, max_node):
                 circle_i = set(np.where(dis_all[:, max_node_i[0]] <= steps)[0])
                 circle &= circle_i
-            print(circle, steps)
             addd = list(circle - set(rank))
             if addd:
                 rank.extend(list(circle - set(rank)))
                 distance.extend([steps] * len(addd))
-        return rank
+
+        slices_rank = [str(self.slices[i]) for i in rank]
+        return list(zip(rank, slices_rank, distance))
 
     def kk_distance_method(self):
         cal_binary_distance_all_model = [self.cal_binary_distance_all(estimator_i=i) for i in self.estimator_n]
-        score_all_model = [self.score_all(estimator_i=i)[:, 0] for i in self.estimator_n]
+        score_all_model = [self.cv_score_all(estimator_i=i) for i in self.estimator_n]
         KK_dis_all_model = [_kamada_kawai_solve(_, dim=2) for _ in cal_binary_distance_all_model]
 
         def cal_r(kk):
@@ -130,31 +132,53 @@ class SUM(UGS):
         # cal_binary_distance_all_model = [i / j for i, j in zip(cal_binary_distance_all_model, unify)]
 
         max_node = [[np.argmax(_)] for _ in score_all_model]
-        l = len(score_all_model[0])
+        print("best node for different model", max_node)
+        long = len(score_all_model[0])
         iter_ = np.linspace(np.min(np.array(cal_binary_distance_all_model)),
-                            np.max(np.array(cal_binary_distance_all_model)), num=100 * l)
+                            np.max(np.array(cal_binary_distance_all_model)), num=100 * long)
 
         rank = []
         distance = []
         for steps in iter_:
-            circle = set(list(range(l)))
+            circle = set(list(range(long)))
             for dis_all, score_all, max_node_i in zip(cal_binary_distance_all_model, score_all_model, max_node):
                 circle_i = set(np.where(dis_all[:, max_node_i[0]] <= steps)[0])
                 circle &= circle_i
-            print(circle, steps)
+            addd = list(circle - set(rank))
+            if addd:
+                rank.extend(list(circle - set(rank)))
+                distance.extend([steps] * len(addd))
+        slices_rank = [str(self.slices[i]) for i in rank]
+
+        return list(zip(rank, slices_rank, distance))
+
+    def y_distance_method(self):
+        cal_y_distance_all_model = [self.cal_y_distance_all(estimator_i=i) for i in self.estimator_n]
+
+        long = len(cal_y_distance_all_model[0])
+        iter_ = np.linspace(np.min(np.array(cal_y_distance_all_model)),
+                            np.max(np.array(cal_y_distance_all_model)), num=100 * long)
+        rank = []
+        distance = []
+        for steps in iter_:
+            circle = set(list(range(long)))
+            for dis_all in cal_y_distance_all_model:
+                circle_i = set(np.where(dis_all <= steps)[0])
+                circle &= circle_i
             addd = list(circle - set(rank))
             if addd:
                 rank.extend(list(circle - set(rank)))
                 distance.extend([steps] * len(addd))
 
-        return list(zip(rank, distance))
+        slices_rank = [str(self.slices[i]) for i in rank]
+
+        return list(zip(rank, slices_rank, distance))
 
     def pareto_method(self, sign=None):
-        y = np.array([self.score_all(estimator_i=i)[:, 0] for i in self.estimator_n]).T
+        y = np.array([self.cv_score_all(estimator_i=i) for i in self.estimator_n]).T
         std_ = np.std(y, axis=1)
         m = y.shape[0]
         n = y.shape[1]
-        print(m, n)
         if not sign:
             sign = np.array([1] * n)
         y = y * sign
@@ -171,11 +195,14 @@ class SUM(UGS):
         front_point_rank = front_point[rank_]
         std_front_rank = std_front[rank_]
 
-        return list(zip(front_point_rank, std_front_rank))
+        slices_rank = [str(self.slices[i]) for i in front_point_rank]
+
+        return list(zip(front_point_rank, slices_rank, std_front_rank))
 
     def mean_max_method(self):
-        score_all = np.array([self.score_all(estimator_i=i)[:, 0] for i in self.estimator_n]).T
+        score_all = np.array([self.cv_score_all(estimator_i=i) for i in self.estimator_n]).T
         score = np.mean(score_all, axis=1)
         rank = np.argsort(score)[::-1]
         score_ranked = score[rank]
-        return list(zip(rank, score_ranked))
+        slices_rank = [str(self.slices[i]) for i in rank]
+        return list(zip(rank, slices_rank, score_ranked))

@@ -895,7 +895,7 @@ def calculateExpr(expr01, pset, x, y, score_method=explained_variance_score, add
         assert y.shape == re.shape
         assert_all_finite(re)
         check_array(re, ensure_2d=False)
-        score = score_method(re, y)
+        score = score_method(y, re)
     except (ValueError, DataConversionWarning, TypeError, NameError, KeyError, AssertionError, AttributeError):
         score = -0
     else:

@@ -6,10 +6,10 @@ import pandas as pd
 from sklearn import preprocessing, utils
 from sklearn.model_selection import GridSearchCV
 
-from featurebox.selection.score import dict_method_reg
 from featurebox.selection.sum import SUM
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
+from featurebox.tools.quickmethod import dict_method_reg
 from featurebox.tools.tool import name_to_name
 
 warnings.filterwarnings("ignore")
@@ -72,14 +72,14 @@ if __name__ == '__main__':
     self = SUM(estimator_all, index_all, estimator_n=[0, 1, 2, 3], n_jobs=3)
     self.fit(X, y)
 
-    c = self.score_all(estimator_i=0)
+    c = self.cv_score_all(estimator_i=0)
     d = self.cal_binary_distance_all(estimator_i=0)
     self.cluster_print(d, label=None, eps=0.001, print_noise=0.001, node_name=None, highlight=[3])
 
     cal_binary_distance_all_model = [self.cal_binary_distance_all(estimator_i=i) for i in self.estimator_n]
     self.cluster_print(cal_binary_distance_all_model[2], label=None, eps=0.1, print_noise=0.01, node_name=None,
                        highlight=None)
-    score_all_model = [self.score_all(estimator_i=i)[:, 0] for i in self.estimator_n]
+    score_all_model = [self.cv_score_all(estimator_i=i)[:, 0] for i in self.estimator_n]
 
     sss = self.kk_distance_method()
     sss2 = self.pareto_method()

@@ -16,6 +16,7 @@ key:
 
 node == feature subset
 """
+import copy
 import functools
 import itertools
 import warnings
@@ -27,11 +28,14 @@ from operator import itemgetter
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-from joblib import effective_n_jobs, Parallel, delayed
 from scipy import spatial
 from sklearn import metrics, preprocessing
 from sklearn.cluster import DBSCAN
-from sklearn.utils import check_X_y, resample
+from sklearn.metrics import r2_score
+from sklearn.model_selection import KFold, GridSearchCV
+from sklearn.utils import check_X_y
+
+from featurebox.tools.tool import parallize
 
 warnings.filterwarnings("ignore")
 
@@ -91,7 +95,7 @@ def cluster_printing(slices, node_color, edge_color_pen=0.7, binary_distance=Non
         lab = {i: i for i in range(le)}
     else:
         assert binary_distance.shape[0] or len(slices) == len(node_name)
-        if isinstance(node_name[0], list):
+        if isinstance(node_name, list) and isinstance(node_name[0], list):
             strr = ","
             node_name = [strr.join(i) for i in node_name]
         lab = {i: j for i, j in enumerate(node_name)}
@@ -202,7 +206,7 @@ class GS(object):
 
     """
 
-    def __init__(self, estimator, slices, estimator_i=0, n_jobs=2, n_resample=10):
+    def __init__(self, estimator, slices, estimator_i=0, n_jobs=2):
         """
 
         Parameters
@@ -222,9 +226,10 @@ class GS(object):
             self.estimator = estimator
         else:
             self.estimator = [estimator, ]
+        for i in self.estimator:
+            assert isinstance(i, GridSearchCV)
         self.predict_y = []  # changed with estimator_i
         self.n_jobs = n_jobs
-        self.n_resample = n_resample
 
     def fit(self, x, y):
         """
@@ -236,64 +241,66 @@ class GS(object):
         x, y = check_X_y(x, y, "csc")
         self.x0 = x
         self.y0 = y
+        n_splits = 5
+        kf = KFold(n_splits=n_splits, shuffle=False)
+        self.kf = list(kf.split(x))
+        self.metrics_method = r2_score
+
+    @functools.lru_cache(1024)
+    def _cv_predict(self, slices_i, estimator_i):
+        """ Fit y with in slices_i,resample for n_resample times """
+        estimator = self.estimator[estimator_i]
+        assert isinstance(estimator, GridSearchCV)
+        x0 = self.x0
+        y0 = self.y0
+        kf = self.kf
+        slices_i = list(slices_i)
+        if len(slices_i) <= 1:
+            raise ValueError("feature number should large than 1")
+        else:
+            data_x0 = x0[:, slices_i]
+            estimator.fit(data_x0, y0)
+            x, y = data_x0, y0
+
+            s_estimator = copy.deepcopy(estimator.best_estimator_)
+
+            y_test_predict_all = []
+            for train, test in kf:
+                X_train, X_test, y_train, y_test = x[train], x[test], y[train], y[test]
+                s_estimator.fit(X_train, y_train)
+                y_test_predict = s_estimator.predict(X_test)
+                y_test_predict_all.append(y_test_predict)
+
+        return y_test_predict_all
+
+    def _cv_predict_all(self, slices=None, estimator_i=0):
+        """ calculate binary distance of 2 nodes """
+        self.estimator_i = estimator_i if isinstance(estimator_i, int) else self.estimator_i
+        self.slices = slices if slices else self.slices
+        slices = self.slices
+        n_jobs = self.n_jobs
+
+        cal_score = partial(self.predict)
+
+        result = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
+
+        return result
 
     def predict(self, slice_i):
         """change type """
         estimator_i = self.estimator_i
-        return self._predict(tuple(slice_i), estimator_i)
+        return self._cv_predict(tuple(slice_i), estimator_i)
 
-    @functools.lru_cache(1024)
-    def _predict(self, slices_i, estimator_i):
-        """ Fit y with in slices_i,resample for n_resample times """
-        n_resample = self.n_resample
-        estimator = self.estimator[estimator_i]
-        x0 = self.x0
-        y0 = self.y0
-
-        slices_i = list(slices_i)
-        if len(slices_i) <= 1:
-            y_predict_all = np.zeros((n_resample, x0.shape[0]))
-        else:
-            data_x0 = x0[:, slices_i]
-            estimator.fit(data_x0, y0)
-            if hasattr(estimator, 'best_estimator_'):
-                estimator = estimator.best_estimator_
-            else:
-                pass
-            # y_predict = cross_val_predict(estimator, data_x0, y0, cv=5)
-
-            y_predict_all = []
-            for i in range(n_resample):
-                data_train, y_train = resample(data_x0, y0, n_samples=None, replace=True, random_state=i)
-                estimator.fit(data_train, y_train)
-                y_predict = estimator.predict(data_x0)
-                y_predict_all.append(y_predict)
-            y_predict_all = np.array(y_predict_all)
-
-        return y_predict_all
-
-    def score(self, slices_i):
-        """
-        Parameters
-        ----------
-        slices_i:list
-            the index of X.
-
-        Returns
-        -------
-            r2 score mean
-            r2 score std
-
-        """
-        y_pre = self.predict(list(slices_i))
-
-        score = [metrics.r2_score(y_pre_i, self.y0) for y_pre_i in y_pre]
-        score = [score_i if score_i >= 0 else 0 for score_i in score]
+    def cv_score(self, slices_i):
+        y_test_predict_all = self.predict(slices_i)
+        test_index = [i[1] for i in self.kf]
+        y_test_true_all = [self.y0[_] for _ in test_index]
+        score = [self.metrics_method(i, j) for i, j in zip(y_test_true_all, y_test_predict_all, )]
         score_mean = np.mean(score)
-        score_std = np.std(score)
-        return score_mean, score_std
 
-    def score_all(self, slices=None, estimator_i=0):
+        return score_mean
+
+    def cv_score_all(self, slices=None, estimator_i=0):
         """score all node with r2
 
         Parameters
@@ -318,50 +325,53 @@ class GS(object):
         slices = self.slices
         n_jobs = self.n_jobs
 
-        cal_score = partial(self.score)
+        cal_score = partial(self.cv_score)
 
-        if effective_n_jobs(n_jobs) == 1:
-            parallel, func = list, cal_score
-        else:
-            parallel = Parallel(n_jobs=n_jobs)
-            func = delayed(cal_score)
+        result = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
 
-        score_mean_std = parallel(func(slicesi) for slicesi in slices)
-        return np.array(score_mean_std)
+        return np.array(result)
 
-    def predict_mean(self, slices_i):
-        """ calculate the mean of all predict_y """
-        y_predict_all = self.predict(slices_i)
-        y_mean = np.mean(y_predict_all, axis=0)
+    def cal_y_distance(self, slice1):
+        """ calculate binary distance of 2 nodes """
+        set1 = set(slice1)
 
-        return y_mean
+        test_index = [i[1] for i in self.kf]
+        y_true_all = [self.y0[_] for _ in test_index]
 
-    def cal_predict_mean_all(self, slices=None, estimator_i=3):
+        y_1_all = self.predict(set1)
+        y_2_all = y_1_all
+
+        distance = [spatial.distance.euclidean(i, j) for i, j, k in zip(y_true_all, y_1_all, y_2_all)]
+        # distance = [1 - self.metrics_method(i, j) for i, j, k in zip(y_true_all,y_1_all, y_2_all)]
+        distance = np.mean(distance)
+        distance = distance if distance >= 0 else 0
+        return distance
+
+    def cal_y_distance_all(self, slices=None, estimator_i=0):
         """ calculate binary distance of 2 nodes """
         self.estimator_i = estimator_i if isinstance(estimator_i, int) else self.estimator_i
         self.slices = slices if slices else self.slices
         slices = self.slices
         n_jobs = self.n_jobs
 
-        if effective_n_jobs(n_jobs) == 1:
-            parallel, func = list, self.predict_mean
-        else:
-            parallel = Parallel(n_jobs=n_jobs)
-            func = delayed(self.predict_mean)
+        cal_score = partial(self.cal_y_distance)
 
-        predict_mean_all = parallel(func(slicesi) for slicesi in slices)
-        return np.array(predict_mean_all)
+        result = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
+        return np.array(result)
 
     def cal_binary_distance(self, slice1, slice2):
         """ calculate binary distance of 2 nodes """
         set1 = set(slice1)
         set2 = set(slice2)
-        # set0 = set1 & set2
-        y1 = self.predict_mean(set1)
-        y2 = self.predict_mean(set2)
-        # y0 = self.predict_mean(set0)
-        # distance = spatial.distance.euclidean(y1 - y0, y2 - y0)
-        distance = spatial.distance.euclidean(y1 - self.y0, y2 - self.y0)
+
+        test_index = [i[1] for i in self.kf]
+        y_true_all = [self.y0[_] for _ in test_index]
+        y_1_all = self.predict(set1)
+        y_2_all = self.predict(set2)
+
+        distance = [spatial.distance.euclidean(j, k) for i, j, k in zip(y_true_all, y_1_all, y_2_all)]
+        # distance = [1 - self.metrics_method(j, k) for i, j, k in zip(y_true_all, y_1_all, y_2_all)]
+        distance = np.mean(distance)
         distance = distance if distance >= 0 else 0
         return distance
 
@@ -373,13 +383,9 @@ class GS(object):
         n_jobs = self.n_jobs
 
         cal_binary_distance = partial(self.cal_binary_distance)
-        if effective_n_jobs(n_jobs) == 1:
-            parallel, func = list, cal_binary_distance
-        else:
-            parallel = Parallel(n_jobs=n_jobs)
-            func = delayed(cal_binary_distance)
+
         slices_cuple = list(itertools.product(slices, repeat=2))
-        distance = parallel(func(*slicesi) for slicesi in slices_cuple)
+        distance = parallize(n_jobs=n_jobs, func=cal_binary_distance, iterable=slices_cuple, respective=True)
         distance = np.reshape(distance, (len(slices), len(slices)), order='F')
         return distance
 
@@ -431,7 +437,8 @@ class GS(object):
         else:
             binary_distance = pre_binary_distance_all
 
-        pre_y = self.cal_predict_mean_all(slices, self.estimator_i)
+        pre_y = self._cv_predict_all(slices, self.estimator_i)
+        pre_y = np.array([np.concatenate([i.ravel() for i in pre_yi]).T for pre_yi in pre_y])
 
         distances = binary_distance
         if eps:
@@ -486,7 +493,7 @@ class GS(object):
             selected node number in import
         """
 
-        score_all = np.array(self.score_all(self.slices))
+        score_all = np.array(self.cv_score_all(self.slices))
 
         score = score_all[:, 0]
         std = score_all[:, 1]
@@ -529,7 +536,7 @@ class UGS(GS):
 
     """
 
-    def __init__(self, estimator, slices, estimator_n=None, n_jobs=2, estimator_i=0, n_resample=10):
+    def __init__(self, estimator, slices, estimator_n=None, n_jobs=2, estimator_i=0):
         """
 
         Parameters
@@ -543,7 +550,7 @@ class UGS(GS):
         estimator_n: list
             default indexes of estimator
         """
-        super().__init__(estimator, slices, estimator_i, n_resample=n_resample)
+        super().__init__(estimator, slices, estimator_i)
         if estimator_n is None:
             self.estimator_n = list(range(len(estimator)))
         else:
@@ -618,7 +625,7 @@ class UGS(GS):
 
         """
 
-        score_all = np.array([self.score_all(estimator_i=i)[:, 0] for i in self.estimator_n])
+        score_all = np.array([self.cv_score_all(estimator_i=i)[:, 0] for i in self.estimator_n])
 
         score = np.mean(np.array(score_all), axis=0)
         std = np.std(np.array(score_all), axis=0)

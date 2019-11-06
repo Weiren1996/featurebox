@@ -139,11 +139,11 @@ def load_csv_name(path=r'C:\Users\ww\Desktop', dataname=r'jqxx.txt', skiprow=2):
 
 
 def _pre_add(namei):
-    a = ['He', 'Li', 'Be', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'Cl', 'Ar', 'Ca', 'Sc', 'Ti', 'Cr', 'Mn', 'Fe', 'Co', 'Ni',
-         'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag',
-         'Cd', 'In', 'Sn', 'Sb', 'Te', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy',
-         'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At',
-         'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'Np', 'Pu']
+    a_ = ['He', 'Li', 'Be', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'Cl', 'Ar', 'Ca', 'Sc', 'Ti', 'Cr', 'Mn', 'Fe', 'Co', 'Ni',
+          'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag',
+          'Cd', 'In', 'Sn', 'Sb', 'Te', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy',
+          'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At',
+          'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'Np', 'Pu']
     b = ['H', 'B', 'C', 'N', 'O', 'F', 'K', 'P', 'S', 'V', 'Y', 'I', 'W', 'U']
 
     num = re.findall(r"\d+\.?\d*", namei)
@@ -160,7 +160,7 @@ def _pre_add(namei):
 
     namej = namei_new
 
-    for x in a:
+    for x in a_:
         namej = re.sub(x, x + '1', namej)
     for x in b:
         namej = re.sub(x, x + '1', namej)
@@ -178,16 +178,16 @@ def _pre_add(namei):
 
 def _bracket_follow(s):
     pre = re.findall(r'\d+\.?\d*\(.+\)\D*', s)
-    l = len(pre)
-    while l > 0:
+    long = len(pre)
+    while long > 0:
         i = pre[0]
-        a, b, c = i.partition("(")
+        a_, b, c = i.partition("(")
         d, e, f = c.partition(")")
-        res = r"(" + d + r")" + a + f
+        res = r"(" + d + r")" + a_ + f
         # s = re.sub(i, res, s, 1)
         s = s.replace(i, res, 1)
         pre = re.findall(r'\d+\.?\d*\(.\)\D*', s)
-        l = len(pre)
+        long = len(pre)
     return s
 
 
@@ -214,13 +214,14 @@ def substutude(s):
     return s
 
 
-a = [substutude(i) for i in [
-    # r"0.8(TiLa2)H2", r"(Ti1.24La)0.2H2", r"(Ti1.24La)0.2", '(Ti1.24La)',
-    '(Ti1.24La3)', '(Ti1.24La)', '(Ti1.24La3)2',
-    "((Ti1.24)2P2)1H0.2", "((Ti1.24)2)1H0.2", "((Ti1.24))1H0.2",
-    r"0.8(TiLa)H2", r"(TiLa)0.2H2",
-    r"(TiLa)0.2", '(TiLa)',
-    '(TiLa3)', '(TiLa)', '(TiLa3)2',
-    "((Ti)2P2)1H0.2", "((Ti)2)1H0.2", "((Ti))1H0.2"
-]]
-transform(a)
+if __name__ == '__main__':
+    a = [substutude(i) for i in [
+        # r"0.8(TiLa2)H2", r"(Ti1.24La)0.2H2", r"(Ti1.24La)0.2", '(Ti1.24La)',
+        '(Ti1.24La3)', '(Ti1.24La)', '(Ti1.24La3)2',
+        "((Ti1.24)2P2)1H0.2", "((Ti1.24)2)1H0.2", "((Ti1.24))1H0.2",
+        r"0.8(TiLa)H2", r"(TiLa)0.2H2",
+        r"(TiLa)0.2", '(TiLa)',
+        '(TiLa3)', '(TiLa)', '(TiLa3)2',
+        "((Ti)2P2)1H0.2", "((Ti)2)1H0.2", "((Ti))1H0.2"
+    ]]
+    transform(a)

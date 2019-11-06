@@ -6,10 +6,10 @@ import pandas as pd
 from sklearn import preprocessing, utils
 from sklearn.model_selection import GridSearchCV
 
-from featurebox.selection.score import dict_method_reg
 from featurebox.selection.ugs import UGS
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
+from featurebox.tools.quickmethod import dict_method_reg
 from featurebox.tools.tool import name_to_name
 
 warnings.filterwarnings("ignore")
@@ -70,9 +70,9 @@ if __name__ == '__main__':
 
     ugs = UGS(estimator_all, index_all, estimator_n=[2, 3], n_jobs=3)
     ugs.fit(X, y)
-    # re = gs.score_all(index_all)
+    # re = gs.cv_score_all(index_all)
     binary_distance = ugs.cal_binary_distance_all(index_all, estimator_i=3)
-    # slice_k  = gs.cal_predict_mean_all(estimator_i=3)
+    # slice_k  = gs._cv_predict_all(estimator_i=3)
     groups = ugs.cal_group(estimator_i=3, printing=True, print_noise=0.2, pre_binary_distance_all=binary_distance)
     ugs.cluster_print(binary_distance, highlight=[1, 2, 3])
 

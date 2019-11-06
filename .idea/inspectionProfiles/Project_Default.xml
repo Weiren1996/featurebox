@@ -36,6 +36,11 @@
           <option value="tuple.x" />
           <option value="matplotlib.cm.Blues_r" />
           <option value="matplotlib.cm.Paired" />
+          <option value="matplotlib.cm.tab20c" />
+          <option value="tuple.mode" />
+          <option value="object.shape" />
+          <option value="str.ravel" />
+          <option value="list.T" />
         </list>
       </option>
     </inspection_tool>

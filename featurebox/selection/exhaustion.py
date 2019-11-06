@@ -15,15 +15,14 @@ from functools import partial
 from itertools import combinations
 
 import numpy as np
-from joblib import effective_n_jobs, Parallel, delayed
 from sklearn.base import BaseEstimator
 from sklearn.base import MetaEstimatorMixin
 from sklearn.base import clone
 from sklearn.feature_selection.base import SelectorMixin
-from sklearn.model_selection import cross_val_score
 from sklearn.utils.metaestimators import if_delegate_has_method
 from sklearn.utils.validation import check_is_fitted, check_X_y
 
+from featurebox.tools.tool import parallize
 from .mutibase import MutiBase
 
 warnings.filterwarnings("ignore")
@@ -78,12 +77,11 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
                 slices = self.feature_unfold(slices)
                 data_x0 = x0[:, slices]
 
-                self.estimator._fit(data_x0, y0)
-                if hasattr(self.estimator, 'best_score_'):
-                    score0 = np.mean(self.estimator.best_score_)
-                else:
-                    score0 = np.mean(cross_val_score(self.estimator, data_x0, y0, cv=5))
-            print(slices, score0)
+                self.estimator.fit(data_x0, y0)
+
+                score0 = np.mean(self.estimator.best_score_)  # score_test
+
+                # print(slices, score0)
             return score0
 
         score = partial(score_pri, x0=x, y0=y)
@@ -100,13 +98,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         slice_all = [combinations(fold_feature_list, i) for i in self.n_select]
         slice_all = [list(self.feature_must_fold(_)) for i in slice_all for _ in i]
 
-        if effective_n_jobs(self.n_jobs) == 1:
-            parallel, func = list, score
-        else:
-            parallel = Parallel(n_jobs=self.n_jobs)
-            func = delayed(score)
-
-        scores = parallel(func(slices) for slices in slice_all)
+        scores = parallize(n_jobs=self.n_jobs, func=score, iterable=slice_all)
 
         feature_combination = [self.feature_unfold(_) for _ in slice_all]
         index = np.argmax(scores)
@@ -117,11 +109,11 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         self.score_ = scores
         self.support_ = su
         self.estimator_ = clone(self.estimator)
-        self.estimator_._fit(x[:, select_feature], y)
+        self.estimator_.fit(x[:, select_feature], y)
         self.n_feature_ = len(select_feature)
         self.score_ex = list(zip(feature_combination, scores))
         self.scatter = list(zip([len(i) for i in slice_all], scores))
-        self.score_ex.sort(key=lambda x: x[1], reverse=True)
+        self.score_ex.sort(key=lambda _: _[1], reverse=True)
 
         return self
 
@@ -141,7 +133,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
             The predicted target values.
         """
         check_is_fitted(self, 'estimator_')
-        return self.estimator_.Fit(self.transform(X))
+        return self.estimator_.predict(self.transform(X))
 
     @if_delegate_has_method(delegate='estimator')
     def score(self, X, y):

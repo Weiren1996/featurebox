@@ -12,7 +12,6 @@ import copy
 from functools import partial
 
 import numpy as np
-from joblib import effective_n_jobs, Parallel, delayed
 from sklearn.base import BaseEstimator, is_classifier
 from sklearn.base import MetaEstimatorMixin
 from sklearn.base import clone
@@ -23,26 +22,12 @@ from sklearn.model_selection._validation import _score, cross_val_score
 from sklearn.utils.metaestimators import if_delegate_has_method, _safe_split
 from sklearn.utils.validation import check_is_fitted, check_X_y, check_random_state
 
+from featurebox.tools.tool import parallize
 from .mutibase import MutiBase
 
 
-def _baf_single_fit(baf, estimator, X, y, train, test, scorer, random_state):
-    """
-
-    Args:
-        baf: d
-        estimator:
-        X:
-        y:
-        train:
-        test:
-        scorer:
-        random_state:
-
-    Returns:
-
-    """
-
+def _baf_single_fit(train, test, baf, estimator, X, y, scorer, random_state):
+    """"""
     X_train, y_train = _safe_split(estimator, X, y, train)
     X_test, y_test = _safe_split(estimator, X, y, test, train)
     baf_i = clone(baf)
@@ -180,7 +165,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
                 slices = self.feature_unfold(slices)
                 data_x0 = x0[:, slices]
 
-                self.estimator._fit(data_x0, y0)
+                self.estimator.fit(data_x0, y0)
                 if hasattr(self.estimator, 'best_score_'):
                     score0 = np.mean(self.estimator.best_score_)
                 else:
@@ -241,7 +226,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
             The predicted target values.
         """
         check_is_fitted(self, 'estimator_')
-        return self.estimator_.Fit(self.transform(X))
+        return self.estimator_.predict(self.transform(X))
 
     @if_delegate_has_method(delegate='estimator')
     def score(self, X, y):
@@ -330,7 +315,6 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
     def __init__(self, estimator, n_type_feature_to_select=None, primary_feature=None, muti_grade=2, muti_index=None,
                  must_index=None, verbose=0, random_state=None,
                  cv=5, scoring="r2", n_jobs=None):
-
         self.estimator = estimator
         self.cv = cv
         self.scoring = scoring
@@ -380,15 +364,9 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
                           muti_grade=self.muti_grade, muti_index=self.muti_index,
                           must_index=self.must_index, random_state=ran)
 
-        if effective_n_jobs(self.n_jobs) == 1:
-            parallel, func = list, _baf_single_fit
-        else:
-            parallel = Parallel(n_jobs=self.n_jobs)
-            func = delayed(_baf_single_fit)
+        func = partial(_baf_single_fit, baf=baf, estimator=self.estimator, X=X, y=y, scorer=scorer, random_state=ran)
 
-        scores = parallel(
-            func(baf, self.estimator, X, y, train, test, scorer, ran)
-            for train, test in cv.split(X, y, groups))
+        scores = parallize(n_jobs=self.n_jobs, func=func, iterable=cv.split(X, y, groups), respective=True)
 
         support, scores, score_step = zip(*scores)
         best_support = support[np.argmax(scores)]
@@ -402,7 +380,7 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
         self.score_cv = scores
         self.score_ = best_score
         self.estimator_ = clone(self.estimator)
-        self.estimator_._fit(X[:, self.support_], y)
+        self.estimator_.fit(X[:, self.support_], y)
         self.n_feature_ = np.count_nonzero(support)
         return self
 
@@ -422,7 +400,7 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
             The predicted target values.
         """
         check_is_fitted(self, 'estimator_')
-        return self.estimator_.Fit(self.transform(X))
+        return self.estimator_.predict(self.transform(X))
 
     @if_delegate_has_method(delegate='estimator')
     def score(self, X, y):

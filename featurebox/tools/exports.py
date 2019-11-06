@@ -21,10 +21,11 @@ import pandas as pd
 
 class Store(object):
     def __init__(self, path=None, filename="filename", prefix: str = None):
-        """
+        r"""
         store file in path
         :param filename: str,universal filename
-        :param paths: None, ..\data_cluster, or F:data_cluster\data1
+        :param path: None, ..
+        \data_cluster, or F:data_cluster\data1
         """
 
         if not prefix:

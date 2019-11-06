@@ -57,13 +57,13 @@ def cluster(data_t, eps=1, dra=False):
     nodesize = [100] * distance_cof.shape[0]
 
     for i in core:
-        nodesize[i] = nodesize[i] * 10
+        nodesize[i] *= 10
     if dra:
         g = nx.Graph()
         distance_weight = list(my_ravel(distance_cof))
         g.add_weighted_edges_from(distance_weight)
         # edges=nx.get_edge_attributes(g, 'weight').items()
-        edges, weights = zip(*nx.get_edge_attributes(g, 'weight').items())
+        # edges, weights = zip(*nx.get_edge_attributes(g, 'weight').items())
         edges, weights = [], []
         for _ in range(len(distance_weight)):
             if distance_weight[_][2] < 0.5:

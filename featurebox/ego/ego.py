@@ -10,13 +10,13 @@ Created on Sun Jan 28 15:24:10 2018
 
 @author: ww
 """
-from functools import partial
 
 import numpy as np
 import sklearn.utils
-from joblib import effective_n_jobs, delayed, Parallel
 from scipy import stats
 from sklearn.utils import check_array
+
+from featurebox.tools.tool import parallize
 
 print('\t\tFor grid building\nsample:\nspace=searchspace(li1,li2,li3)\nNote:parameters no more than 5 ')
 print(
@@ -25,37 +25,6 @@ print(
 print(
     'return:\nresult is 2 dimentions array\n1st column = sequence number,\n2nd part = your searchspace,\n3rd part = '
     'mean,std,ego,kg,maxp,sequentially')
-
-
-def parallize(n_jobs, func, iterable, **kwargs):
-    """
-    parallize the function for iterable.
-    use in if __name__ == "__main__":
-
-    Parameters
-    ----------
-    n_jobs:int
-    cpu numbers
-    func:
-    function to calculate
-    iterable:
-    interable object
-    kwargs:
-    kwargs for function
-
-    Returns
-    -------
-    function results
-    """
-
-    func = partial(func, **kwargs)
-    if effective_n_jobs(n_jobs) == 1:
-        parallel, func = list, func
-    else:
-        parallel = Parallel(n_jobs=n_jobs)
-        func = delayed(func)
-
-    return parallel(func(iter_i) for iter_i in iterable)
 
 
 def search_space(*arg):
@@ -91,7 +60,7 @@ class Ego:
         def fit_parllize(random_state):
             data_train, y_train = sklearn.utils.resample(x, y, n_samples=None, replace=True,
                                                          random_state=random_state)
-            regclf0.fit()
+            regclf0.fit(data_train, y_train)
             predict_data = regclf0.predict(searchspace0)
             predict_data.ravel()
 

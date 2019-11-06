@@ -30,9 +30,16 @@ eg:
 plt.sca(ax1)
 plt.sca(ax2)
 """
+from itertools import product
+
+import matplotlib.gridspec as gridspec
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib import rcParams
+from matplotlib.colorbar import ColorbarBase
+from scipy.stats import pearsonr
 
 
 class BasePlot(object):
@@ -226,14 +233,6 @@ def lin_cof(x0):
             results_list.append(results)
     results1 = np.array(results_list).reshape((x0.shape[-1], x0.shape[-1]))
     return results1
-
-
-from itertools import product
-import matplotlib.gridspec as gridspec
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.colorbar import ColorbarBase
-from scipy.stats import pearsonr
 
 
 def corr_plot(x_cof, x_name=None, left_down=None, right_top=None, threshold_left=0, threshold_right=0.9,

@@ -72,13 +72,14 @@ def check_random_state(seed):
                      ' instance' % seed)
 
 
-def parallize(n_jobs, func, iterable, **kwargs):
+def parallize(n_jobs, func, iterable, respective=False, **kwargs):
     """
     parallize the function for iterable.
     use in if __name__ == "__main__":
 
     Parameters
     ----------
+    respective
     n_jobs:int
         cpu numbers
     func:
@@ -99,8 +100,10 @@ def parallize(n_jobs, func, iterable, **kwargs):
     else:
         parallel = Parallel(n_jobs=n_jobs)
         func = delayed(func)
-
-    return parallel(func(iter_i) for iter_i in iterable)
+    if respective:
+        return parallel(func(*iter_i) for iter_i in iterable)
+    else:
+        return parallel(func(iter_i) for iter_i in iterable)
 
 
 def logg(func, printting=True, reback=False):
@@ -142,35 +145,6 @@ def logg(func, printting=True, reback=False):
             return result
 
     return wrapper
-
-
-# def index_to_name(index, name):
-#     """
-#
-#     Parameters
-#     ----------
-#     index:
-#     index
-#     name:
-#     name
-#
-#     Returns
-#     -------
-#     results
-#     """
-#
-#     if isinstance(name, pd.Series):
-#         name = name.values
-#     if isinstance(index[0], Iterable):
-#         results0 = []
-#         for index_i in index:
-#             results0.append(index_to_name(index_i, name))
-#         return results0
-#     if len(index) <= len(name):
-#         results = [name[i] for i in index]
-#         return results
-#     else:
-#         raise IndexError("len name large than index")
 
 
 def name_to_name(*iters, search=None, search_which=1, return_which=(1,), two_layer=False):

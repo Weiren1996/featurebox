@@ -326,6 +326,9 @@ def score_muti(x_select, y, me="reg", paras=True, method_name=None, shrink=2, st
     x_select, y = utils.shuffle(x_select, y, random_state=1)
     x_select2 = preprocessing.scale(x_select)
 
+    if len(dict_method) > 1 and param_grid is not None:
+        raise IndexError("only single method can accept param_grid, please set one method_name or param_grid=None ")
+
     score_all = []
     estimator = []
 
@@ -394,6 +397,36 @@ def score_muti(x_select, y, me="reg", paras=True, method_name=None, shrink=2, st
         score_all = score_all[0]
         estimator = estimator[0]
     return score_all, estimator
+
+
+def method_pack(method_all, me="reg", gd=True):
+    if not method_all:
+        method_all = ['KNR-set', 'SVR-set', "KR-set"]
+    dict_method = dict_me(me=me)
+
+    print(dict_method.keys())
+    if gd:
+        estimator = []
+        for method in method_all:
+            me2, cv2, scoring2, param_grid2 = dict_method[method]
+            if me == "clf":
+                scoring2 = 'balanced_accuracy'
+            if me == "reg":
+                scoring2 = 'r2'
+            gd2 = GridSearchCV(me2, cv=cv2, param_grid=param_grid2, scoring=scoring2, n_jobs=1)
+            estimator.append(gd2)
+        return estimator
+    else:
+        estimator = []
+        for method in method_all:
+            me2, cv2, scoring2, param_grid2 = dict_method[method]
+            if me == "clf":
+                scoring2 = 'balanced_accuracy'
+            if me == "reg":
+                scoring2 = 'r2'
+            gd2 = cross_val_score(me2, cv=cv2, scoring=scoring2)
+            estimator.append(gd2)
+        return estimator
 
 
 if __name__ == "__main__":

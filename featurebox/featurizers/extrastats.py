@@ -62,6 +62,7 @@ class PropertyStats(object):
         Returns:
             minimum value
         """
+        _ = weights
         return min(data_lst) if not np.any(np.isnan(data_lst)) else float("nan")
 
     @staticmethod
@@ -73,6 +74,7 @@ class PropertyStats(object):
         Returns:
             maximum value
         """
+        _ = weights
         return max(data_lst) if not np.any(np.isnan(data_lst)) else float("nan")
 
     @staticmethod
@@ -84,6 +86,7 @@ class PropertyStats(object):
         Returns:
             range
         """
+        _ = weights
         return (max(data_lst) - min(data_lst)) if not np.any(np.isnan(data_lst)) \
             else float("nan")
 
@@ -298,6 +301,7 @@ class PropertyStats(object):
         """
         Returns the sorted data_lst
         """
+        _ = weights
         return np.sort(data_lst)
 
     @staticmethod
@@ -320,6 +324,7 @@ class PropertyStats(object):
     def flatten(data_lst, weights=None):
         """Returns a flattened copy of data_lst-as a numpy array
         """
+        _ = weights
         return np.array(data_lst).flatten()
 
     @staticmethod
@@ -332,7 +337,14 @@ class PropertyStats(object):
             q (float): The quantile, as a fraction between 0 and 1.
         Returns:
             (float) The computed quantile of the data_lst.
+
+        Parameters
+        ----------
+        q
+        data_lst
+        weights
         """
+        _ = weights
         q = float(q)
         return np.quantile(data_lst, q=q)
 
