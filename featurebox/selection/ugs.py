@@ -28,16 +28,28 @@ from operator import itemgetter
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-from scipy import spatial
 from sklearn import metrics, preprocessing
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import r2_score
 from sklearn.model_selection import KFold, GridSearchCV
-from sklearn.utils import check_X_y
+from sklearn.utils import check_X_y, check_random_state
 
 from featurebox.tools.tool import parallize
 
 warnings.filterwarnings("ignore")
+
+
+def displacement(binary_distance, print_noise=0.001):
+    rd = check_random_state(0)
+    q = rd.random_sample(binary_distance.shape) * print_noise / 10
+    binary_distance = binary_distance + q
+
+    indexs = np.argwhere(binary_distance <= 0)
+    indexs = indexs[np.where(indexs[:, 0] > indexs[:, 1])]
+    t = rd.random_sample(indexs.shape[0]) * print_noise / 20
+    binary_distance[indexs[:, 0], indexs[:, 1]] = t
+    binary_distance[indexs[:, 1], indexs[:, 0]] = t
+    return binary_distance
 
 
 def cluster_printing(slices, node_color, edge_color_pen=0.7, binary_distance=None, print_noise=0.001,
@@ -63,7 +75,6 @@ def cluster_printing(slices, node_color, edge_color_pen=0.7, binary_distance=Non
         node_name: list
             name of node
     """
-    from numpy import random
     plt.figure()
     g = nx.Graph()
 
@@ -72,17 +83,8 @@ def cluster_printing(slices, node_color, edge_color_pen=0.7, binary_distance=Non
             for k in range(i + 1, data_cof.shape[0]):
                 yield i, k, data_cof[i, k]
 
-    random.seed(0)
-    q = random.random(binary_distance.shape) * print_noise / 10
-    binary_distance = binary_distance + q
+    distances = displacement(binary_distance, print_noise=print_noise)
 
-    indexs = np.argwhere(binary_distance <= 0)
-    indexs = indexs[np.where(indexs[:, 0] > indexs[:, 1])]
-    t = random.random(indexs.shape[0]) * print_noise / 20
-    binary_distance[indexs[:, 0], indexs[:, 1]] = t
-    binary_distance[indexs[:, 1], indexs[:, 0]] = t
-
-    distances = binary_distance
     distance_weight = list(_my_ravel(distances))
     g.add_weighted_edges_from(distance_weight)
     # edges=nx.get_edge_attributes(g, 'weight').items()
@@ -341,8 +343,8 @@ class GS(object):
         y_1_all = self.predict(set1)
         y_2_all = y_1_all
 
-        distance = [spatial.distance.euclidean(i, j) for i, j, k in zip(y_true_all, y_1_all, y_2_all)]
-        # distance = [1 - self.metrics_method(i, j) for i, j, k in zip(y_true_all,y_1_all, y_2_all)]
+        # distance = [spatial.distance.euclidean(i, j) for i, j, k in zip(y_true_all, y_1_all, y_2_all)]
+        distance = [1 - self.metrics_method(i, j) for i, j, k in zip(y_true_all, y_1_all, y_2_all)]
         distance = np.mean(distance)
         distance = distance if distance >= 0 else 0
         return distance
@@ -369,8 +371,8 @@ class GS(object):
         y_1_all = self.predict(set1)
         y_2_all = self.predict(set2)
 
-        distance = [spatial.distance.euclidean(j, k) for i, j, k in zip(y_true_all, y_1_all, y_2_all)]
-        # distance = [1 - self.metrics_method(j, k) for i, j, k in zip(y_true_all, y_1_all, y_2_all)]
+        # distance = [spatial.distance.euclidean(j, k) for i, j, k in zip(y_true_all, y_1_all, y_2_all)]
+        distance = [1 - self.metrics_method(j, k) for i, j, k in zip(y_true_all, y_1_all, y_2_all)]
         distance = np.mean(distance)
         distance = distance if distance >= 0 else 0
         return distance

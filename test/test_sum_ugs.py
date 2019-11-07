@@ -1,4 +1,3 @@
-import unittest
 # from sklearn.datasets import load_boston
 # from sklearn.datasets import load_iris
 # from sklearn.datasets import make_regression
@@ -38,17 +37,21 @@ X2 = X0+X1
 '''
 X0 = add_noise(X0,ratio=0.01)
 '''
+"""定义函数"""  # 改变函数
+y = X0 ** 2 + X2
 
-X0 = add_noise(X0, ratio=0.2)
+
 X3 = add_noise(X0 / X2, ratio=0.2)
 X4 = add_noise(X0 * X2, ratio=0.2)
+X5 = add_noise(X1 + X2, ratio=0.2)
+X6 = add_noise(X0 * X2, ratio=0.2)
+
+X0 = add_noise(X0, ratio=0.35)
+X2 = add_noise(X2, ratio=0.2)
 
 """重定义"""
 X_all = [eval("X%s" % i) for i in range(X.shape[1])]
 X_new = np.vstack(X_all).T
-
-"""定义函数"""  # 改变函数
-y = X0 ** 3 + X2
 
 """定义范围"""
 feature_number = [2]
@@ -74,34 +77,59 @@ if pre_select:
     slice_all = [tuple(_) for _ in slice_all]
     slice_all = list(set(slice_all))
 
+# class MyTestCase(unittest.TestCase):
+#     def setUp(self):
+#         self.case = SUM(estimator, slice_all, estimator_n=None, n_jobs=3)
+#         self.case.fit(X_new, y)
+#
+#     def test_something(self):
+#         ss = self.case.cv_score_all(estimator_i=0)
+#         # ss0 = self.case.cal_binary_distance_all(estimator_i=0)
+#         # ss1 = self.case.cal_binary_distance_all(estimator_i=1)
+#         # ss2 = self.case.cal_binary_distance_all(estimator_i=2)
+#         # self.case.cluster_print(ss0)
+#         # self.case.cluster_print(ss1)
+#         # self.case.cluster_print(ss2)
+#         # d = self.case.mean_max_method()
+#         # c = self.case.distance_method()
+#         # a = self.case.kk_distance_method()
+#         # b = self.case.y_distance_method()
+#         # e = self.case.pareto_method()
+#         # f = self.case.y_distance_method()
+#         # self.case.cal_group()
+#         # self.case.cal_t_group()
+#         #
+#         # result = pd.DataFrame(np.array(ss))
+#         # result = pd.DataFrame(np.array(result))
+#         # result.to_csv('Result.csv')
+#         self.assertIsInstance(ss, np.ndarray)
 
-class MyTestCase(unittest.TestCase):
-    def setUp(self):
-        self.case = SUM(estimator, slice_all, estimator_n=None, n_jobs=3)
-        self.case.fit(X_new, y)
-
-    def test_something(self):
-        ss = self.case.cv_score_all(estimator_i=0)
-        # ss0 = self.case.cal_binary_distance_all(estimator_i=0)
-        # ss1 = self.case.cal_binary_distance_all(estimator_i=1)
-        # ss2 = self.case.cal_binary_distance_all(estimator_i=2)
-        # self.case.cluster_print(ss0)
-        # self.case.cluster_print(ss1)
-        # self.case.cluster_print(ss2)
-        # d = self.case.mean_max_method()
-        # c = self.case.distance_method()
-        # a = self.case.kk_distance_method()
-        # b = self.case.y_distance_method()
-        # e = self.case.pareto_method()
-        # f = self.case.y_distance_method()
-        # self.case.cal_group()
-        # self.case.cal_t_group()
-        #
-        # result = pd.DataFrame(np.array(ss))
-        # result = pd.DataFrame(np.array(result))
-        # result.to_csv('Result.csv')
-        self.assertIsInstance(ss, np.ndarray)
-
+# if __name__ == '__main__':
+#     a = unittest.main()
 
 if __name__ == '__main__':
-    a = unittest.main()
+    reg = SUM(estimator, slice_all, estimator_n=None, n_jobs=3)
+    reg.fit(X_new, y)
+
+    # ss = reg.cv_score_all(estimator_i=0)
+    # ss0 = reg.cal_binary_distance_all(estimator_i=0)
+    # ss1 = reg.cal_binary_distance_all(estimator_i=1)
+    # ss2 = reg.cal_binary_distance_all(estimator_i=2)
+    # reg.cluster_print(ss0)
+    # reg.cluster_print(ss1)
+    # reg.cluster_print(ss2)
+
+    # reg.cal_group()
+    # reg.cal_t_group()
+    #
+
+    ma = reg.distance_method()
+    mb = reg.y_distance_kk_method()
+    mc = reg.mean_max_method()
+    md = reg.y_distance_method()
+    me = reg.distance_kk_method()
+    mf = reg.pareto_method()
+
+    # result = pd.DataFrame(np.array(a))
+    # result = pd.DataFrame(np.array(result))
+    # result.to_csv('Result.csv')

@@ -1,1 +1,1 @@
-__all__ = ["backforward", "cluster", "corr", "exhaustion", "mutibase", "ugs", "quickmethod.py", "sum"]
+__all__ = ["backforward", "cluster", "corr", "exhaustion", "mutibase", "ugs", "sum"]

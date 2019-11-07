@@ -18,7 +18,7 @@ node == feature subset
 """
 import numpy as np
 
-from featurebox.selection.ugs import UGS
+from featurebox.selection.ugs import UGS, displacement
 
 
 def _kamada_kawai_solve(dist_mtx, dim=2):
@@ -36,7 +36,7 @@ def _kamada_kawai_solve(dist_mtx, dim=2):
                 meanwt, dim)
 
     optresult = minimize(_kamada_kawai_costfn, pos_arr.ravel(),
-                         method='L-BFGS-B', args=costargs, jac=True)
+                         method='Newton-CG', args=costargs, jac=True)
 
     return optresult.x.reshape((-1, dim))
 
@@ -111,14 +111,13 @@ class SUM(UGS):
             if addd:
                 rank.extend(list(circle - set(rank)))
                 distance.extend([steps] * len(addd))
-
         slices_rank = [str(self.slices[i]) for i in rank]
+        print("select slices %s" % slices_rank[0], "select node %s" % rank[0])
         return list(zip(rank, slices_rank, distance))
 
-    def kk_distance_method(self):
-        cal_binary_distance_all_model = [self.cal_binary_distance_all(estimator_i=i) for i in self.estimator_n]
+    def distance_kk_method(self):
+        cal_binary_distance_all_model1 = [self.cal_binary_distance_all(estimator_i=i) for i in self.estimator_n]
         score_all_model = [self.cv_score_all(estimator_i=i) for i in self.estimator_n]
-        KK_dis_all_model = [_kamada_kawai_solve(_, dim=2) for _ in cal_binary_distance_all_model]
 
         def cal_r(kk):
             r_matrix = []
@@ -126,6 +125,8 @@ class SUM(UGS):
                 r_matrix.append(np.sqrt(np.sum((kk - i) ** 2, axis=1)))
             return np.array(r_matrix)
 
+        cal_binary_distance_all_model1 = [displacement(i) for i in cal_binary_distance_all_model1]
+        KK_dis_all_model = [_kamada_kawai_solve(_, dim=2) for _ in cal_binary_distance_all_model1]
         cal_binary_distance_all_model = [cal_r(_) for _ in KK_dis_all_model]
 
         # unify = [np.max(_) for _ in cal_binary_distance_all_model]
@@ -133,6 +134,7 @@ class SUM(UGS):
 
         max_node = [[np.argmax(_)] for _ in score_all_model]
         print("best node for different model", max_node)
+
         long = len(score_all_model[0])
         iter_ = np.linspace(np.min(np.array(cal_binary_distance_all_model)),
                             np.max(np.array(cal_binary_distance_all_model)), num=100 * long)
@@ -149,11 +151,14 @@ class SUM(UGS):
                 rank.extend(list(circle - set(rank)))
                 distance.extend([steps] * len(addd))
         slices_rank = [str(self.slices[i]) for i in rank]
+        print("select slices %s" % slices_rank[0], "select node %s" % rank[0])
 
         return list(zip(rank, slices_rank, distance))
 
     def y_distance_method(self):
         cal_y_distance_all_model = [self.cal_y_distance_all(estimator_i=i) for i in self.estimator_n]
+
+        max_node = [[np.argmin(_)] for _ in cal_y_distance_all_model]
 
         long = len(cal_y_distance_all_model[0])
         iter_ = np.linspace(np.min(np.array(cal_y_distance_all_model)),
@@ -169,8 +174,58 @@ class SUM(UGS):
             if addd:
                 rank.extend(list(circle - set(rank)))
                 distance.extend([steps] * len(addd))
-
         slices_rank = [str(self.slices[i]) for i in rank]
+
+        print("select slices %s" % slices_rank[0], "select node %s" % rank[0])
+
+        return list(zip(rank, slices_rank, distance))
+
+    def y_distance_kk_method(self):
+        cal_binary_distance_all_model = [self.cal_binary_distance_all(estimator_i=i) for i in self.estimator_n]
+
+        cal_y_distance_all_model = [self.cal_y_distance_all(estimator_i=i) for i in self.estimator_n]
+
+        matrix = [np.concatenate((i, j.reshape(-1, 1)), axis=1)
+                  for i, j in zip(cal_binary_distance_all_model, cal_y_distance_all_model)]
+
+        cal_y_distance_all_model0 = [np.append(i, 0) for i in cal_y_distance_all_model]
+
+        matrix = [np.concatenate((i, j.reshape(1, -1)), axis=0)
+                  for i, j in zip(matrix, cal_y_distance_all_model0)]
+
+        def cal_r(kk):
+            r_matrix = []
+            for i in kk:
+                r_matrix.append(np.sqrt(np.sum((kk - i) ** 2, axis=1)))
+            return np.array(r_matrix)
+
+        # unify = [np.max(_) for _ in matrix]
+        # cal_binary_distance_all_model = [i / j for i, j in zip(matrix, unify)]
+
+        matrix = [displacement(i) for i in matrix]
+        KK_dis_all_model = [_kamada_kawai_solve(_, dim=2) for _ in matrix]
+        cal_binary_distance_all_model = [cal_r(_) for _ in KK_dis_all_model]
+
+        cal_y_distance_all_model = [i[:-1, -1] for i in cal_binary_distance_all_model]
+        max_node = [[np.argmin(_)] for _ in cal_y_distance_all_model]
+
+        long = len(cal_y_distance_all_model[0])
+        iter_ = np.linspace(np.min(np.array(cal_y_distance_all_model)),
+                            np.max(np.array(cal_y_distance_all_model)), num=100 * long)
+        rank = []
+        distance = []
+        for steps in iter_:
+            circle = set(list(range(long)))
+            for dis_all in cal_y_distance_all_model:
+                circle_i = set(np.where(dis_all <= steps)[0])
+                circle &= circle_i
+            addd = list(circle - set(rank))
+            if addd:
+                rank.extend(list(circle - set(rank)))
+                distance.extend([steps] * len(addd))
+        slices_rank = [str(self.slices[i]) for i in rank]
+
+        print("select slices %s" % slices_rank[0], "select node %s" % rank[0])
 
         return list(zip(rank, slices_rank, distance))
 
@@ -197,6 +252,8 @@ class SUM(UGS):
 
         slices_rank = [str(self.slices[i]) for i in front_point_rank]
 
+        print("select slices %s" % slices_rank[0], "select node %s" % front_point_rank[0])
+
         return list(zip(front_point_rank, slices_rank, std_front_rank))
 
     def mean_max_method(self):
@@ -205,4 +262,6 @@ class SUM(UGS):
         rank = np.argsort(score)[::-1]
         score_ranked = score[rank]
         slices_rank = [str(self.slices[i]) for i in rank]
+
+        print("select slices %s" % slices_rank[0], "select node %s" % rank[0])
         return list(zip(rank, slices_rank, score_ranked))
