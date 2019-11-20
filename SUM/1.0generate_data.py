@@ -8,10 +8,12 @@
 
 import pandas as pd
 from pymatgen import Composition
+from sklearn.svm import LinearSVR
 
 from featurebox.featurizers.compositionfeaturizer import DepartElementFeaturizer
 from featurebox.tools.exports import Store
 
+LinearSVR
 """
 this is a description
 """
@@ -25,6 +27,20 @@ if __name__ == "__main__":
     """for element site"""
     element_table = pd.read_excel(r'F:\machine learning\feature_toolbox1.0\featurebox\data\element_table.xlsx',
                                   header=4, skiprows=0, index_col=0)
+    """get x_name and abbr"""
+
+
+    def get_abbr():
+        abbr = list(element_table.loc["abbrTex"])
+        name = list(element_table.columns)
+        name.extend(['face_dist1', 'vor_area1', 'face_dist2', 'vor_area2', "destiny", 'volume', "ele_ratio"])
+        abbr.extend(['$d_{vf1}$', '$S_{vf1}$', '$d_{vf2}$', '$S_{vf2}$', r"$\rho_c$", "$V_c$", "$ele_ratio$"])
+        return name, abbr
+
+
+    name_and_abbr = get_abbr()
+    store.to_pkl_pd(name_and_abbr, "name_and_abbr")
+
     element_table = element_table.iloc[5:, 7:]
     feature_select = [
         'lattice constants a',
@@ -56,7 +72,6 @@ if __name__ == "__main__":
         'charge nuclear effective(slater)',
         'charge nuclear effective(clementi)',
         'periodic number',
-        'cal_group number',
         'electronegativity(martynov&batsanov)',
         'electronegativity(pauling)',
         'electronegativity(alfred-rochow)',
@@ -66,20 +81,6 @@ if __name__ == "__main__":
     ]
 
     select_element_table = element_table[feature_select]
-
-    """get name and abbr"""
-
-
-    def get_abbr():
-        name = list(element_table.loc["name"])
-        abbr = list(element_table.loc["abbrTex"])
-        name.extend(['face_dist1', 'vor_area1', 'face_dist2', 'vor_area2', "destiny", 'volume', "ele_ratio"])
-        abbr.extend(['$d_{vf1}$', '$S_{vf1}$', '$d_{vf2}$', '$S_{vf2}$', r"$\rho_c$", "$V_c$", "$ele_ratio$"])
-        return name, abbr
-
-
-    name_and_abbr = get_abbr()
-    store.to_pkl_pd(name_and_abbr, "name_and_abbr")
 
     """transform composition to pymatgen Composition"""
     composition = pd.Series(map(eval, com_data['composition']))

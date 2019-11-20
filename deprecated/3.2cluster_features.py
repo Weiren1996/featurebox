@@ -49,7 +49,7 @@ if __name__ == '__main__':
     def get_abbr(X_frame_name):
         element_table = pd.read_excel(r'F:\machine learning\feature_toolbox1.0\featurebox\data\element_table.xlsx',
                                       skiprows=0, index_col=0)
-        name = list(element_table.loc["name"])
+        name = list(element_table.loc["x_name"])
         abbr = list(element_table.loc["abbrTex"])
         name.extend(['face_dist1', 'vor_area1', 'face_dist2', 'vor_area2', "destiny", 'volume', "ele_ratio"])
         abbr.extend(['$d_{vf1}$', '$S_{vf1}$', '$d_{vf2}$', '$S_{vf2}$', r"$\rho_c$", "$V_c$", "$ele_ratio$"])

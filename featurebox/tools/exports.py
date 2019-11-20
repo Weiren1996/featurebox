@@ -98,7 +98,7 @@ class Store(object):
     def remove(self, index_or_name=None):
         """
         remove the indexed file
-        :param index_or_name: index or name,default=-1
+        :param index_or_name: index or x_name,default=-1
 
         """
         if isinstance(index_or_name, str):

@@ -40,11 +40,19 @@ X0 = add_noise(X0,ratio=0.01)
 """定义函数"""  # 改变函数
 y = X0 ** 2 + X2
 
+y = add_noise(y, ratio=0.2)
+X3 = X0 / X2
+X4 = X0 * X2
+X5 = X1 + X2
+X6 = X0 * X2
 
-X3 = add_noise(X0 / X2, ratio=0.2)
-X4 = add_noise(X0 * X2, ratio=0.2)
-X5 = add_noise(X1 + X2, ratio=0.2)
-X6 = add_noise(X0 * X2, ratio=0.2)
+X0 = add_noise(X0, ratio=0.35)
+X2 = add_noise(X2, ratio=0.2)
+
+X3 = add_noise(X3, ratio=0.2)
+X4 = add_noise(X4, ratio=0.2)
+X5 = add_noise(X5, ratio=0.2)
+X6 = add_noise(X6, ratio=0.2)
 
 X0 = add_noise(X0, ratio=0.35)
 X2 = add_noise(X2, ratio=0.2)
@@ -57,7 +65,7 @@ X_new = np.vstack(X_all).T
 feature_number = [2]
 
 """定义方法"""
-estimator = method_pack(['KNR-set', 'SVR-set', "KR-set"], me="reg", gd=True)
+estimator = method_pack(['KNR-set', 'SVR-set', "KRR-set"], me="reg", gd=True)
 
 feature_list = list(range(X_new.shape[1]))
 slice_all = list(chain(*[list(combinations(feature_list, i)) for i in feature_number]))

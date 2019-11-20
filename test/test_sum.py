@@ -60,7 +60,7 @@ if __name__ == "__main__":
     y = X0 ** 3 + X2
 
     """定义方法"""
-    method_all = ['KNR-set', 'SVR-set', "KR-set"]
+    method_all = ['KNR-set', 'SVR-set', "KRR-set"]
     feature_number = [2]
 
     print(dict_method_reg().keys())

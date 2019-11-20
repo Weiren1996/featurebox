@@ -84,7 +84,7 @@ class Call(object):
                     fn = '_'.join([parent, fn])
 
                 if fn in self._files:
-                    warn("file %s with name %s already bind to %s and will be ignored" %
+                    warn("file %s with x_name %s already bind to %s and will be ignored" %
                          (str(f), fn, self._files[fn]), RuntimeWarning)
                 else:
                     self._files[fn] = str(f)
@@ -110,8 +110,8 @@ class Call(object):
         save_to: str
             The path of a dir to save the downloaded object into it.
         filename: str, optional
-            Specific the file name when saving.
-            Set to ``None`` (default) to use a inferred name from http header.
+            Specific the file x_name when saving.
+            Set to ``None`` (default) to use a inferred x_name from http header.
         chunk_size: int, optional
             Chunk size.
         params: any, optional
@@ -123,7 +123,7 @@ class Call(object):
         Returns
         -------
         str
-            File path contains file name.
+            File path contains file x_name.
         """
         r = requests.get(url, params, **kwargs)
         r.raise_for_status()
@@ -181,7 +181,7 @@ class Call(object):
         Parameters
         ----------
         name: str
-            Dataset name.
+            Dataset x_name.
 
         Returns
         -------

@@ -21,7 +21,7 @@ eg:
 # # ax.tick_params(direction='in', which='major', width=3, length=7, colors='black', labelsize=15)
 # plt.xlabel("x", )
 # plt.ylabel("y", )
-# plt.title("name")
+# plt.title("x_name")
 # # plt.xlim()
 # # plt.ylim()
 # # plt.legend()
@@ -52,9 +52,9 @@ class BasePlot(object):
         if font == "Times":
             rcParams['font.family'] = 'serif'
             rcParams['font.serif'] = ['Times new roman']
-        rcParams['figure.dpi'] = 300
-        rcParams['figure.figsize'] = [6.4, 4.8]
-        rcParams['figure.titlesize'] = 20
+        # rcParams['figure.dpi'] = 300
+        # rcParams['figure.figsize'] = [6.4, 4.8]
+        # rcParams['figure.titlesize'] = 20
 
         rcParams['axes.titlesize'] = 18
         rcParams['axes.labelsize'] = 16
@@ -65,8 +65,8 @@ class BasePlot(object):
         rcParams['xtick.major.size'] = 4
         rcParams['ytick.major.size'] = 4
 
-        rcParams['xtick.labelsize'] = 14
-        rcParams['ytick.labelsize'] = 14
+        # rcParams['xtick.labelsize'] = 14
+        # rcParams['ytick.labelsize'] = 14
         rcParams['xtick.direction'] = 'in'
         rcParams['ytick.direction'] = 'in'
 
@@ -128,7 +128,7 @@ class BasePlot(object):
         x, y = y_true, y_predict
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        ax.scatter(x, y, marker='o', s=100, alpha=0.7, c='orange', linewidths=None, edgecolors='blue')
+        ax.scatter(x, y, marker='o', s=50, alpha=0.7, c='orange', linewidths=None, edgecolors='blue')
         ax.plot([min(x), max(x)], [min(x), max(x)], '--', ms=5, lw=2, alpha=0.7, color='black')
         plt.xlabel(strx)
         plt.ylabel(stry)
@@ -239,7 +239,7 @@ def corr_plot(x_cof, x_name=None, left_down=None, right_top=None, threshold_left
               title="pearsonr coefficient", label_axis="off", front_raito=1):
     x_cof = np.round(x_cof, 2)
 
-    name = x_name or list(range(x_cof.shape[0]))
+    name = x_name
 
     size = x_cof
     or_size = np.nan_to_num((abs(size) / size) * (1 - abs(size)))
@@ -286,7 +286,7 @@ def corr_plot(x_cof, x_name=None, left_down=None, right_top=None, threshold_left
             [ax.spines[_].set_color('w') for _ in ['right', 'top', 'left', 'bottom']]
 
             ax.text(0.5, 0.5, size[i, j],
-                    fontdict={"color": "b"},  # args
+                    fontdict={"color": "black"},  # args
                     fontsize=score_fontsize,  # c_arg
                     horizontalalignment='center', verticalalignment='center')
             ax.set_xticks([])
@@ -315,6 +315,14 @@ def corr_plot(x_cof, x_name=None, left_down=None, right_top=None, threshold_left
 
     for k in range(n):
         ax = plt.subplot(gs[k, k])
+
+        # ax.axis('equal')
+        # ax.set_xlim(-1, 1)
+        # ax.scatter(0, 0, color=fill_colors[k, k], s=circle_size * abs(size[k, k]))
+        # ax.set_xticks([])
+        #
+        # ax.set_yticks([])
+
         ax.text(0.5, 0.5, name[k], fontsize=ax_fontsize, horizontalalignment='center', verticalalignment='center')
         ax.set_xticks([])
         ax.set_yticks([])
@@ -353,4 +361,8 @@ if __name__ == '__main__':
 
 
     x_cof = lin_cof(datax)
-    corr_plot(x_cof, name0, left_down="circle", right_top="pie", threshold_right=0.4, label_axis="off")
+
+    # data_frame = pd.read_excel(r"C:\Users\Administrator\Desktop\2dsdf.xlsx",sheet_name=0,index_col=0)
+    # x_cof = data_frame.values
+    # name0 = data_frame.columns.values
+    # corr_plot(x_cof, name0, left_down="circle", right_top="circle", threshold_right=0.0, label_axis="off")

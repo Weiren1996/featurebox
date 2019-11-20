@@ -9,9 +9,9 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from featurebox.combination.symbolbase import getName, sympyPrimitiveSet, mainPart
 from sklearn.metrics import explained_variance_score, r2_score
 
-from featurebox.combination.symbolbase import getName, sympyPrimitiveSet, mainPart
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
 
@@ -76,5 +76,5 @@ if __name__ == "__main__":
                               )
 
     result = mainPart(X, y, pset1, pop_n=500, random_seed=1, cxpb=0.8, mutpb=0.1, ngen=20,
-                      inter_add=True, iner_add=False, random_add=False, score=[explained_variance_score, r2_score])
+                      inter_add=True, iner_add=False, random_add=False, score=[r2_score, explained_variance_score])
     ret = result[2][1]

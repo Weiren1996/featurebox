@@ -13,9 +13,9 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from featurebox.combination.symbolbase import getName, sympyPrimitiveSet, mainPart
 from sklearn.metrics import explained_variance_score, r2_score
 
-from featurebox.combination.symbolbase import getName, sympyPrimitiveSet, mainPart
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
 
@@ -45,8 +45,8 @@ warnings.filterwarnings("ignore")
 #     # X = scal.fit_transform(X)
 #     # X, y = utils.shuffle(X, y, random_state=5)
 #
-#     name, rep_name = getName(X_frame)
-#     pset1 = sympyPrimitiveSet(rep_name=rep_name, types="fixed", max_=5,
+#     x_name, rep_name = getName(X_frame)
+#     pset1 = ExpressionSetFill(rep_name=rep_name, types="fixed", max_=5,
 #                               categories=('Add', 'Sub', 'Mul', 'Div', "Rec", 'exp', "log", "Abs", "Self", "Rem", "Neg"),
 #                               power_categories=(1 / 3, 1 / 2, 1, 2, 3),
 #                               definate_operate=[
@@ -102,8 +102,8 @@ warnings.filterwarnings("ignore")
 #     # X = scal.fit_transform(X)
 #     # X, y = utils.shuffle(X, y, random_state=5)
 #
-#     name, rep_name = getName(X_frame)
-#     pset1 = sympyPrimitiveSet(rep_name=rep_name, types="fixed", max_=5,
+#     x_name, rep_name = getName(X_frame)
+#     pset1 = ExpressionSetFill(rep_name=rep_name, types="fixed", max_=5,
 #                               categories=('Add', 'Sub', 'Mul', 'Div', "Rec", 'exp', "log", "Abs", "Self", "Rem", "Neg"),
 #                               power_categories=(1 / 3, 1 / 2, 1, 2, 3),
 #                               definate_operate=[
@@ -165,8 +165,8 @@ warnings.filterwarnings("ignore")
 #     # X = scal.fit_transform(X)
 #     # X, y = utils.shuffle(X, y, random_state=5)
 #
-#     name, rep_name = getName(X_frame)
-#     pset1 = sympyPrimitiveSet(rep_name=rep_name, types="fixed", max_=3,
+#     x_name, rep_name = getName(X_frame)
+#     pset1 = ExpressionSetFill(rep_name=rep_name, types="fixed", max_=3,
 #                               categories=('Add', 'Sub', 'Mul', 'Div', "Rec", 'exp', "log", "Abs", "Self", "Rem", "Neg"),
 #                               power_categories=(1 / 3, 1 / 2, 1, 2, 3),
 #                               definate_operate=[
@@ -256,7 +256,7 @@ if __name__ == "__main__":
                               )
 
     result = mainPart(X, y, pset1, pop_n=500, random_seed=1, cxpb=0.8, mutpb=0.1, ngen=20,
-                      inter_add=True, iner_add=False, random_add=False, score=[explained_variance_score, r2_score])
+                      inter_add=True, iner_add=False, random_add=False, score=[r2_score, explained_variance_score])
     ret = result[2][1]
 
 # if __name__ == "__main__":
@@ -284,8 +284,8 @@ if __name__ == "__main__":
 #     # X = scal.fit_transform(X)
 #     # X, y = utils.shuffle(X, y, random_state=5)
 #
-#     name, rep_name = getName(X_frame)
-#     pset1 = sympyPrimitiveSet(rep_name=rep_name, types="fixed", max_=5,
+#     x_name, rep_name = getName(X_frame)
+#     pset1 = ExpressionSetFill(rep_name=rep_name, types="fixed", max_=5,
 #                               categories=('Add', 'Sub', 'Mul', 'Div', "Rec", 'exp', "log", "Abs", "Self", "Rem", "Neg"),
 #                               power_categories=(1 / 3, 1 / 2, 1, 2, 3),
 #                               definate_operate=[
@@ -318,7 +318,7 @@ if __name__ == "__main__":
 #                               )
 #
 #     result = mainPart(X, y, pset1, pop_n=500, random_seed=2, cxpb=0.8, mutpb=0.1, ngen=20,
-#                        inter_add=True, iner_add=False, random_add=False, score=[explained_variance_score, r2_score])
+#                        inter_add=True, iner_add=False, random_add=False, score=[r2_score,explained_variance_score])
 #     ret = result[2][1]
 
 
@@ -347,8 +347,8 @@ if __name__ == "__main__":
 #     # X = scal.fit_transform(X)
 #     # X, y = utils.shuffle(X, y, random_state=5)
 #
-#     name, rep_name = getName(X_frame)
-#     pset1 = sympyPrimitiveSet(rep_name=rep_name, types="fixed", max_=5,
+#     x_name, rep_name = getName(X_frame)
+#     pset1 = ExpressionSetFill(rep_name=rep_name, types="fixed", max_=5,
 #                               categories=('Add', 'Sub', 'Mul', 'Div', "Rec", 'exp', "log", "Abs", "Self", "Rem", "Neg"),
 #                               power_categories=(1 / 3, 1 / 2, 1, 2, 3),
 #                               definate_operate=[
@@ -381,7 +381,7 @@ if __name__ == "__main__":
 #                               )
 #
 #     result = mainPart(X, y, pset1, pop_n=500, random_seed=2, cxpb=0.8, mutpb=0.1, ngen=20,
-#                        inter_add=True, iner_add=False, random_add=False, score=[explained_variance_score, r2_score])
+#                        inter_add=True, iner_add=False, random_add=False, score=[r2_score,explained_variance_score ])
 #     ret = result[2][1]
 
 ######
@@ -410,8 +410,8 @@ if __name__ == "__main__":
 #     # X = scal.fit_transform(X)
 #     # X, y = utils.shuffle(X, y, random_state=5)
 #
-#     name, rep_name = getName(X_frame)
-#     pset1 = sympyPrimitiveSet(rep_name=rep_name, types="fixed", max_=5,
+#     x_name, rep_name = getName(X_frame)
+#     pset1 = ExpressionSetFill(rep_name=rep_name, types="fixed", max_=5,
 #                               categories=('Add', 'Sub', 'Mul', 'Div', "Rec", 'exp', "log", "Abs", "Self", "Rem", "Neg"),
 #                               power_categories=(1 / 3, 1 / 2, 1, 2, 3),
 #                               definate_operate=[
@@ -444,5 +444,5 @@ if __name__ == "__main__":
 #                               )
 #
 #     result = mainPart(X, y, pset1, pop_n=100, random_seed=0, cxpb=0.8, mutpb=0.1, ngen=20,
-#                       inter_add=True, iner_add=False, random_add=False, score=[explained_variance_score, r2_score])
+#                       inter_add=True, iner_add=False, random_add=False, score=[r2_score,explained_variance_score])
 #     ret = result[2][1]

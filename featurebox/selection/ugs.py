@@ -19,6 +19,7 @@ node == feature subset
 import copy
 import functools
 import itertools
+import numbers
 import warnings
 from collections import Counter
 from copy import deepcopy
@@ -30,9 +31,10 @@ import networkx as nx
 import numpy as np
 from sklearn import metrics, preprocessing
 from sklearn.cluster import DBSCAN
-from sklearn.metrics import r2_score
-from sklearn.model_selection import KFold, GridSearchCV
+from sklearn.metrics import get_scorer
+from sklearn.model_selection import KFold, GridSearchCV, StratifiedKFold
 from sklearn.utils import check_X_y, check_random_state
+from sklearn.utils.multiclass import type_of_target
 
 from featurebox.tools.tool import parallize
 
@@ -73,7 +75,7 @@ def cluster_printing(slices, node_color, edge_color_pen=0.7, binary_distance=Non
         print_noise: int
             add noise for less printing overlap
         node_name: list
-            name of node
+            x_name of node
     """
     plt.figure()
     g = nx.Graph()
@@ -228,10 +230,18 @@ class GS(object):
             self.estimator = estimator
         else:
             self.estimator = [estimator, ]
+        scorer_all = []
+        cv_all = []
         for i in self.estimator:
             assert isinstance(i, GridSearchCV)
+            scorer_all.append(get_scorer(i.scoring))
+            cv_all.append(get_scorer(i.cv))
         self.predict_y = []  # changed with estimator_i
         self.n_jobs = n_jobs
+        scorer = scorer_all[0]
+        scorer_func = scorer._score_func
+        self.metrics_method = scorer_func
+        self.cv = copy.deepcopy(cv_all[0])
 
     def fit(self, x, y):
         """
@@ -243,10 +253,13 @@ class GS(object):
         x, y = check_X_y(x, y, "csc")
         self.x0 = x
         self.y0 = y
-        n_splits = 5
-        kf = KFold(n_splits=n_splits, shuffle=False)
-        self.kf = list(kf.split(x))
-        self.metrics_method = r2_score
+        cv = self.cv
+        if isinstance(cv, numbers.Integral):
+            if (type_of_target(y) in ('binary', 'multiclass')):
+                cv = StratifiedKFold(cv)
+            else:
+                cv = KFold(cv)
+        self.kf = list(cv.split(x))
 
     @functools.lru_cache(1024)
     def _cv_predict(self, slices_i, estimator_i):
@@ -277,16 +290,24 @@ class GS(object):
 
     def _cv_predict_all(self, slices=None, estimator_i=0):
         """ calculate binary distance of 2 nodes """
+
         self.estimator_i = estimator_i if isinstance(estimator_i, int) else self.estimator_i
-        self.slices = slices if slices else self.slices
-        slices = self.slices
         n_jobs = self.n_jobs
+        slices = slices if slices else self.slices
 
-        cal_score = partial(self.predict)
+        ret = self.check_prop(self, "cv_predict_all", estimator_i=self.estimator_i, slices=slices)
 
-        result = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
+        if ret is not None:
+            pass
+        else:
+            cal_score = partial(self.predict)
+            ret = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
 
-        return result
+            self.add_prop(self, "cv_predict_all", estimator_i=self.estimator_i, slices=slices)
+
+        self.slices = slices
+
+        return ret
 
     def predict(self, slice_i):
         """change type """
@@ -294,6 +315,7 @@ class GS(object):
         return self._cv_predict(tuple(slice_i), estimator_i)
 
     def cv_score(self, slices_i):
+
         y_test_predict_all = self.predict(slices_i)
         test_index = [i[1] for i in self.kf]
         y_test_true_all = [self.y0[_] for _ in test_index]
@@ -323,15 +345,21 @@ class GS(object):
         """
 
         self.estimator_i = estimator_i if isinstance(estimator_i, int) else self.estimator_i
-        self.slices = slices if slices else self.slices
-        slices = self.slices
         n_jobs = self.n_jobs
+        slices = slices if slices else self.slices
 
-        cal_score = partial(self.cv_score)
+        ret = self.check_prop(self, "cv_score_all", estimator_i=self.estimator_i, slices=slices)
 
-        result = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
+        if ret is not None:
+            pass
+        else:
+            cal_score = partial(self.cv_score)
+            ret = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
 
-        return np.array(result)
+            self.add_prop(self, "cv_score_all", estimator_i=self.estimator_i, slices=slices)
+
+        self.slices = slices
+        return np.array(ret)
 
     def cal_y_distance(self, slice1):
         """ calculate binary distance of 2 nodes """
@@ -351,15 +379,23 @@ class GS(object):
 
     def cal_y_distance_all(self, slices=None, estimator_i=0):
         """ calculate binary distance of 2 nodes """
+
         self.estimator_i = estimator_i if isinstance(estimator_i, int) else self.estimator_i
-        self.slices = slices if slices else self.slices
-        slices = self.slices
         n_jobs = self.n_jobs
+        slices = slices if slices else self.slices
 
-        cal_score = partial(self.cal_y_distance)
+        ret = self.check_prop(self, "cal_y_distance_all", estimator_i=self.estimator_i, slices=slices)
 
-        result = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
-        return np.array(result)
+        if ret is not None:
+            pass
+        else:
+            cal_score = partial(self.cal_y_distance)
+            ret = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
+
+            self.add_prop(self, "cal_y_distance_all", estimator_i=self.estimator_i, slices=slices)
+
+        self.slices = slices
+        return np.array(ret)
 
     def cal_binary_distance(self, slice1, slice2):
         """ calculate binary distance of 2 nodes """
@@ -380,16 +416,34 @@ class GS(object):
     def cal_binary_distance_all(self, slices=None, estimator_i=0):
         """ calculate the distance matrix of slices """
         self.estimator_i = estimator_i if isinstance(estimator_i, int) else self.estimator_i
-        self.slices = slices if slices else self.slices
-        slices = self.slices
         n_jobs = self.n_jobs
+        slices = slices if slices else self.slices
 
-        cal_binary_distance = partial(self.cal_binary_distance)
+        ret = self.check_prop(self, "cal_binary_distance_all", estimator_i=self.estimator_i, slices=slices)
 
-        slices_cuple = list(itertools.product(slices, repeat=2))
-        distance = parallize(n_jobs=n_jobs, func=cal_binary_distance, iterable=slices_cuple, respective=True)
-        distance = np.reshape(distance, (len(slices), len(slices)), order='F')
-        return distance
+        if ret is not None:
+            pass
+        else:
+            cal_binary_distance = partial(self.cal_binary_distance)
+            slices_cuple = list(itertools.product(slices, repeat=2))
+            ret = parallize(n_jobs=n_jobs, func=cal_binary_distance, iterable=slices_cuple, respective=True)
+            ret = np.reshape(ret, (len(slices), len(slices)), order='F')
+
+            self.add_prop(self, "cal_binary_distance_all", estimator_i=self.estimator_i, slices=slices)
+
+        self.slices = slices
+        return ret
+
+    def check_prop(self, prop, estimator_i=0, slices=None):
+        if slices == self.slices:
+            if hasattr(self, "".join(["result", prop, "_", "%s" % estimator_i])):
+                return getattr(self, "".join(["result", prop, "_", "%s" % estimator_i]), None)
+
+    def add_prop(self, prop, slices, estimator_i, values):
+        if hasattr(self, "".join(["result", prop, "_", "%s" % estimator_i])) and slices == self.slices:
+            pass
+        else:
+            setattr(self, "".join(["result", prop, "_", "%s" % estimator_i]), values)
 
     # @time_this_function
     def cal_group(self, eps=None, printing=False, slices=None, estimator_i=0,
@@ -413,7 +467,7 @@ class GS(object):
         print_noise: int
             add noise for less printing overlap
         node_name: list of str
-            name of node, be valid for printing is True
+            x_name of node, be valid for printing is True
         pre_binary_distance_all
             pre-calculate binary_distance_all ,please make sure the slices and estimator_i are same
             as the slices and estimator_i in pre-calculate binary_distance_all
@@ -476,6 +530,8 @@ class GS(object):
         cluster_printing(slices=self.slices, binary_distance=binary_distance,
                          print_noise=print_noise, node_name=node_name,
                          node_color=label, highlight=highlight)
+
+    # def distance_print(self):
 
     def select_gs(self, alpha=0.01):
         """

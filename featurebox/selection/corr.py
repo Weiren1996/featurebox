@@ -36,7 +36,7 @@ class Corr(MutiBase):
         self.cov_shrink = None
         self.shrink_list = []
 
-    def fit(self, data, pre_cal=None, method="max"):
+    def fit(self, data, pre_cal=None, method="mean"):
         if pre_cal is None:
             cov = np.corrcoef(data, rowvar=False)
         elif isinstance(pre_cal, np.ndarray) and pre_cal.shape[0] == data.shape[1]:

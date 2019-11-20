@@ -246,7 +246,7 @@ def collect_factor_and_dimension(expr):
 
 
 def fea_compile(unit_list0, symbols_name=None, p=True, pre=True):
-    """if symbols_name is None, default name is xi"""
+    """if symbols_name is None, default x_name is xi"""
     if symbols_name is None:
         symbols_name = "x"
     if len(symbols_name) == 1:
@@ -258,13 +258,13 @@ def fea_compile(unit_list0, symbols_name=None, p=True, pre=True):
         except TypeError:
             raise TypeError("each symbols_name should with simple form and without space")
     else:
-        raise IndexError("unit and name should have same size or just a single prefix like 'x'.")
+        raise IndexError("unit and x_name should have same size or just a single prefix like 'x'.")
 
 
 def fea_compile_with_name(unit_list0, name=None, p=True, pre=True, ):
     """
-    :param unit_list0: as name
-    :param name: list of feature name
+    :param unit_list0: as x_name
+    :param name: list of feature x_name
     :param p: print or false ,default is True
     :param pre: take unit and number transformation into account or not, if true ,return
     the sym_unify_list0(like 10^-6*m)  ,else the sym_list(like m)

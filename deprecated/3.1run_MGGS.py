@@ -43,7 +43,7 @@ if __name__ == '__main__':
     X, y = utils.shuffle(X, y, random_state=5)
 
     """base_method"""
-    method_name = ['GPR-set', 'SVR-set', 'KR-set', 'KNR-set']
+    method_name = ['GPR-set', 'SVR-set', 'KRR-set', 'KNR-set']
     index_all = [data.pickle_pd.GPR_set23, data.pickle_pd.SVR_set23, data.pickle_pd.KR_set23, data.pickle_pd.KNR_set23]
 
     estimator_all = []
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     index_all = [tuple(index[0]) for _ in index_all for index in _[:10]]
     index_all = list(set(index_all))
 
-    """get name and abbr"""
+    """get x_name and abbr"""
     index_all_name = name_to_name(X_frame.columns.values, search=[i for i in index_all],
                                   search_which=0, return_which=(1,), two_layer=True)
 

@@ -56,7 +56,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
     These operations must be implemented for each new featurizer:
 
     - ``featurize`` - Takes a single material as input, returns the features of that material.
-    - ``feature_labels`` - Generates a human-meaningful name for each of the features. **Implement this as property**.
+    - ``feature_labels`` - Generates a human-meaningful x_name for each of the features. **Implement this as property**.
 
     Also suggest to implement these two **properties**:
 
@@ -65,7 +65,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
 
     All options of the featurizer must be set by the ``__init__`` function. All
     options must be listed as keyword arguments with default values, and the
-    value must be saved as a class attribute with the same name or as a property
+    value must be saved as a class attribute with the same x_name or as a property
     (e.g., argument `n` should be stored in `self.n`).
     These requirements are necessary for
     compatibility with the ``get_params`` and ``set_params`` methods of ``BaseEstimator``,
@@ -290,9 +290,9 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
         """
         List of implementors of the feature.
         Returns:
-            (list) each element should either be a string with author name (e.g.,
-                "Anubhav Jain") or a dictionary  with required key "name" and other
-                keys like "email" or "institution" (e.g., {"name": "Anubhav
+            (list) each element should either be a string with author x_name (e.g.,
+                "Anubhav Jain") or a dictionary  with required key "x_name" and other
+                keys like "email" or "institution" (e.g., {"x_name": "Anubhav
                 Jain", "email": "ajain@lbl.gov", "institution": "LBNL"}).
         """
 

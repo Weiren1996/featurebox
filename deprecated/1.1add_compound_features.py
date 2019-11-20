@@ -38,11 +38,11 @@ vor.insert(0, 'vor_area1', vor_area[:, 1])
 vor.insert(0, 'face_dist1', vor_dis[:, 1])
 
 data_title = all_import[
-    ['name_number', "name", "structure", "structure_type", "space_group", "reference", 'material_id', 'composition',
+    ['name_number', "x_name", "structure", "structure_type", "space_group", "reference", 'material_id', 'composition',
      'exp_gap', 'group_number']]
 
 data_tail = all_import.drop(
-    ['name_number', "name", "structure", "structure_type", "space_group", "reference", 'material_id', 'composition',
+    ['name_number', "x_name", "structure", "structure_type", "space_group", "reference", 'material_id', 'composition',
      'exp_gap', 'group_number'], axis=1)
 
 data_import = data_title.join(vor[["face_dist0", "vor_area0", "face_dist1", "vor_area1"]])

@@ -68,11 +68,12 @@ class Ele:
 
     @property
     def to_item(self):
-        # print(list(zip(self.name, self.num)))
+        # print(list(zip(self.x_name, self.num)))
         return list(chain.from_iterable(zip(self.name, self.num)))
 
 
-name_ele = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K',
+name_ele = ['H', 'He', 'Li', 'Be', 'B', 'C', 'numeric', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar',
+            'K',
             'Ca',
             'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr',
             'Y',
@@ -144,7 +145,7 @@ def _pre_add(namei):
           'Cd', 'In', 'Sn', 'Sb', 'Te', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy',
           'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At',
           'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'Np', 'Pu']
-    b = ['H', 'B', 'C', 'N', 'O', 'F', 'K', 'P', 'S', 'V', 'Y', 'I', 'W', 'U']
+    b = ['H', 'B', 'C', 'numeric', 'O', 'F', 'K', 'P', 'S', 'V', 'Y', 'I', 'W', 'U']
 
     num = re.findall(r"\d+\.?\d*", namei)
 

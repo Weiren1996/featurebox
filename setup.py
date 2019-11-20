@@ -10,14 +10,14 @@ from setuptools import setup, find_packages
 
 setup(
     name='featurebox',
-    version='0.0.3',
+    version='0.0.4',
     keywords=['features', "combination", "selection"],
     description='this is an box contains tools for machine learning.'
                 'Some of code are non-originality, just copy for use. All the referenced code are marked,'
                 'details can be shown in their sources',
     license='BSD 3-Clause',
-    install_requires=['pymatgen', 'pandas', "deap", 'numpy', 'sympy', 'scipy', 'scikit-learn', 'joblib', 'matplotlib',
-                      'networkx', 'seaborn', 'requests', 'tqdm', 'six'],
+    install_requires=['pandas', 'numpy', 'sympy', 'scipy', 'scikit-learn', 'joblib', 'matplotlib',
+                      'networkx', 'seaborn', 'requests', 'tqdm', 'six', 'deap'],
     include_package_data=True,
     author='wangchangxin',
     author_email='986798607@qq.com',
@@ -39,7 +39,7 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
 
-    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests", 'deprecated'], ),
+    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests", "tests", 'deprecated'], ),
     long_description='this is an box contains tools for machine learning.'
                      'Some of code are non-originality, just copy for use. All the referenced code are marked,'
                      'details can be shown in their sources',

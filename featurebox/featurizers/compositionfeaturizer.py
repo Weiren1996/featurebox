@@ -26,9 +26,6 @@ class BaseCompositionFeaturizer(BaseFeaturizer, metaclass=ABCMeta):
         self._elements = elem_data
         self.__authors__ = ['TsumiNa']
 
-    def fit(self, **kwargs):
-        return self
-
     def featurize(self, comp):
         elems_, nums_ = [], []
         if isinstance(comp, PMGComp):

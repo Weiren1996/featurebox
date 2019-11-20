@@ -3,7 +3,7 @@
 # @Time   : 2019/6/8 21:35
 # @Author : Administrator
 # @Project : feature_preparation
-# @FileName: symbollearing.py
+# @FileName: 4.symbollearing.py
 # @Software: PyCharm
 
 """
@@ -125,8 +125,8 @@ class FixedPrimitiveSet(object):
 
         prim = FixedPrimitive(name, arity)
 
-        assert name not in self.context, "Primitives are required to have a unique name. " \
-                                         "Consider using the argument 'name' to rename your " \
+        assert name not in self.context, "Primitives are required to have a unique x_name. " \
+                                         "Consider using the argument 'x_name' to rename your " \
                                          "second '%s' primitive." % (name,)
 
         self.primitives.append(prim)
@@ -138,8 +138,8 @@ class FixedPrimitiveSet(object):
         if name is None and callable(terminal):
             name = str(terminal)
 
-        assert name not in self.context, "Terminals are required to have a unique name. " \
-                                         "Consider using the argument 'name' to rename your " \
+        assert name not in self.context, "Terminals are required to have a unique x_name. " \
+                                         "Consider using the argument 'x_name' to rename your " \
                                          "second %s terminal." % (name,)
 
         if name is not None:
@@ -682,18 +682,7 @@ def compile_(expr_, pset):
 
 
 def sub(expr01, subed, subs):
-    """
-
-    Parameters
-    ----------
-    expr01
-    subed
-    subs
-
-    Returns
-    -------
-
-    """
+    """"""
     listt = list(zip(subed, subs))
     return expr01.subs(listt)
 
@@ -772,17 +761,7 @@ def addCoefficient(expr01, inter_add=None, iner_add=None, random_add=None):
 
 
 def my_custom_loss_func(y_true, y_pred):
-    """
-
-    Parameters
-    ----------
-    y_true
-    y_pred
-
-    Returns
-    -------
-
-    """
+    """"""
     diff = - np.abs(y_true - y_pred) / y_true + 1
     return np.mean(diff)
 
@@ -790,7 +769,7 @@ def my_custom_loss_func(y_true, y_pred):
 mre_score = make_scorer(my_custom_loss_func, greater_is_better=True)
 
 
-def calculateExpr(expr01, pset, x, y, score_method=explained_variance_score, add_coeff=True,
+def calculateExpr(expr01, pset, x, y, score_method=r2_score, add_coeff=True,
                   del_no_important=False, filter_warning=True, terminals=None, **kargs):
     """
 
@@ -904,7 +883,7 @@ def calculateExpr(expr01, pset, x, y, score_method=explained_variance_score, add
     return score, expr01
 
 
-def calculate(individual, pset, x, y, score_method=explained_variance_score, add_coeff=True, filter_warning=True,
+def calculate(individual, pset, x, y, score_method=r2_score, add_coeff=True, filter_warning=True,
               **kargs):
     """
 

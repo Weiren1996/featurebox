@@ -88,6 +88,13 @@ class SUM(UGS):
         """
         super().__init__(estimator, slices, estimator_n=estimator_n, n_jobs=n_jobs)
 
+    @staticmethod
+    def cal_r(kk):
+        r_matrix = []
+        for i in kk:
+            r_matrix.append(np.sqrt(np.sum((kk - i) ** 2, axis=1)))
+        return np.array(r_matrix)
+
     def distance_method(self):
         cal_binary_distance_all_model = [self.cal_binary_distance_all(estimator_i=i) for i in self.estimator_n]
         score_all_model = [self.cv_score_all(estimator_i=i) for i in self.estimator_n]
@@ -119,15 +126,9 @@ class SUM(UGS):
         cal_binary_distance_all_model1 = [self.cal_binary_distance_all(estimator_i=i) for i in self.estimator_n]
         score_all_model = [self.cv_score_all(estimator_i=i) for i in self.estimator_n]
 
-        def cal_r(kk):
-            r_matrix = []
-            for i in kk:
-                r_matrix.append(np.sqrt(np.sum((kk - i) ** 2, axis=1)))
-            return np.array(r_matrix)
-
         cal_binary_distance_all_model1 = [displacement(i) for i in cal_binary_distance_all_model1]
         KK_dis_all_model = [_kamada_kawai_solve(_, dim=2) for _ in cal_binary_distance_all_model1]
-        cal_binary_distance_all_model = [cal_r(_) for _ in KK_dis_all_model]
+        cal_binary_distance_all_model = [self.cal_r(_) for _ in KK_dis_all_model]
 
         # unify = [np.max(_) for _ in cal_binary_distance_all_model]
         # cal_binary_distance_all_model = [i / j for i, j in zip(cal_binary_distance_all_model, unify)]
@@ -180,7 +181,8 @@ class SUM(UGS):
 
         return list(zip(rank, slices_rank, distance))
 
-    def y_distance_kk_method(self):
+    def cal_binary_add_y_distance_all(self):
+
         cal_binary_distance_all_model = [self.cal_binary_distance_all(estimator_i=i) for i in self.estimator_n]
 
         cal_y_distance_all_model = [self.cal_y_distance_all(estimator_i=i) for i in self.estimator_n]
@@ -193,18 +195,16 @@ class SUM(UGS):
         matrix = [np.concatenate((i, j.reshape(1, -1)), axis=0)
                   for i, j in zip(matrix, cal_y_distance_all_model0)]
 
-        def cal_r(kk):
-            r_matrix = []
-            for i in kk:
-                r_matrix.append(np.sqrt(np.sum((kk - i) ** 2, axis=1)))
-            return np.array(r_matrix)
-
         # unify = [np.max(_) for _ in matrix]
         # cal_binary_distance_all_model = [i / j for i, j in zip(matrix, unify)]
 
+        return matrix
+
+    def y_distance_kk_method(self):
+        matrix = self.cal_binary_add_y_distance_all()
         matrix = [displacement(i) for i in matrix]
         KK_dis_all_model = [_kamada_kawai_solve(_, dim=2) for _ in matrix]
-        cal_binary_distance_all_model = [cal_r(_) for _ in KK_dis_all_model]
+        cal_binary_distance_all_model = [self.cal_r(_) for _ in KK_dis_all_model]
 
         cal_y_distance_all_model = [i[:-1, -1] for i in cal_binary_distance_all_model]
         max_node = [[np.argmin(_)] for _ in cal_y_distance_all_model]

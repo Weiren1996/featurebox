@@ -17,14 +17,14 @@ import sympy
 from deap import creator, gp
 from sympy.physics.units import Dimension
 
-from .incorporationbase import Dim, dim_func, fea_compile, spilt_couple
-from ..tools.tool import time_this_function
+from deprecated.incorporationbase import Dim, dim_func, fea_compile, spilt_couple
+from featurebox.tools.tool import time_this_function
 
 warnings.filterwarnings("ignore")
 
 
 ######################
-# generate_ pop
+# generate_index pop
 ######################
 
 
@@ -41,7 +41,7 @@ class Comp(list):
 
 
 def generate(pset0, dim_list):
-    """generate_ core method"""
+    """generate_index core method"""
 
     same = False
     # same = True
@@ -98,7 +98,7 @@ def generate(pset0, dim_list):
 
 
 def generate2(pset0):
-    """generate_ core method"""
+    """generate_index core method"""
     comp = pset0.terminals_comp
     prop = pset0.terminals_prop
 
@@ -393,7 +393,7 @@ def remove_coef(cof__list_all):
 @time_this_function
 def gen_filter(pset, x_feai, xi):
     """
-    generate_ pop flow
+    generate_index pop flow
     --------
     pop1: deap pop
     pop2: sympy pop
@@ -446,7 +446,7 @@ def gen_filter(pset, x_feai, xi):
 
 def produce(x, x_unit, x_name, y, store_path=r'C:\Users\Administrator\Desktop\gap\inter_data'):
     """
-    generate_ combination feature from all element feature.
+    generate_index combination feature from all element feature.
     --------
 
     :param store_path: str, path
@@ -462,7 +462,7 @@ def produce(x, x_unit, x_name, y, store_path=r'C:\Users\Administrator\Desktop\ga
     x_fea_i, x_i = spilt_couple(x_fea_all, x, compount_index=None, pro_index=None, n=2)
 
     # inner cycle
-    # for N in range(0, len(x_fea_i)):
+    # for numeric in range(0, len(x_fea_i)):
     for N in range(40, len(x_fea_i)):
         sym_unify_list, sym_list, dim_list, unit_list = x_feai = x_fea_i[N]
         xi = x_i[N]

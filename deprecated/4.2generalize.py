@@ -3,7 +3,7 @@
 # @Time   : 2019/6/8 21:35
 # @Author : Administrator
 # @Project : feature_preparation
-# @FileName: symbollearing.py
+# @FileName: 4.symbollearing.py
 # @Software: PyCharm
 
 """
@@ -13,9 +13,8 @@
 import numpy as np
 import pandas as pd
 import sympy
-from sklearn.metrics import explained_variance_score
-
 from featurebox.combination.symbolbase import calculateExpr, getName
+
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
 
@@ -51,7 +50,7 @@ if __name__ == "__main__":
     x0, x1, x2, x3, x4, x5, x6 = rep_name
     expr01 = sympy.log(1 / (x1 + x2) * x0 / (x5 + x6) * x4 / x3)
 
-    results = calculateExpr(expr01, pset=None, x=X, y=y, score_method=explained_variance_score, add_coeff=True,
+    results = calculateExpr(expr01, pset=None, x=X, y=y, score_method=r2_score, add_coeff=True,
                             del_no_important=False, filter_warning=True, terminals=rep_name,
                             inter_add=True, iner_add=False, random_add=False)
     print(select)
