@@ -18,7 +18,7 @@ from sklearn.ensemble import AdaBoostClassifier, AdaBoostRegressor, RandomForest
     RandomForestRegressor, GradientBoostingClassifier
 from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.linear_model import LogisticRegression, BayesianRidge, SGDRegressor, Lasso, ElasticNet, Perceptron, \
-    SGDClassifier
+    SGDClassifier, PassiveAggressiveRegressor
 from sklearn.metrics import get_scorer
 from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_val_score, KFold
 from sklearn.svm import SVR, SVC
@@ -169,8 +169,7 @@ def dict_method_reg():
                                         metric='minkowski')
     cv4 = 5
     scoring4 = 'r2'
-    param_grid4 = [{'n_neighbors': [3, 4, 5, 6, 7], "weight": ['uniform', "distance"], "leaf_size=30": [10, 20, 30],
-                    'metric': ['seuclidean', "manhattan"]
+    param_grid4 = [{'n_neighbors': [3, 4, 5, 6, 7], "weights": ['uniform', "distance"], "leaf_size": [10, 20, 30]
                     }]
     dict_method.update({"KNR-set": [me4, cv4, scoring4, param_grid4]})
 
@@ -178,7 +177,7 @@ def dict_method_reg():
     me1 = SVR(kernel='rbf', gamma='auto', degree=3, tol=1e-3, epsilon=0.1, shrinking=False, max_iter=2000)
     cv1 = 5
     scoring1 = 'r2'
-    param_grid1 = [{'C': [1.0e8, 1.0e6, 10000, 100, 50, 10, 5, 2.5, 1, 0.5, 0.1, 0.01], 'kernel': ker}]
+    param_grid1 = [{'C': [10000, 100, 50, 10, 5, 2.5, 1, 0.5, 0.1, 0.01], 'kernel': ker}]
     dict_method.update({"SVR-set": [me1, cv1, scoring1, param_grid1]})
 
     """5kernelridge"""
@@ -194,7 +193,7 @@ def dict_method_reg():
                                                     normalize_y=False, copy_X_train=True, random_state=0)
     cv6 = 5
     scoring6 = 'r2'
-    param_grid6 = [{'alpha': [1e-5, 1e-4, 1e-3, 1e-2], 'kernel': ker}]
+    param_grid6 = [{'alpha': [1e-3, 1e-2], 'kernel': ker}]
     dict_method.update({"GPR-set": [me6, cv6, scoring6, param_grid6]})
 
     # 2nd part
@@ -206,8 +205,7 @@ def dict_method_reg():
                                 random_state=None, verbose=0, warm_start=False)
     cv7 = 5
     scoring7 = 'r2'
-    param_grid7 = [{'n_estimators': [50, 100, 200], 'max_depth': [3, 4, 5, 6, 7, 8, 9, 10],
-                    'min_samples_split': [2, 3, 4], 'min_samples_leaf': [1, 2], 'learning_rate': [0.1, 0.05]}]
+    param_grid7 = [{'max_depth': [3, 4, 5, 6], 'min_samples_split': [2, 3]}]
     dict_method.update({"RFR-em": [me7, cv7, scoring7, param_grid7]})
 
     """7GBR"""
@@ -220,8 +218,8 @@ def dict_method_reg():
                                     warm_start=False, presort='auto')
     cv8 = 5
     scoring8 = 'r2'
-    param_grid8 = [{'n_estimators': [50, 100, 200], 'max_depth': [3, 4, 5, 6, 7, 8, 9, 10],
-                    'min_samples_split': [2, 3, 4], 'min_samples_leaf': [1, 2], 'learning_rate': [0.1, 0.05]}]
+    param_grid8 = [{'max_depth': [3, 4, 5, 6], 'min_samples_split': [2, 3],
+                    'learning_rate': [0.1, 0.05]}]
     dict_method.update({'GBR-em': [me8, cv8, scoring8, param_grid8]})
 
     "AdaBR"
@@ -229,20 +227,28 @@ def dict_method_reg():
     me9 = AdaBoostRegressor(dt, n_estimators=200, learning_rate=0.05, loss='linear', random_state=0)
     cv9 = 5
     scoring9 = 'explained_variance'
-    param_grid9 = [{'n_estimators': [50, 100, 200, 500], 'max_depth': [3, 4, 5, 6, 7, 8, 9, 10],
-                    'min_samples_split': [2, 3, 4], 'learning_rate': [0.1, 0.05]}]
+    param_grid9 = [{'n_estimators': [100, 200], 'learning_rate': [0.1, 0.05]}]
     dict_method.update({"AdaBR-em": [me9, cv9, scoring9, param_grid9]})
 
-    '''TreeR'''
+    '''DTR'''
     me10 = DecisionTreeRegressor(
-        criterion='mse', splitter='best', max_depth=None, min_samples_split=2, min_samples_leaf=1,
-        min_weight_fraction_leaf=0.0, max_features=None, random_state=0, max_leaf_nodes=None,
-        min_impurity_decrease=0.0, min_impurity_split=None, presort=False)
+        criterion="mse",
+        splitter="best",
+        max_depth=None,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        min_weight_fraction_leaf=0.,
+        max_features=None,
+        random_state=0,
+        max_leaf_nodes=None,
+        min_impurity_decrease=0.,
+        min_impurity_split=None,
+        presort=False)
     cv10 = 5
     scoring10 = 'r2'
     param_grid10 = [
-        {'max_depth': [3, 4, 5, 6, 7, 8, 9, 10], "min_samples_split": [2, 3, 4], "min_samples_leaf=1": [1, 2]}]
-    dict_method.update({'TreeC-em': [me10, cv10, scoring10, param_grid10]})
+        {'max_depth': [2, 3, 4, 5, 6, 7, 8], "min_samples_split": [2, 3, 4], "min_samples_leaf": [1, 2]}]
+    dict_method.update({'DTR-em': [me10, cv10, scoring10, param_grid10]})
 
     'ElasticNet'
     me11 = ElasticNet(alpha=1.0, l1_ratio=0.7, fit_intercept=True, normalize=False, precompute=False, max_iter=1000,
@@ -261,7 +267,7 @@ def dict_method_reg():
     cv12 = 5
     scoring12 = 'r2'
     param_grid12 = [{'alpha': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 10, 100, 1000]}, ]
-    dict_method.update({"Lasso-L1": [me12, cv12, scoring12, param_grid12]})
+    dict_method.update({"LASSO-set": [me12, cv12, scoring12, param_grid12]})
 
     """2BayesianRidge"""
     me2 = BayesianRidge(alpha_1=1e-06, alpha_2=1e-06, compute_score=False,
@@ -270,7 +276,7 @@ def dict_method_reg():
     cv2 = 5
     scoring2 = 'r2'
     param_grid2 = [{'alpha_1': [1e-07, 1e-06, 1e-05], 'alpha_2': [1e-07, 1e-06, 1e-05]}]
-    dict_method.update({'BayR-set': [me2, cv2, scoring2, param_grid2]})
+    dict_method.update({'BRR-set': [me2, cv2, scoring2, param_grid2]})
 
     """3SGDRL2"""
     me3 = SGDRegressor(alpha=0.0001, average=False,
@@ -284,6 +290,16 @@ def dict_method_reg():
     param_grid3 = [{'alpha': [100, 10, 1, 0.1, 0.01, 0.001, 0.0001, 1e-05], 'loss': ['squared_loss', "huber"],
                     "penalty": ["l1", "l2"]}]
     dict_method.update({'SGDR-set': [me3, cv3, scoring3, param_grid3]})
+
+    """PassiveAggressiveRegressor"""
+    me14 = PassiveAggressiveRegressor(C=1.0, fit_intercept=True, max_iter=1000, tol=0.001, early_stopping=False,
+                                      validation_fraction=0.1, n_iter_no_change=5, shuffle=True, verbose=0,
+                                      loss='epsilon_insensitive', epsilon=0.1, random_state=None,
+                                      warm_start=False, average=False)
+    cv14 = 5
+    scoring14 = 'r2'
+    param_grid14 = [{'C': [1.0e8, 1.0e6, 10000, 100, 50, 10, 5, 2.5, 1, 0.5, 0.1, 0.01]}]
+    dict_method.update({'PAR-set': [me14, cv14, scoring14, param_grid14]})
 
     return dict_method
 

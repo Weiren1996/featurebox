@@ -178,6 +178,17 @@ def _pre_add(namei):
 
 
 def _bracket_follow(s):
+    """
+    for situation that the number of () before the ()
+    if add this function  make sure the first number below ")" have "+" !!!
+    Parameters
+    ----------
+    s
+
+    Returns
+    -------
+
+    """
     pre = re.findall(r'\d+\.?\d*\(.+\)\D*', s)
     long = len(pre)
     while long > 0:
@@ -203,24 +214,31 @@ def _add_mul(s):
         j += 1
     if s3:
         s_new += "+" + s3
-    s_new = s_new.replace(r"+(", r"(", 1)
+    s_new = s_new.replace(r"+ +", r"+", 1)
     s_new = s_new.replace(r"+)", r")")
     return s_new
 
 
 def substutude(s):
-    s = _bracket_follow(s)
+    # s = _bracket_follow(s)
     s = _pre_add(s)
     s = _add_mul(s)
     return s
 
 
 if __name__ == '__main__':
+    os.chdir(r'C:\Users\Administrator\Desktop')
     a = [substutude(i) for i in [
         # r"0.8(TiLa2)H2", r"(Ti1.24La)0.2H2", r"(Ti1.24La)0.2", '(Ti1.24La)',
-        '(Ti1.24La3)', '(Ti1.24La)', '(Ti1.24La3)2',
+        '(BaZr0.2Ti0.8O3)0.9(Ba0.7Ca0.3TiO3)0.1',
+        '(Ba0.95Ca0.05)+(Zr0.1Ti0.9)O3',
+        '(Ba(Zr0.2Ti0.8)O3)0.5 + ((Ba0.7Ca0.3)TiO3)0.5',
+        'Ba0.95Sr0.05+(Ti0.95Zr0.05)0.975Sn0.025O3',
+        "Ba0.95Sr0.05(Ti0.95Zr0.05)O3",
+        "Ba0.9Sr0.1(Ti0.9Zr0.1)0.95Sn0.05O3",
+        '(Ti1.24La3)2',
         "((Ti1.24)2P2)1H0.2", "((Ti1.24)2)1H0.2", "((Ti1.24))1H0.2",
-        r"0.8(TiLa)H2", r"(TiLa)0.2H2",
+        r"(TiLa)H2", r"(TiLa)0.2H2",
         r"(TiLa)0.2", '(TiLa)',
         '(TiLa3)', '(TiLa)', '(TiLa3)2',
         "((Ti)2P2)1H0.2", "((Ti)2)1H0.2", "((Ti))1H0.2"

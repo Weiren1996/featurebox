@@ -9,6 +9,7 @@
 
 """
 # Just a copy from xenonpy
+for pictures use skimage.io.ImageCollection
 """
 
 import glob
@@ -21,6 +22,7 @@ from warnings import warn
 import joblib
 import pandas as pd
 import requests
+from skimage import io
 
 
 class Call(object):
@@ -33,19 +35,21 @@ class Call(object):
         read_csv = partial(pd.read_csv, index_col=index_col)
         read_excel = partial(pd.read_excel, index_col=index_col)
         extension = dict(
-            pkl_pd=('pkl.pd', pd.read_pickle),
+            pkl_pd=('pkl_pd', pd.read_pickle),
             csv=('csv', read_csv),
             xlsx=('xlsx', read_excel),
-            pkl_sk=('pkl.sk', joblib.load)
+            pkl_sk=('pkl_sk', joblib.load),
+            png=("png", io.imread),
+            jpg=("jpg", io.imread),
         )
         return extension
 
     __re__ = re.compile(r'[\s\-.]')
 
-    def __init__(self, *paths, backend='pkl_pd', prefix=None, index_col=0):
+    def __init__(self, *paths, backend='pkl_pd', prefix_with_upper=None, index_col=0):
         """
         :param backend:default imported type to show
-        :param prefix: prefix for all file
+        :param prefix_with_upper: prefix_with_upper for all file add to file in this code to excape same name
         :type paths: None, ..|data_cluster, or F:data_cluster|data1
         """
         self._backend = backend
@@ -58,13 +62,13 @@ class Call(object):
         else:
             self._paths = paths
 
-        if not prefix:
-            prefix = ()
-        self._prefix = prefix
+        if not prefix_with_upper:
+            prefix_with_upper = ()
+        self._prefix = prefix_with_upper
 
-        self._make_index(prefix=prefix)
+        self._make_index(prefix_with_upper=prefix_with_upper)
 
-    def _make_index(self, *, prefix):
+    def _make_index(self, *, prefix_with_upper):
         def make(path_):
             patten = self.__extension__[self._backend][0]
             files = glob.glob(str(path_ / ('*.' + patten)))
@@ -77,10 +81,10 @@ class Call(object):
                 # selection data_cluster
                 f = Path(f).resolve()
                 parent = re.split(r'[\\/]', str(f.parent))[-1]
-                # parent = str(f.parent).split('/')[-1]
+                # parent = str(f.parent).split('\\/')[-1]
                 fn = f.name[:-(1 + len(patten))]
                 fn = self.__re__.sub('_', fn)
-                if parent in prefix:
+                if prefix_with_upper:
                     fn = '_'.join([parent, fn])
 
                 if fn in self._files:
@@ -155,21 +159,23 @@ class Call(object):
 
         return '\n'.join(cont_ls)
 
-    @property
     def csv(self):
-        return Call(*self._paths, backend='csv', prefix=self._prefix, index_col=self.index_col)
+        return Call(*self._paths, backend='csv', prefix_with_upper=self._prefix, index_col=self.index_col)
 
-    @property
     def pickle_pd(self):
-        return Call(*self._paths, backend='pkl_pd', prefix=self._prefix, index_col=self.index_col)
+        return Call(*self._paths, backend='pkl_pd', prefix_with_upper=self._prefix, index_col=self.index_col)
 
-    @property
     def pickle_sk(self):
-        return Call(*self._paths, backend='pkl_sk', prefix=self._prefix, index_col=self.index_col)
+        return Call(*self._paths, backend='pkl_sk', prefix_with_upper=self._prefix, index_col=self.index_col)
 
-    @property
     def xlsx(self):
-        return Call(*self._paths, backend='xlsx', prefix=self._prefix, index_col=self.index_col)
+        return Call(*self._paths, backend='xlsx', prefix_with_upper=self._prefix, index_col=self.index_col)
+
+    def png(self):
+        return Call(*self._paths, backend='png', prefix_with_upper=self._prefix, index_col=self.index_col)
+
+    def jpg(self):
+        return Call(*self._paths, backend='jpg', prefix_with_upper=self._prefix, index_col=self.index_col)
 
     def __call__(self, *args, **kwargs):
         return self.__extension__[self._backend][1](*args, **kwargs)
@@ -189,4 +195,5 @@ class Call(object):
         """
         if name in self.__extension__:
             return self.__class__(*self._paths, backend=name, prefix=self._prefix)
-        raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
+        else:
+            raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))

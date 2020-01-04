@@ -295,7 +295,7 @@ class GS(object):
         n_jobs = self.n_jobs
         slices = slices if slices else self.slices
 
-        ret = self.check_prop(self, "cv_predict_all", estimator_i=self.estimator_i, slices=slices)
+        ret = self.check_prop("cv_predict_all", estimator_i=self.estimator_i, slices=slices)
 
         if ret is not None:
             pass
@@ -303,7 +303,7 @@ class GS(object):
             cal_score = partial(self.predict)
             ret = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
 
-            self.add_prop(self, "cv_predict_all", estimator_i=self.estimator_i, slices=slices)
+            self.add_prop("cv_predict_all", estimator_i=self.estimator_i, slices=slices, values=ret)
 
         self.slices = slices
 
@@ -348,7 +348,7 @@ class GS(object):
         n_jobs = self.n_jobs
         slices = slices if slices else self.slices
 
-        ret = self.check_prop(self, "cv_score_all", estimator_i=self.estimator_i, slices=slices)
+        ret = self.check_prop("cv_score_all", estimator_i=self.estimator_i, slices=slices)
 
         if ret is not None:
             pass
@@ -356,7 +356,7 @@ class GS(object):
             cal_score = partial(self.cv_score)
             ret = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
 
-            self.add_prop(self, "cv_score_all", estimator_i=self.estimator_i, slices=slices)
+            self.add_prop("cv_score_all", estimator_i=self.estimator_i, slices=slices, values=ret)
 
         self.slices = slices
         return np.array(ret)
@@ -384,7 +384,7 @@ class GS(object):
         n_jobs = self.n_jobs
         slices = slices if slices else self.slices
 
-        ret = self.check_prop(self, "cal_y_distance_all", estimator_i=self.estimator_i, slices=slices)
+        ret = self.check_prop("cal_y_distance_all", estimator_i=self.estimator_i, slices=slices)
 
         if ret is not None:
             pass
@@ -392,7 +392,7 @@ class GS(object):
             cal_score = partial(self.cal_y_distance)
             ret = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
 
-            self.add_prop(self, "cal_y_distance_all", estimator_i=self.estimator_i, slices=slices)
+            self.add_prop("cal_y_distance_all", estimator_i=self.estimator_i, slices=slices, values=ret)
 
         self.slices = slices
         return np.array(ret)
@@ -419,7 +419,7 @@ class GS(object):
         n_jobs = self.n_jobs
         slices = slices if slices else self.slices
 
-        ret = self.check_prop(self, "cal_binary_distance_all", estimator_i=self.estimator_i, slices=slices)
+        ret = self.check_prop("cal_binary_distance_all", estimator_i=self.estimator_i, slices=slices)
 
         if ret is not None:
             pass
@@ -429,7 +429,7 @@ class GS(object):
             ret = parallize(n_jobs=n_jobs, func=cal_binary_distance, iterable=slices_cuple, respective=True)
             ret = np.reshape(ret, (len(slices), len(slices)), order='F')
 
-            self.add_prop(self, "cal_binary_distance_all", estimator_i=self.estimator_i, slices=slices)
+            self.add_prop("cal_binary_distance_all", estimator_i=self.estimator_i, slices=slices, values=ret)
 
         self.slices = slices
         return ret

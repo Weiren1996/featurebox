@@ -161,6 +161,8 @@ class SUM(UGS):
 
         max_node = [[np.argmin(_)] for _ in cal_y_distance_all_model]
 
+        print(max_node)
+
         long = len(cal_y_distance_all_model[0])
         iter_ = np.linspace(np.min(np.array(cal_y_distance_all_model)),
                             np.max(np.array(cal_y_distance_all_model)), num=100 * long)
@@ -207,7 +209,7 @@ class SUM(UGS):
         cal_binary_distance_all_model = [self.cal_r(_) for _ in KK_dis_all_model]
 
         cal_y_distance_all_model = [i[:-1, -1] for i in cal_binary_distance_all_model]
-        max_node = [[np.argmin(_)] for _ in cal_y_distance_all_model]
+        # max_node = [[np.argmin(_)] for _ in cal_y_distance_all_model]
 
         long = len(cal_y_distance_all_model[0])
         iter_ = np.linspace(np.min(np.array(cal_y_distance_all_model)),
@@ -229,9 +231,9 @@ class SUM(UGS):
 
         return list(zip(rank, slices_rank, distance))
 
-    def pareto_method(self, sign=None):
-        y = np.array([self.cv_score_all(estimator_i=i) for i in self.estimator_n]).T
-        std_ = np.std(y, axis=1)
+    @staticmethod
+    def _pareto(y, sign=None):
+
         m = y.shape[0]
         n = y.shape[1]
         if not sign:
@@ -244,11 +246,24 @@ class SUM(UGS):
             data_in = np.min(data_max)
             if data_in >= 0:
                 front_point.append(i)
+        # print("pareto_method point number:", len(front_point))
         front_point = np.array(front_point)
-        std_front = std_[front_point]
-        rank_ = np.argsort(std_front)
+
+        return front_point
+
+    def pareto_method(self, sign=None):
+        y = np.array([self.cv_score_all(estimator_i=i) for i in self.estimator_n]).T
+
+        max_node = np.argmax(y, axis=0)
+        print(max_node)
+
+        front_point = self._pareto(y, sign=sign)
+
+        mean_ = np.mean(y, axis=1)
+        mean_front = mean_[front_point]
+        rank_ = np.argsort(mean_front)[::-1]
         front_point_rank = front_point[rank_]
-        std_front_rank = std_front[rank_]
+        std_front_rank = mean_front[rank_]
 
         slices_rank = [str(self.slices[i]) for i in front_point_rank]
 

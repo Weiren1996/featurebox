@@ -9,9 +9,10 @@
 """
 this is a description
 """
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 from featurebox.selection.corr import Corr
 from featurebox.tools.exports import Store
@@ -24,8 +25,9 @@ from featurebox.tools.tool import name_to_name
 if __name__ == "__main__":
     store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp\2.corr')
     data = Call(r'C:\Users\Administrator\Desktop\band_gap_exp')
-    all_import = data.csv.all_import
-    name_init, abbr_init = data.name_and_abbr
+    all_import = data.csv().all_import
+    # name_init, abbr_init = data.name_and_abbr
+    name_init, abbr_init = data.pickle_pd().name_and_abbr
 
     data_import = all_import
     data225_import = data_import.iloc[np.where(data_import['group_number'] == 225)[0]]
@@ -52,11 +54,11 @@ if __name__ == "__main__":
     cov = cov.set_axis(X_frame_abbr, axis='index', inplace=False)
     cov = cov.set_axis(X_frame_abbr, axis='columns', inplace=False)
 
-    # fig = plt.figure()
-    # fig.add_subplot(111)
-    # sns.heatmap(cov, vmin=-1, vmax=1, cmap="bwr", linewidths=0.3, xticklabels=True, yticklabels=True, square=True,
-    #             annot=True, annot_kws={'size': 3})
-    # plt.show()
+    fig = plt.figure()
+    fig.add_subplot(111)
+    sns.heatmap(cov, vmin=-1, vmax=1, cmap="bwr", linewidths=0.3, xticklabels=True, yticklabels=True, square=True,
+                annot=True, annot_kws={'size': 3})
+    plt.show()
     corr_plot(corr.cov_shrink, X_frame_abbr, left_down="fill", right_top="pie", threshold_right=0, front_raito=0.5)
 
     list_name, list_abbr = name_to_name(X_frame_name, X_frame_abbr, search=corr.list_count, search_which=0,

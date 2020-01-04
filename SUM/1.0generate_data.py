@@ -5,15 +5,13 @@
 # @Project : feature_toolbox
 # @FileName: 3.0select_method.py
 # @Software: PyCharm
-
+import numpy as np
 import pandas as pd
 from pymatgen import Composition
-from sklearn.svm import LinearSVR
 
 from featurebox.featurizers.compositionfeaturizer import DepartElementFeaturizer
 from featurebox.tools.exports import Store
 
-LinearSVR
 """
 this is a description
 """
@@ -38,7 +36,31 @@ if __name__ == "__main__":
         return name, abbr
 
 
+    def get_dim():
+        dims = [np.array([0, 0, 0, 0, 0, 0, 0])] * 7 + [np.array([0, 1, 0, 0, 0, 0, 0])] * 14 + [
+            np.array([1, 2, -2, 0, 0, 0, 0])] * 16 \
+               + [np.array([0, 0, 0, 0, 0, 0, 0])] * 2 + [np.array([0, -1, 0, 0, 0, 0, 0])] * 2 + [
+                   np.array([0, 0, 0, 0, 0, 0, 0])] * 11 \
+               + [np.array([1, -1, -2, 0, 0, 0, 0])] * 8 + [np.array([1, 1, 3, 0, -1, 0, 0])] + [
+                   np.array([1, 3, -3, -2, 0, 0, 0])] \
+               + [np.array([0, 2, -2, 0, -1, 0, 0])] + [np.array([-1, -3, 3, 2, 0, 0, 0])] + [
+                   np.array([0, 0, 0, 0, 0, 0, 0])] \
+               + [np.array([0, 0, 0, 1, 0, 0, 0])] * 2 + [np.array([0, 0, 0, 0, 0, 0, 0])] + [
+                   np.array([0, 3, 0, 0, 0, 0, 0])] \
+               + [np.array([0, 0, 0, 0, 0, 0, 0])] + [np.array([0, 3, 0, 0, 0, -1, 0])] + [
+                   np.array([1, -3, 0, 0, 0, 0, 0])] \
+               + [np.array([1, -1, -2, 0, 0, 0, 0])]
+
+        dims.extend([np.array([0, 1, 0, 0, 0, 0, 0]), np.array([0, 2, 0, 0, 0, 0, 0]), np.array([0, 1, 0, 0, 0, 0, 0]),
+                     np.array([0, 2, 0, 0, 0, 0, 0]),
+                     np.array([1, -3, 0, 0, 0, 0, 0]), np.array([0, 3, 0, 0, 0, 0, 0]), np.array([0, 0, 0, 0, 0, 0, 0])
+                     ])
+        return dims
+
+
     name_and_abbr = get_abbr()
+    dims = get_dim()
+    store.to_pkl_pd(dims, "dims")
     store.to_pkl_pd(name_and_abbr, "name_and_abbr")
 
     element_table = element_table.iloc[5:, 7:]

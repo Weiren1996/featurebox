@@ -33,7 +33,8 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
     the estimator_ is the model with the best feature rather than all feature combination
     """
 
-    def __init__(self, estimator, n_select=(2, 3, 4), muti_grade=2, muti_index=None, must_index=None, n_jobs=1):
+    def __init__(self, estimator, n_select=(2, 3, 4), muti_grade=2, muti_index=None, must_index=None, n_jobs=1,
+                 refit=False):
         """
 
         :param estimator: and sklearn model or GridSearchCV
@@ -48,6 +49,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         self.score_ = []
         self.n_jobs = n_jobs
         self.n_select = [n_select, ] if isinstance(n_select, int) else n_select
+        self.refit = refit
 
     @property
     def _estimator_type(self):
@@ -109,7 +111,8 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         self.score_ = scores
         self.support_ = su
         self.estimator_ = clone(self.estimator)
-        self.estimator_.fit(x[:, select_feature], y)
+        if self.refit:
+            self.estimator_.fit(x[:, select_feature], y)
         self.n_feature_ = len(select_feature)
         self.score_ex = list(zip(feature_combination, scores))
         self.scatter = list(zip([len(i) for i in slice_all], scores))

@@ -258,7 +258,7 @@ def fea_compile(unit_list0, symbols_name=None, p=True, pre=True):
         except TypeError:
             raise TypeError("each symbols_name should with simple form and without space")
     else:
-        raise IndexError("unit and x_name should have same size or just a single prefix like 'x'.")
+        raise IndexError("unit and x_name should have same size or just a single prefix_with_upper like 'x'.")
 
 
 def fea_compile_with_name(unit_list0, name=None, p=True, pre=True, ):
@@ -269,7 +269,7 @@ def fea_compile_with_name(unit_list0, name=None, p=True, pre=True, ):
     :param pre: take unit and number transformation into account or not, if true ,return
     the sym_unify_list0(like 10^-6*m)  ,else the sym_list(like m)
     :return:
-            sym_unify_list0:list of sym with prefix
+            sym_unify_list0:list of sym with prefix_with_upper
             sym_list0:list of sym
             dim_list0:list of dim
             unit_list0:list of unit

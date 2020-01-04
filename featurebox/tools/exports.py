@@ -9,6 +9,7 @@
 
 """
 # Just a copy from xenonpy
+"w","a+"
 """
 
 import os
@@ -17,9 +18,24 @@ from os import remove
 import joblib
 import numpy as np
 import pandas as pd
+from skimage import io
+
+
+def def_pwd(path):
+    if path is None:
+        path = os.getcwd()
+
+    if os.path.exists(path):
+        os.chdir(path)
+    else:
+        os.makedirs(path)
+        os.chdir(path)
+    pwd = os.getcwd()
+    locals()[pwd] = pwd
 
 
 class Store(object):
+
     def __init__(self, path=None, filename="filename", prefix: str = None):
         r"""
         store file in path
@@ -32,13 +48,7 @@ class Store(object):
             prefix = ""
         self._prefix = prefix
 
-        if path is None:
-            path = os.getcwd()
-        if os.path.exists(path):
-            os.chdir(path)
-        else:
-            os.makedirs(path)
-            os.chdir(path)
+        def_pwd(path)
 
         self._path = path
         self._filename = ""
@@ -88,12 +98,23 @@ class Store(object):
         document.close()
 
     def to_pkl_pd(self, data, file_new_name=None):
-        self._check_name("pkl.pd", file_new_name)
+        self._check_name("pkl_pd", file_new_name)
         pd.to_pickle(data, self._filename)
 
     def to_pkl_sk(self, data, file_new_name=None):
-        self._check_name("pkl.sk", file_new_name)
+        self._check_name("pkl_sk", file_new_name)
         joblib.dump(data, self._filename)
+
+    def to_png(self, data, file_new_name=None):
+        self._check_name("png", file_new_name=file_new_name)
+        io.imsave(self._filename, data)
+
+    @classmethod
+    def to_multi_file(cls, datas, suffix="pkl_sk", file_new_name=None):
+        dict_func = {"txt": cls.to_txt, "pkl_sk": cls.to_pkl_sk, "pkl_pd": cls.to_pkl_pd,
+                     "csv": cls.to_csv, "png": cls.to_png}
+        for data in datas:
+            dict_func[suffix](data, file_new_name, model="w")
 
     def remove(self, index_or_name=None):
         """

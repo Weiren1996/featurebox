@@ -5,6 +5,7 @@
 """
 sample
 """
+import gc
 import warnings
 from collections.abc import Iterable
 
@@ -71,8 +72,9 @@ class MutilplyEgo:
             return predict_data
 
         njobs = self.n_jobs
+        number = self.number
 
-        predict_dataj = parallize(n_jobs=njobs, func=fit_parllize, iterable=range(self.number))
+        predict_dataj = parallize(n_jobs=njobs, func=fit_parllize, iterable=range(number))
 
         return np.array(predict_dataj)
 
@@ -103,13 +105,17 @@ class MutilplyEgo:
                 predict_y_all.append(predict_y)
 
                 meanandstd_i = self._mean_and_std(predict_y)
+
+                del predict_y
+                gc.collect()
+
                 meanandstd.append(meanandstd_i)
             else:
                 pass
-        predict_y_all = np.array(predict_y_all)
         if regclf_number is None:
             self.meanandstd_all = meanandstd
-            self.predict_y_all = predict_y_all
+
+            self.predict_y_all = np.array(predict_y_all).T
         return meanandstd
 
     def pareto_front_point(self):
@@ -164,12 +170,20 @@ class MutilplyEgo:
         meanstd = meanstd[:, :, 0].T
         alll = []
         for front_y_i in front_y.T:
-            l_i = np.min(front_y_i - meanstd, axis=1)
+            l_i = meanstd - front_y_i
             alll.append(l_i)
         dmin = np.array(alll)
-        dmaxmin = np.max(dmin, axis=0)
-        self.L = dmaxmin
-        return dmaxmin
+
+        dmin2 = np.min(np.abs(dmin), axis=0)
+
+        dmin3 = np.min(dmin2, axis=1)
+
+        #        dmin3 = np.sqrt(np.sum(dmin2**2,axis=1))
+
+        dmin3[np.where(dmin3 < 0)[0]] = 0
+
+        self.L = dmin3
+        return dmin3
 
     def CalculateEi(self):
         self.CalculatePi()
@@ -179,27 +193,36 @@ class MutilplyEgo:
         return Ei
 
     def CalculatePi(self):
-        predict_y_all = self.predict_y_all
+        njobs = self.n_jobs
         front_y = self.pareto_front_point()
         front_y = self.y[front_y, :].T
-        tile_all = []
-        for i in predict_y_all.T:
+
+        predict_y_all = self.predict_y_all
+
+        del self.predict_y_all
+        gc.collect()
+
+        def tile_func(i, front_y0):
             tile = 0
-            for front_y_i in front_y.T:
+            for front_y_i in front_y0.T:
                 big = i - front_y_i
                 big_bool = np.max(big, axis=1) < 0
                 tile |= big_bool
-            tile_all.append(tile)
+            return tile
+
+        tile_all = parallize(n_jobs=njobs, func=tile_func, iterable=predict_y_all, front_y=front_y)
         pi = np.sum(1 - np.array(tile_all), axis=1) / self.number
         self.Pi = pi
         return pi
 
-    def Rank(self):
-        bianhao = np.arange(0, len(self.searchspace.shape[1]))
-        result1 = np.column_stack((bianhao, self.Pi, self.L, self.Ei, self.center))
-        max_paixu = np.argsort(result1[:, -1])
-        result1 = result1[max_paixu]
-        return result1
+    def Rank(self, top=10000):
+        bianhao = np.arange(0, self.searchspace.shape[0])
+        result1 = np.column_stack((bianhao, self.searchspace, *self.meanandstd_all, self.Pi, self.L, self.Ei))
+        max_paixu = np.argsort(-result1[:, -1])
+        select_number = max_paixu[:int(max_paixu.size / top)]
+        result1 = result1[select_number]
+        self.result = result1
+        return select_number
 
 # if __name__ == '__main__':
 #     import numpy as np
@@ -210,10 +233,10 @@ class MutilplyEgo:
 #
 #     warnings.filterwarnings("ignore")
 #
-#     os.chdir(r'C:/Users/Administrator/Desktop/')
-#     svr = joblib.load("SVR")
-#     svr_el = joblib.load("svr-el")
-#     file_path = r'C:/Users/Administrator/Desktop/对应版.csv'
+#     os.chdir(r'C:\Users\scc\Desktop\lmx')
+#     svr = joblib.load(r'SVR')
+#     svr_el = joblib.load(r'svr-EL')
+#     file_path = r'C:\Users\scc\Desktop\lmx\UTS-deta.csv'
 #     data = pd.read_csv(file_path)
 #     X = data.iloc[:, :-2].values
 #     y = data.iloc[:, -2:].values
@@ -225,20 +248,21 @@ class MutilplyEgo:
 #     X = scalar.fit_transform(X)
 #
 #     searchspace = [
-#         np.arange(0, 0.6, 0.3),
-#         np.arange(0, 2, 1),
-#         np.arange(0, 2, 1),
-#         np.array([8, 16]),
-#         np.array([9, 18]),
-#         np.arange(0, 5, 2.5),
-#         np.arange(800, 1300, 250),
-#         np.arange(200, 800, 300),
+#         np.arange(0.1,0.35,0.1),
+#         np.arange(0.1, 1.3, 0.3),
+#         np.arange(0.1, 2.1, 0.5),
+#         np.arange(0,1.3,0.3),
+#         np.arange(0,7.5,1.5),
+#         np.arange(0,7.5,1.5),
+#         np.arange(800, 1300, 50),
+#         np.arange(200, 600, 40),
 #         np.array([20, 80, 138, 250]),
 #     ]
-#     searchspace = search_space(*searchspace)
-#     searchspace = pca.transform(searchspace)
-#     searchspace = scalar.transform(searchspace)
-#     me = MutilplyEgo(searchspace, X, y, 100, [svr, svr_el], feature_slice=None, n_jobs=2)
+#     searchspace0 = search_space(*searchspace)
+#     searchspace1 = pca.transform(searchspace0)
+#     searchspace1 = scalar.transform(searchspace1)
+#     me = MutilplyEgo(searchspace1, X, y, 500, [svr, svr_el], feature_slice=None, n_jobs=20)
 #     meanandstd = me.Fit()
-#     front_point = me.pareto_front_point()
-#     pi = me.CalculateEi()
+#     Ei = me.CalculateEi()
+#     select_number = me.Rank()
+#     a = searchspace0[select_number]

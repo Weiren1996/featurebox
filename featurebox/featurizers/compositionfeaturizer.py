@@ -341,6 +341,7 @@ class ExtraMix(BaseCompositionFeaturizer):
 class DepartElementFeaturizer(BaseCompositionFeaturizer):
     def __init__(self, *, elem_data, n_composition, n_jobs=-1, on_errors='raise', return_type='any'):
         """
+        just for same number element for one conmpund.
         Parameters
         ----------
         n_jobs: int

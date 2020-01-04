@@ -19,6 +19,7 @@ from functools import partial, wraps
 
 import numpy as np
 from joblib import Parallel, delayed, effective_n_jobs
+from tqdm import tqdm
 
 
 def time_this_function(func):
@@ -101,9 +102,9 @@ def parallize(n_jobs, func, iterable, respective=False, **kwargs):
         parallel = Parallel(n_jobs=n_jobs)
         func = delayed(func)
     if respective:
-        return parallel(func(*iter_i) for iter_i in iterable)
+        return parallel(func(*iter_i) for iter_i in tqdm(iterable))
     else:
-        return parallel(func(iter_i) for iter_i in iterable)
+        return parallel(func(iter_i) for iter_i in tqdm(iterable))
 
 
 def logg(func, printting=True, reback=False):
@@ -167,19 +168,39 @@ def name_to_name(*iters, search=None, search_which=1, return_which=(1,), two_lay
             raise IndexError("search_name or search should be iterable")
 
     else:
+
         zeros = [list(range(len(iters[0])))]
+
         zeros.extend([list(_) for _ in iters])
+
         iters = zeros
+
         zips = list(zip(*iters))
 
         if isinstance(search, Iterable):
+
             search_index = [iters[search_which].index(i) for i in search]
+
             results = [zips[i] for i in search_index]
+
         else:
+
             raise IndexError("search_name or search should be iterable")
 
         res = list(zip(*results))
-        return_res = [res[_] for _ in return_which]
+
+        if not res:
+            return_res = [[] for _ in return_which]
+        else:
+            return_res = [res[_] for _ in return_which]
+
         if len(return_which) == 1:
             return_res = return_res[0]
         return return_res
+
+
+list1 = [1, 2, 3, 4, 5]
+list2 = ["a", "b", "c", "d", "e"]
+
+# a = name_to_name(list(range(len(list1))),list2, search=["a","e"], search_which=2, return_which=(0,1), two_layer=False)
+a = name_to_name(list1, list2, search=[["a", "e"], ["b", "e"]], search_which=2, return_which=1, two_layer=True)
