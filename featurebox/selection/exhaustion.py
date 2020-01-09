@@ -22,7 +22,7 @@ from sklearn.feature_selection.base import SelectorMixin
 from sklearn.utils.metaestimators import if_delegate_has_method
 from sklearn.utils.validation import check_is_fitted, check_X_y
 
-from featurebox.tools.tool import parallize
+from featurebox.tools.tool import parallelize
 from .mutibase import MutiBase
 
 warnings.filterwarnings("ignore")
@@ -62,7 +62,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         Parameters
         ----------
         X : {array-like, sparse matrix}, shape = [n_samples, n_feature]
-            The training input samples.
+            The training input0 samples.
 
         y : array-like, shape = [n_samples]
             The target values.
@@ -100,7 +100,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         slice_all = [combinations(fold_feature_list, i) for i in self.n_select]
         slice_all = [list(self.feature_must_fold(_)) for i in slice_all for _ in i]
 
-        scores = parallize(n_jobs=self.n_jobs, func=score, iterable=slice_all)
+        scores = parallelize(n_jobs=self.n_jobs, func=score, iterable=slice_all)
 
         feature_combination = [self.feature_unfold(_) for _ in slice_all]
         index = np.argmax(scores)
@@ -128,7 +128,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         Parameters
         ----------
         X : array of shape [n_samples, n_feature]
-            The input samples.
+            The input0 samples.
 
         Returns
         -------
@@ -146,7 +146,7 @@ class Exhaustion(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         Parameters
         ----------
         X : array of shape [n_samples, n_feature]
-            The input samples.
+            The input0 samples.
 
         y : array of shape [n_samples]
             The target values.

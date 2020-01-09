@@ -13,7 +13,7 @@ import numpy as np
 import sklearn.utils
 from sklearn.utils import check_array
 
-from featurebox.tools.tool import parallize
+from featurebox.tools.tool import parallelize
 
 warnings.filterwarnings("ignore")
 
@@ -74,7 +74,7 @@ class MutilplyEgo:
         njobs = self.n_jobs
         number = self.number
 
-        predict_dataj = parallize(n_jobs=njobs, func=fit_parllize, iterable=range(number))
+        predict_dataj = parallelize(n_jobs=njobs, func=fit_parllize, iterable=range(number))
 
         return np.array(predict_dataj)
 
@@ -137,11 +137,11 @@ class MutilplyEgo:
         self.front_point = self.y[front_point, :].T
         return front_point
 
-    # def CalculateEI2(self):
-    #     predict_y_all = self.predict_y_all
-    #     front_y = self.pareto_front_point()
-    #     front_y = self.y[front_y, :].T
-    #     meanstd = self.meanandstd_all
+    # def CalculateEI2(spath):
+    #     predict_y_all = spath.predict_y_all
+    #     front_y = spath.pareto_front_point()
+    #     front_y = spath.y[front_y, :].T
+    #     meanstd = spath.meanandstd_all
     #     pi_all = 1
     #     center = []
     #     for y_i, meanstd_i in zip(front_y, meanstd):
@@ -157,11 +157,11 @@ class MutilplyEgo:
     #         pi_all *= pi_i_denominator
     #         center.append(center_i)
     #     center = np.array(center)
-    #     self.Pi = pi_all
-    #     self.center = center
+    #     spath.Pi = pi_all
+    #     spath.center = center
     #     L = np.array([[spatial.distance.euclidean(y_j, j) for j in center.T] for y_j in front_y.T])
     #     L_min = np.min(L, axis=0)
-    #     self.L = L_min
+    #     spath.L = L_min
 
     def CalculateL(self):
         front_y = self.pareto_front_point()
@@ -210,7 +210,7 @@ class MutilplyEgo:
                 tile |= big_bool
             return tile
 
-        tile_all = parallize(n_jobs=njobs, func=tile_func, iterable=predict_y_all, front_y=front_y)
+        tile_all = parallelize(n_jobs=njobs, func=tile_func, iterable=predict_y_all, front_y=front_y)
         pi = np.sum(1 - np.array(tile_all), axis=1) / self.number
         self.Pi = pi
         return pi

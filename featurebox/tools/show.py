@@ -237,6 +237,30 @@ def lin_cof(x0):
 
 def corr_plot(x_cof, x_name=None, left_down=None, right_top=None, threshold_left=0, threshold_right=0.9,
               title="pearsonr coefficient", label_axis="off", front_raito=1):
+    """
+    plot corr
+
+    Parameters
+    ----------
+    x_cof:np.ndarray
+        correlation coefficient matrix
+    x_name:list,None
+        feature names
+    left_down:None,"pie","fill","text","circle"
+        type for left_down
+    right_top:None,"pie","fill","text","circle"
+        type for right_top
+    threshold_left:int
+        threshold for show.
+    threshold_right:int
+        threshold for show.
+    title:str
+        picture title
+    label_axis:"left","right","off"
+        label_axis
+    front_raito:int
+        front scare for show
+    """
     x_cof = np.round(x_cof, 2)
 
     name = x_name
@@ -360,7 +384,7 @@ if __name__ == '__main__':
         return results1
 
 
-    x_cof = lin_cof(datax)
+    x_cof0 = lin_cof(datax)
 
     # data_frame = pd.read_excel(r"C:\Users\Administrator\Desktop\2dsdf.xlsx",sheet_name=0,index_col=0)
     # x_cof = data_frame.values

@@ -44,6 +44,13 @@
           <option value="object.shape" />
           <option value="str.ravel" />
           <option value="list.T" />
+          <option value="typing.Iterable.__getitem__" />
+          <option value="tuple.set_xlim" />
+          <option value="tuple.axis" />
+          <option value="tuple.set_facecolor" />
+          <option value="tuple.spines" />
+          <option value="tuple.text" />
+          <option value="tuple.*" />
         </list>
       </option>
     </inspection_tool>

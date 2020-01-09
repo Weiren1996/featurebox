@@ -24,15 +24,17 @@ from tqdm import tqdm
 
 def time_this_function(func):
     """
-    time the function
+    time the function. use as a decorator.
 
     Parameters
     ----------
-    func: function
+    func: Callable
+        function
 
     Returns
     -------
-    function results
+    result
+        function results
     """
 
     @wraps(func)
@@ -52,7 +54,7 @@ def check_random_state(seed):
 
     Parameters
     ----------
-    seed: None,int,instance of RandomState
+    seed: None,int or RandomState
         If seed is None, return the RandomState singleton used by random.
         If seed is an int, return a new RandomState instance seeded with seed.
         If seed is already a RandomState instance, return it.
@@ -60,7 +62,8 @@ def check_random_state(seed):
 
     Returns
     -------
-    RandomState
+    random.Random
+        RandomState object
     """
 
     if seed is None or seed is random.random:
@@ -73,16 +76,21 @@ def check_random_state(seed):
                      ' instance' % seed)
 
 
-def parallize(n_jobs, func, iterable, respective=False, **kwargs):
+def parallelize(n_jobs, func, iterable, respective=False, tq=True, **kwargs):
     """
-    parallize the function for iterable.
-    use in if __name__ == "__main__":
+    Parallize the function for iterable.
+
+    make sure in if __name__ == "__main__":
 
     Parameters
     ----------
-    respective
+    respective:bool
+        Import the parameters respectively or as a whole
+    tq:bool
+         View Progress or not
     n_jobs:int
-        cpu numbers
+        cpu numbers. n_jobs is the number of workers requested by the callers. Passing n_jobs=-1
+    means requesting all available workers for instance matching the number of CPU cores on the worker host(s).
     func:
         function to calculate
     iterable:
@@ -92,7 +100,9 @@ def parallize(n_jobs, func, iterable, respective=False, **kwargs):
 
     Returns
     -------
-    function results
+    results
+        function results
+
     """
 
     func = partial(func, **kwargs)
@@ -101,22 +111,29 @@ def parallize(n_jobs, func, iterable, respective=False, **kwargs):
     else:
         parallel = Parallel(n_jobs=n_jobs)
         func = delayed(func)
-    if respective:
-        return parallel(func(*iter_i) for iter_i in tqdm(iterable))
+    if tq:
+        if respective:
+            return parallel(func(*iter_i) for iter_i in tqdm(iterable))
+        else:
+            return parallel(func(iter_i) for iter_i in tqdm(iterable))
     else:
-        return parallel(func(iter_i) for iter_i in tqdm(iterable))
+        if respective:
+            return parallel(func(*iter_i) for iter_i in tqdm(iterable))
+        else:
+            return parallel(func(iter_i) for iter_i in tqdm(iterable))
 
 
-def logg(func, printting=True, reback=False):
+def logg(func, printing=True, back=False):
     """
+    Get the name of function
 
     Parameters
     ----------
-    func:
+    func:Callable
         function to calculate
-    printting:
+    printing:bool
         print or not
-    reback:
+    back:bool
         return result or not
 
     Returns
@@ -138,9 +155,9 @@ def logg(func, printting=True, reback=False):
             arg_dict = ""
             name = ""
             result = func(*args, **kwargs)
-        if printting:
+        if printing:
             print(name, arg_dict)
-        if reback:
+        if back:
             return (name, arg_dict), result
         else:
             return result
@@ -148,7 +165,27 @@ def logg(func, printting=True, reback=False):
     return wrapper
 
 
-def name_to_name(*iters, search=None, search_which=1, return_which=(1,), two_layer=False):
+def name_to_name(*iters, search, search_which=1, return_which=(1,), two_layer=False):
+    """
+
+    Parameters
+    ----------
+    iters:Iterable
+        iterable objects to select and sort
+    search:Iterable
+        the rank basis
+    search_which:int
+        the (the index of iters) of the rank basis. where to rank
+    return_which:tuple of int
+        return index in inters
+    two_layer:bool
+        search is nested with two layer or not
+
+    Returns
+    -------
+    result:Iterable
+        Result of find and sort
+    """
     if isinstance(return_which, int):
         return_which = tuple([return_which, ])
     if two_layer:
@@ -199,8 +236,10 @@ def name_to_name(*iters, search=None, search_which=1, return_which=(1,), two_lay
         return return_res
 
 
-list1 = [1, 2, 3, 4, 5]
-list2 = ["a", "b", "c", "d", "e"]
+if __name__ == "__main__":
+    list1 = [1, 2, 3, 4, 5]
+    list2 = ["a", "b", "c", "d", "e"]
 
-# a = name_to_name(list(range(len(list1))),list2, search=["a","e"], search_which=2, return_which=(0,1), two_layer=False)
-a = name_to_name(list1, list2, search=[["a", "e"], ["b", "e"]], search_which=2, return_which=1, two_layer=True)
+    # a = name_to_name(list(range(len(list1))),list2, search=["a","e"], search_which=2,
+    # return_which=(0,1), two_layer=False)
+    a = name_to_name(list1, list2, search=[["a", "e"], ["b", "e"]], search_which=2, return_which=1, two_layer=True)

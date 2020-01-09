@@ -15,7 +15,7 @@ from featurebox.featurizers.extrastats import PropertyStats
 
 class UnionFeaturizer(BaseFeaturizer, ABC):
     """
-    transform method should input comp_index rather than entries
+    transform method should input0 comp_index rather than entries
     """
 
     def __init__(self, comp, couple_data, couple=2, stats=("mean",)):

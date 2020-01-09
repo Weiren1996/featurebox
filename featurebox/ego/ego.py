@@ -16,7 +16,7 @@ import sklearn.utils
 from scipy import stats
 from sklearn.utils import check_array
 
-from featurebox.tools.tool import parallize
+from featurebox.tools.tool import parallelize
 
 print('\t\tFor grid building\nsample:\nspace=searchspace(li1,li2,li3)\nNote:parameters no more than 5 ')
 print(
@@ -64,7 +64,7 @@ class Ego:
             predict_data = regclf0.predict(searchspace0)
             predict_data.ravel()
 
-        predict_dataj = parallize(n_jobs=njobs, func=fit_parllize, iterable=range(self.number))
+        predict_dataj = parallelize(n_jobs=njobs, func=fit_parllize, iterable=range(self.number))
 
         return np.array(predict_dataj)
 

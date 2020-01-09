@@ -18,8 +18,8 @@ from featurebox.featurizers.base import BaseFeaturizer
 class Neighborizer(BaseFeaturizer, ABC):
 
     # @property
-    # def feature_labels(self):
-    #     return [str(d) for d in self._interval[1:]]
+    # def feature_labels(spath):
+    #     return [str(d) for d in spath._interval[1:]]
 
     def __init__(self, tol=0.001, *, n_jobs=-1, on_errors='raise', return_type='any'):
         """
@@ -39,7 +39,7 @@ class Neighborizer(BaseFeaturizer, ABC):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type dependent on the input type.
+            If ``any``, the return type dependent on the input0 type.
             Default is ``any``
         """
 

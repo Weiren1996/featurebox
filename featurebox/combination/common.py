@@ -410,7 +410,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
-        # fitnesses = parallize(n_jobs=3, func=toolbox.evaluate, iterable=invalid_ind,  respective=False)
+        # fitnesses = parallelize(n_jobs=3, func=toolbox.evaluate, iterable=invalid_ind,  respective=False)
         fitnesses = toolbox.parallel(iterable=invalid_ind)
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit[0],

@@ -350,15 +350,15 @@ class PropertyStats(object):
 
 # class UnionFeaturizer(BaseFeaturizer, ABC):
 #
-#     def __init__(self, comp, couple_data, couple=2, stats=("mean",)):
+#     def __init__(spath, comp, couple_data, couple=2, stats=("mean",)):
 #         super().__init__()
-#         self.couple = couple
-#         self.comp = comp
-#         self.couple_data = couple_data
-#         self.stats = stats
+#         spath.couple = couple
+#         spath.comp = comp
+#         spath.couple_data = couple_data
+#         spath.stats = stats
 #         # Initialize stats computer
 #
-#     def featurize(self, comp_number=0):
+#     def featurize(spath, comp_number=0):
 #         """
 #         Get elemental property attributes
 #
@@ -369,20 +369,20 @@ class PropertyStats(object):
 #             all_attributes: Specified property statistics of features
 #             :param comp_number:
 #         """
-#         comp = self.comp[comp_number]
-#         couple_data = self.couple_data[comp_number].values
+#         comp = spath.comp[comp_number]
+#         couple_data = spath.couple_data[comp_number].values
 #         all_attributes = []
 #
 #         # Get the element names and fractions
 #         elements, fractions = zip(*comp.element_composition.items())
-#         couple_data = np.reshape(couple_data, (self.couple, -1), order="F")
+#         couple_data = np.reshape(couple_data, (spath.couple, -1), order="F")
 #         for elem_data_i in couple_data.T:
-#             for stat in self.stats:
+#             for stat in spath.stats:
 #                 all_attributes.append(PropertyStats.calc_stat(elem_data_i, stat, fractions))
 #
 #         return all_attributes
 #
-#     def transform(self, X=None, **kwargs):
+#     def transform(spath, X=None, **kwargs):
 #         """Compute features for a list of inputs
 #
 #         Parameters
@@ -390,16 +390,16 @@ class PropertyStats(object):
 #         X
 #         **kwargs
 #         """
-#         number = list(range(len(self.comp)))
-#         return self.featurize_many(number, ignore_errors=True)
+#         number = list(range(len(spath.comp)))
+#         return spath.featurize_many(number, ignore_errors=True)
 #
-#     def feature_labels(self):
+#     def feature_labels(spath):
 #         """
 #         Generate attribute names.
 #
 #         Returns:
 #             ([str]) attribute labels.
 #         """
-#         x_name = np.array(self.couple_data.columns.values)[::self.couple]
+#         x_name = np.array(spath.couple_data.columns.values)[::spath.couple]
 #         x_name = [i.split("_")[0] for i in x_name]
 #         return x_name

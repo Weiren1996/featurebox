@@ -11,9 +11,11 @@
 # Just a copy from xenonpy
 for pictures use skimage.io.ImageCollection
 """
-
+import copy
 import glob
+import os
 import re
+import shutil
 from collections import defaultdict
 from functools import partial
 from pathlib import Path
@@ -23,6 +25,8 @@ import joblib
 import pandas as pd
 import requests
 from skimage import io
+
+from featurebox.tools.exports import def_pwd
 
 
 class Call(object):
@@ -112,7 +116,7 @@ class Call(object):
         url: str
             The resource url.
         save_to: str
-            The path of a dir to save the downloaded object into it.
+            The path of a path to save the downloaded object into it.
         filename: str, optional
             Specific the file x_name when saving.
             Set to ``None`` (default) to use a inferred x_name from http header.
@@ -141,7 +145,7 @@ class Call(object):
         if isinstance(save_to, str):
             save_to = Path(save_to)
         if not isinstance(save_to, Path) or not save_to.is_dir():
-            raise RuntimeError('%s is not a legal path or not point to a dir' % save_to)
+            raise RuntimeError('%s is not a legal path or not point to a path' % save_to)
 
         file_ = str(save_to / filename)
         with open(file_, 'wb') as f:
@@ -191,9 +195,162 @@ class Call(object):
 
         Returns
         -------
-        self
+        spath
         """
         if name in self.__extension__:
             return self.__class__(*self._paths, backend=name, prefix=self._prefix)
         else:
             raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
+
+
+def check_file(spath, file_path, suffix=None):
+    os.chdir(file_path)
+    # print(os.path.abspath(os.curdir))
+    all_file = os.listdir()
+    files = []
+    for f in all_file:
+        if os.path.isdir(f):
+            files.extend(check_file(spath, file_path + '\\' + f, suffix=suffix))
+            os.chdir(file_path)
+        else:
+            if not suffix:
+                che = True
+            elif suffix == "":
+                che = "" == os.path.splitext(f)[1]
+            else:
+                che = "".join((".", suffix)) == os.path.splitext(f)[1]
+            if che:
+                rel_path = file_path.replace(spath, "")
+                parents = re.split(r'[\\/]', str(rel_path))
+                files.append([parents, f])
+            else:
+                pass
+    return files
+
+
+class BatchFile():
+    """
+    search files and filter files and re-site files
+    """
+
+    def __init__(self, path=None, suffix=None):
+
+        path = def_pwd(path)
+        self.path = path
+
+        parents = re.split(r'[\\/]', str(path))
+        self.parents = parents
+
+        self.file_list = check_file(path, path, suffix=suffix)
+        self.init_file = tuple(self.file_list)
+
+    def filter_file_name(self, includ=None, exclud=None):
+        file_list_filter = []
+        for file_i in self.file_list:
+            name = file_i[1]
+
+            if includ and not exclud:
+                if includ in name:
+                    file_list_filter.append(file_i)
+            elif not includ and exclud:
+                if exclud not in name:
+                    file_list_filter.append(file_i)
+            elif includ and exclud:
+                if includ in name and exclud not in name:
+                    file_list_filter.append(file_i)
+            else:
+                raise TypeError("one of includ,exclud must be str")
+
+        self.file_list = file_list_filter
+
+    def filter_dir_name(self, includ=None, exclud=None, layer=-1):
+        file_list_filter = []
+
+        for file_i in self.file_list:
+            if isinstance(layer, int):
+                layer = [layer, ]
+
+            if isinstance(layer, list):
+                name = [file_i[0][i] for i in layer]
+            else:
+                name = file_i[0]
+            name = "".join(name)
+
+            if includ and not exclud:
+                if includ in name:
+                    file_list_filter.append(file_i)
+            elif not includ and exclud:
+                if exclud not in name:
+                    file_list_filter.append(file_i)
+            elif includ and exclud:
+                if includ in name and exclud not in name:
+                    file_list_filter.append(file_i)
+            else:
+                raise TypeError("one of includ,exclud must be str")
+
+        self.file_list = file_list_filter
+
+    def merge(self, path=None, flatten=False, add_dir="3-layer"):
+        if not path:
+            path = self.path
+            flatten = False
+        if not add_dir:
+            add_dir = []
+        elif add_dir == "3-layer":
+            add_dir = [-1, -2, -3]
+        if isinstance(add_dir, int):
+            add_dir = [add_dir, ]
+
+        file_list_merge = []
+        for file_i in self.file_list:
+            site = copy.copy(file_i[0])
+            if isinstance(flatten, dict):
+                site = [site[_] for _ in add_dir]
+                site_c = ""
+                for i, j in enumerate(site):
+                    i -= len(site)
+                    if i in flatten.keys():
+                        if flatten[i] in [True, "layer", "dir", "folder", 1, "s"]:
+                            site_c += "".join((j, "/"))
+                        else:
+                            site_c += "".join((j, "_"))
+                    else:
+                        site_c += "".join((j, "_"))
+                site_c = re.split(r'[\\/]', str(site_c))
+                site_c[-1] += file_i[1]
+                file_list_merge.append(os.path.join(path, *site_c))
+
+            elif flatten:
+                site = [site[_] for _ in add_dir]
+                site.append(file_i[1])
+                site = "_".join(site)
+                file_list_merge.append(os.path.join(path, site))
+            else:
+                site.append(file_i[1])
+                file_list_merge.append(os.path.join(path, *site))
+
+        return file_list_merge
+
+    def to_path(self, new_path, flatten=True, add_dir="3-layer"):
+        self.file_list_merge = self.merge()
+        new_path = def_pwd(new_path)
+        self.file_list_merge_new = self.merge(path=new_path, flatten=flatten, add_dir=add_dir)
+        if len(set(self.file_list_merge_new)) < len(set(self.file_list_merge)):
+            raise UserWarning("there are same name files after flatten folders. "
+                              "please change add_dir to add difference prefix to files", )
+        # parallelize(-1, shutil.copy, zip(self.file_list_merge, self.file_list_merge_new), respective=True)
+        for i, j in zip(self.file_list_merge, self.file_list_merge_new):
+            path_i = os.path.split(j)[0]
+            if not os.path.exists(path_i):
+                os.makedirs(path_i)
+            shutil.copy(i, j)
+
+
+# others please use shutil
+# shutil.copytree()
+
+if __name__ == "__main__":
+    a = BatchFile(r"C:\Users\Administrator\Desktop\file")
+    # a.filter_dir_name("line",layer=-1)
+    a.filter_file_name("INCAR")
+    a.to_path(r"C:\Users\Administrator\Desktop\newss", add_dir=[-3, -2, -1], flatten=False)

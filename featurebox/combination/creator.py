@@ -97,8 +97,8 @@ def create(name, base, **kargs):
         class Foo(list):
             spam = 1
 
-            def __init__(self):
-                self.bar = dict()
+            def __init__(spath):
+                spath.bar = dict()
 
     The :ref:`creating-types` tutorial gives more examples of the creator
     usage.

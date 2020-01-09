@@ -9,7 +9,7 @@
 
 """
 # Just a copy from xenonpy
-"w","a+"
+
 """
 
 import os
@@ -32,9 +32,14 @@ def def_pwd(path):
         os.chdir(path)
     pwd = os.getcwd()
     locals()[pwd] = pwd
+    return pwd
 
 
 class Store(object):
+    """
+    Store file to path.
+    default model is "w" ,which can be"a+" in txt.
+    """
 
     def __init__(self, path=None, filename="filename", prefix: str = None):
         r"""

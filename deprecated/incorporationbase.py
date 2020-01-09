@@ -154,7 +154,7 @@ class Dim(Dimension):
             raise TypeError
 
     def __rdiv__(self, other):
-        # return other*self._eval_power(-1)
+        # return other*spath._eval_power(-1)
         if isinstance(other, (numbers.Real, sympy.Rational, sympy.Float)):
             return self.__pow__(-1)
         else:

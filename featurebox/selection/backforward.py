@@ -22,7 +22,7 @@ from sklearn.model_selection._validation import _score, cross_val_score
 from sklearn.utils.metaestimators import if_delegate_has_method, _safe_split
 from sklearn.utils.validation import check_is_fitted, check_X_y, check_random_state
 
-from featurebox.tools.tool import parallize
+from featurebox.tools.tool import parallelize
 from .mutibase import MutiBase
 
 
@@ -85,7 +85,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         Parameters
         ----------
         X : {array-like, sparse matrix}, shape = [n_samples, n_feature]
-            The training input samples.
+            The training input0 samples.
 
         y : array-like, shape = [n_samples]
             The target values.
@@ -218,7 +218,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         Parameters
         ----------
         X : array of shape [n_samples, n_feature]
-            The input samples.
+            The input0 samples.
 
         Returns
         -------
@@ -236,7 +236,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         Parameters
         ----------
         X : array of shape [n_samples, n_feature]
-            The input samples.
+            The input0 samples.
 
         y : array of shape [n_samples]
             The target values.
@@ -327,12 +327,12 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
         self.must_index = must_index
         self.score_ = []
         self.random_state = random_state
-        # self.support_cv = ""
-        # self.score_cv = ""
-        # self.support_ = ""
-        # self.score_ = ""
-        # self.estimator_ = ""
-        # self.n_feature_ = ""
+        # spath.support_cv = ""
+        # spath.score_cv = ""
+        # spath.support_ = ""
+        # spath.score_ = ""
+        # spath.estimator_ = ""
+        # spath.n_feature_ = ""
 
     def fit(self, X, y, groups=None):
         """Fit the baf model and automatically tune the number of selected
@@ -366,7 +366,7 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
 
         func = partial(_baf_single_fit, baf=baf, estimator=self.estimator, X=X, y=y, scorer=scorer, random_state=ran)
 
-        scores = parallize(n_jobs=self.n_jobs, func=func, iterable=cv.split(X, y, groups), respective=True)
+        scores = parallelize(n_jobs=self.n_jobs, func=func, iterable=cv.split(X, y, groups), respective=True)
 
         support, scores, score_step = zip(*scores)
         best_support = support[np.argmax(scores)]
@@ -392,7 +392,7 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
         Parameters
         ----------
         X : array of shape [n_samples, n_feature]
-            The input samples.
+            The input0 samples.
 
         Returns
         -------
@@ -410,7 +410,7 @@ class BackForwardCV(MetaEstimatorMixin, SelectorMixin):
         Parameters
         ----------
         X : array of shape [n_samples, n_feature]
-            The input samples.
+            The input0 samples.
 
         y : array of shape [n_samples]
             The target values.

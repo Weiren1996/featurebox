@@ -19,7 +19,7 @@ from featurebox.combination.common import eaSimple, calculatePrecision, selKbest
 from featurebox.combination.deapbase import ExpressionTree, ExpressionSet
 from featurebox.combination.dictbase import FixedSet, FixedTree, generate_index, cxOnePoint_index, mutUniForm_index
 from featurebox.combination.dim import Dim, dnan
-from featurebox.tools.tool import time_this_function, parallize
+from featurebox.tools.tool import time_this_function, parallelize
 
 
 @time_this_function
@@ -101,8 +101,8 @@ def mainPart(x_, y_, pset, max_=5, pop_n=100, random_seed=2, cxpb=0.8, mutpb=0.1
                      inter_add=inter_add, iner_add=iner_add, random_add=random_add)
     toolbox.register("evaluate2", calculatePrecision, pset=pset, x=x_, y=y_, scoring=score[1], cal_dim=cal_dim,
                      inter_add=inter_add, iner_add=iner_add, random_add=random_add)
-    toolbox.register("parallel", parallize, n_jobs=4, func=toolbox.evaluate, respective=False)
-    toolbox.register("parallel2", parallize, n_jobs=4, func=toolbox.evaluate2, respective=False)
+    toolbox.register("parallel", parallelize, n_jobs=4, func=toolbox.evaluate, respective=False)
+    toolbox.register("parallel2", parallelize, n_jobs=4, func=toolbox.evaluate2, respective=False)
 
     pop = toolbox.population(n=pop_n)
 

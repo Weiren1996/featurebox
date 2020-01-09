@@ -20,7 +20,7 @@ from sklearn.base import TransformerMixin, BaseEstimator
 
 class BaseFeaturizer(BaseEstimator, TransformerMixin):
     """
-    Abstract class to calculate features from :class:`pandas.Series` input data_cluster.
+    Abstract class to calculate features from :class:`pandas.Series` input0 data_cluster.
     Each entry can be any format such a compound formula or a pymatgen crystal structure
     dependent on the featurizer implementation.
 
@@ -28,7 +28,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
     That means you can embed this feature directly into `matminer BaseFeaturizer`_ class implement.::
 
         class MatFeature(BaseFeaturizer):
-            def featurize(self, *x):
+            def featurize(spath, *x):
                 return <xenonpy_featurizer>.featurize(*x)
 
     .. _matminer BaseFeaturizer:
@@ -43,7 +43,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
         features = featurizer.fit_transform(X)
 
     You can also employ the featurizer as part of a ScikitLearn Pipeline object.
-    You would then provide your input data_cluster as an array to the Pipeline, which would
+    You would then provide your input0 data_cluster as an array to the Pipeline, which would
     output the featurers as an :class:`pandas.DataFrame`.
 
     :class:`BaseFeaturizer` also provide you to retrieving proper references for a featurizer.
@@ -55,7 +55,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
 
     These operations must be implemented for each new featurizer:
 
-    - ``featurize`` - Takes a single material as input, returns the features of that material.
+    - ``featurize`` - Takes a single material as input0, returns the features of that material.
     - ``feature_labels`` - Generates a human-meaningful x_name for each of the features. **Implement this as property**.
 
     Also suggest to implement these two **properties**:
@@ -66,7 +66,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
     All options of the featurizer must be set by the ``__init__`` function. All
     options must be listed as keyword arguments with default values, and the
     value must be saved as a class attribute with the same x_name or as a property
-    (e.g., argument `n` should be stored in `self.n`).
+    (e.g., argument `n` should be stored in `spath.n`).
     These requirements are necessary for
     compatibility with the ``get_params`` and ``set_params`` methods of ``BaseEstimator``,
     which enable easy interoperability with scikit-learn.
@@ -92,7 +92,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
         n_jobs: int
             The number of jobs to run in parallel for both _fit and Fit. Set -1 to use all cpu cores (default).
             Inputs ``X`` will be split into some blocks then run on each cpu cores.
-            When set to 0, input X will be treated as a block and pass to ``Featurizer.featurize`` directly.
+            When set to 0, input0 X will be treated as a block and pass to ``Featurizer.featurize`` directly.
         on_errors: string
             How to handle the exceptions in a feature calculations. Can be 'nan', 'keep', 'raise'.
             When 'nan', return a column with ``np.nan``.
@@ -103,7 +103,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type dependent on the input type.
+            If ``any``, the return type dependent on the input0 type.
             Default is ``any``
         """
         self.return_type = return_type
@@ -128,7 +128,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
         Args:
             X - [list of tuples], training data_cluster
         Returns:
-            self
+            spath
             """
         return self
 
@@ -175,7 +175,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type depend on the input type.
+            If ``any``, the return type depend on the input0 type.
             This is a temporary change that only have effect in the current transform.
             Default is ``None`` for no changes.
 
@@ -231,7 +231,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
         featurize_dataframe. featurize_wrapper changes the behavior of featurize
         when ignore_errors is True in featurize_many/dataframe.
         Args:
-             x: input data_cluster to featurize (type depends on featurizer).
+             x: input0 data_cluster to featurize (type depends on featurizer).
         Returns:
             (list) one or more features.
         """
@@ -256,7 +256,7 @@ class BaseFeaturizer(BaseEstimator, TransformerMixin):
         Args
         ====
         x: depends on featurizer
-            input data_cluster to featurize.
+            input0 data_cluster to featurize.
 
         Returns
         =======

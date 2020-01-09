@@ -68,7 +68,7 @@ class Ele:
 
     @property
     def to_item(self):
-        # print(list(zip(self.x_name, self.num)))
+        # print(list(zip(spath.x_name, spath.num)))
         return list(chain.from_iterable(zip(self.name, self.num)))
 
 
@@ -111,11 +111,11 @@ def fea_dict(ele, element_n=None):
 
 def transform(names):
     c = []
-    for i in names:
+    for j, i in enumerate(names):
         try:
             com = eval(i)
-        except NameError as e:
-            print("{}, from {}".format(e, i))
+        except (NameError, SyntaxError) as e:
+            print("{}, at {}, which is  {} ".format(e, j, i))
             com = Ele(i)
         c.append(com)
     folds = pd.DataFrame([_i.to_item for _i in c], [str(_) for _ in c])
@@ -180,14 +180,7 @@ def _pre_add(namei):
 def _bracket_follow(s):
     """
     for situation that the number of () before the ()
-    if add this function  make sure the first number below ")" have "+" !!!
-    Parameters
-    ----------
-    s
-
-    Returns
-    -------
-
+    if add this function, make sure the first number below ")" have "+" !!!, if not please add by human.
     """
     pre = re.findall(r'\d+\.?\d*\(.+\)\D*', s)
     long = len(pre)
@@ -219,16 +212,36 @@ def _add_mul(s):
     return s_new
 
 
-def substutude(s):
-    # s = _bracket_follow(s)
+def _substitued(s):
+    # print(_bracket_follow.__doc__)
+    s = _bracket_follow(s)
     s = _pre_add(s)
     s = _add_mul(s)
     return s
 
 
+class NameSplit():
+    def __init__(self, bracket_follow=False):
+        print('make sure the number below the element or (),'
+              'for situation that the number of () before the () please set the bracket_follow=True, '
+              'and for this situation make sure the first number below ")" have "+" !!!, if not please add by human.')
+        self.brack = bracket_follow
+
+    def _substitued(self, s):
+        if self.brack:
+            print(_bracket_follow.__doc__)
+            s = [_bracket_follow(si) for si in s]
+        s = [_pre_add(si) for si in s]
+        s = [_add_mul(si) for si in s]
+        return s
+
+    def transform(self, s):
+        s = self._substitued(s)
+        transform(s)
+
+
 if __name__ == '__main__':
-    os.chdir(r'C:\Users\Administrator\Desktop')
-    a = [substutude(i) for i in [
+    a = [
         # r"0.8(TiLa2)H2", r"(Ti1.24La)0.2H2", r"(Ti1.24La)0.2", '(Ti1.24La)',
         '(BaZr0.2Ti0.8O3)0.9(Ba0.7Ca0.3TiO3)0.1',
         '(Ba0.95Ca0.05)+(Zr0.1Ti0.9)O3',
@@ -242,5 +255,9 @@ if __name__ == '__main__':
         r"(TiLa)0.2", '(TiLa)',
         '(TiLa3)', '(TiLa)', '(TiLa3)2',
         "((Ti)2P2)1H0.2", "((Ti)2)1H0.2", "((Ti))1H0.2"
-    ]]
-    transform(a)
+    ]
+    os.chdir(r'C:\Users\Administrator\Desktop')
+
+    NS = NameSplit()
+
+    NS.transform(a)

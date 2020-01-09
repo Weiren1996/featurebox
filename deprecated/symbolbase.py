@@ -34,7 +34,7 @@ from sklearn.metrics import explained_variance_score, make_scorer, r2_score
 from sklearn.utils import assert_all_finite, check_array
 
 from featurebox.tools.exports import Store
-from featurebox.tools.tool import time_this_function, parallize
+from featurebox.tools.tool import time_this_function, parallelize
 
 warnings.filterwarnings("ignore")
 
@@ -950,7 +950,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     invalid_ind = [ind for ind in population if not ind.fitness.valid]
 
     fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
-    # fitnesses = parallize(n_jobs=4, func=toolbox.evaluate, iterable=invalid_ind)
+    # fitnesses = parallelize(n_jobs=4, func=toolbox.evaluate, iterable=invalid_ind)
     for ind, fit in zip(invalid_ind, fitnesses):
         ind.fitness.values = fit[0],
         ind.expr = fit[1]
@@ -986,7 +986,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
 
         fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
-        # fitnesses = parallize(n_jobs=4, func=toolbox.evaluate, iterable=invalid_ind)
+        # fitnesses = parallelize(n_jobs=4, func=toolbox.evaluate, iterable=invalid_ind)
 
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit[0],
@@ -1044,8 +1044,8 @@ def multiEaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     random_seed = random.randint(1, 1000)
     # fitnesses = list(toolbox.map(toolbox.evaluate, [str(_) for _ in invalid_ind]))
     # fitnesses2 = toolbox.map(toolbox.evaluate2, [str(_) for _ in invalid_ind])
-    fitnesses = parallize(n_jobs=6, func=toolbox.evaluate, iterable=[str(_) for _ in invalid_ind])
-    fitnesses2 = parallize(n_jobs=6, func=toolbox.evaluate2, iterable=[str(_) for _ in invalid_ind])
+    fitnesses = parallelize(n_jobs=6, func=toolbox.evaluate, iterable=[str(_) for _ in invalid_ind])
+    fitnesses2 = parallelize(n_jobs=6, func=toolbox.evaluate2, iterable=[str(_) for _ in invalid_ind])
 
     def funcc(a, b):
         """
@@ -1087,8 +1087,8 @@ def multiEaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         random_seed = random.randint(1, 1000)
         # fitnesses = toolbox.map(toolbox.evaluate, [str(_) for _ in invalid_ind])
         # fitnesses2 = toolbox.map(toolbox.evaluate2, [str(_) for _ in invalid_ind])
-        fitnesses = parallize(n_jobs=6, func=toolbox.evaluate, iterable=[str(_) for _ in invalid_ind])
-        fitnesses2 = parallize(n_jobs=6, func=toolbox.evaluate2, iterable=[str(_) for _ in invalid_ind])
+        fitnesses = parallelize(n_jobs=6, func=toolbox.evaluate, iterable=[str(_) for _ in invalid_ind])
+        fitnesses2 = parallelize(n_jobs=6, func=toolbox.evaluate2, iterable=[str(_) for _ in invalid_ind])
 
         for ind, fit, fit2 in zip(invalid_ind, fitnesses, fitnesses2):
             ind.fitness.values = funcc(fit[0], fit2[0]),
@@ -1394,8 +1394,8 @@ def mutNodeReplacement(individual, pset):
 
 
 def selRandom(individuals, k):
-    """select_gs *k* individuals at random from the input *individuals* with
-    replacement. The list returned contains references to the input
+    """select_gs *k* individuals at random from the input0 *individuals* with
+    replacement. The list returned contains references to the input0
     *individuals*.
 
     :param individuals: A list of individuals to select_gs from.
@@ -1411,7 +1411,7 @@ def selRandom(individuals, k):
 def selTournament(individuals, k, tournsize, fit_attr="fitness"):
     """select_gs the best individual among *tournsize* randomly chosen
     individuals, *k* times. The list returned contains
-    references to the input *individuals*.
+    references to the input0 *individuals*.
 
     :param individuals: A list of individuals to select_gs from.
     :param k: The number of individuals to select_gs.
@@ -1433,7 +1433,7 @@ def varAnd(population, toolbox, cxpb, mutpb):
     """Part of an evolutionary algorithm applying only the variation part
     (crossover **and** mutation). The modified individuals have their
     fitness invalidated. The individuals are cloned so returned population is
-    independent of the input population.
+    independent of the input0 population.
 
     :param population: A list of individuals to vary.
     :param toolbox: A :class:`~deap.base.Toolbox` that contains the evolution

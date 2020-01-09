@@ -69,7 +69,7 @@ class WeightedAverage(BaseCompositionFeaturizer):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type dependent on the input type.
+            If ``any``, the return type dependent on the input0 type.
             Default is ``any``
         """
 
@@ -104,7 +104,7 @@ class WeightedSum(BaseCompositionFeaturizer):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type dependent on the input type.
+            If ``any``, the return type dependent on the input0 type.
             Default is ``any``
         """
 
@@ -139,7 +139,7 @@ class GeometricMean(BaseCompositionFeaturizer):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type dependent on the input type.
+            If ``any``, the return type dependent on the input0 type.
             Default is ``any``
         """
 
@@ -175,7 +175,7 @@ class HarmonicMean(BaseCompositionFeaturizer):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type dependent on the input type.
+            If ``any``, the return type dependent on the input0 type.
             Default is ``any``
         """
 
@@ -212,7 +212,7 @@ class WeightedVariance(BaseCompositionFeaturizer):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type dependent on the input type.
+            If ``any``, the return type dependent on the input0 type.
             Default is ``any``
         """
 
@@ -249,7 +249,7 @@ class MaxPooling(BaseCompositionFeaturizer):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type dependent on the input type.
+            If ``any``, the return type dependent on the input0 type.
             Default is ``any``
         """
 
@@ -283,7 +283,7 @@ class MinPooling(BaseCompositionFeaturizer):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type dependent on the input type.
+            If ``any``, the return type dependent on the input0 type.
             Default is ``any``
         """
 
@@ -317,7 +317,7 @@ class ExtraMix(BaseCompositionFeaturizer):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type dependent on the input type.
+            If ``any``, the return type dependent on the input0 type.
             Default is ``any``
         """
 
@@ -358,7 +358,7 @@ class DepartElementFeaturizer(BaseCompositionFeaturizer):
             Specific the return type.
             Can be ``any``, ``array`` and ``df``.
             ``array`` and ``df`` force return type to ``np.ndarray`` and ``pd.DataFrame`` respectively.
-            If ``any``, the return type dependent on the input type.
+            If ``any``, the return type dependent on the input0 type.
             Default is ``any``
         """
 

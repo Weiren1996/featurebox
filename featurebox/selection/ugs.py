@@ -36,7 +36,7 @@ from sklearn.model_selection import KFold, GridSearchCV, StratifiedKFold
 from sklearn.utils import check_X_y, check_random_state
 from sklearn.utils.multiclass import type_of_target
 
-from featurebox.tools.tool import parallize
+from featurebox.tools.tool import parallelize
 
 warnings.filterwarnings("ignore")
 
@@ -301,7 +301,7 @@ class GS(object):
             pass
         else:
             cal_score = partial(self.predict)
-            ret = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
+            ret = parallelize(n_jobs=n_jobs, func=cal_score, iterable=slices)
 
             self.add_prop("cv_predict_all", estimator_i=self.estimator_i, slices=slices, values=ret)
 
@@ -329,12 +329,12 @@ class GS(object):
 
         Parameters
         ----------
-        slices : list, or None, default self.slices
+        slices : list, or None, default spath.slices
             change to new slices to calculate
             the lists of the index of feature subsets, each feature subset is a node,each int is the index of X
             Examples 3 nodes
             [[1,4,5],[1,4,6],[1,2,7]]
-        estimator_i: int, default self.estimator_i
+        estimator_i: int, default spath.estimator_i
             change to the estimator_i to calculate
 
         Returns
@@ -354,7 +354,7 @@ class GS(object):
             pass
         else:
             cal_score = partial(self.cv_score)
-            ret = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
+            ret = parallelize(n_jobs=n_jobs, func=cal_score, iterable=slices)
 
             self.add_prop("cv_score_all", estimator_i=self.estimator_i, slices=slices, values=ret)
 
@@ -390,7 +390,7 @@ class GS(object):
             pass
         else:
             cal_score = partial(self.cal_y_distance)
-            ret = parallize(n_jobs=n_jobs, func=cal_score, iterable=slices)
+            ret = parallelize(n_jobs=n_jobs, func=cal_score, iterable=slices)
 
             self.add_prop("cal_y_distance_all", estimator_i=self.estimator_i, slices=slices, values=ret)
 
@@ -426,7 +426,7 @@ class GS(object):
         else:
             cal_binary_distance = partial(self.cal_binary_distance)
             slices_cuple = list(itertools.product(slices, repeat=2))
-            ret = parallize(n_jobs=n_jobs, func=cal_binary_distance, iterable=slices_cuple, respective=True)
+            ret = parallelize(n_jobs=n_jobs, func=cal_binary_distance, iterable=slices_cuple, respective=True)
             ret = np.reshape(ret, (len(slices), len(slices)), order='F')
 
             self.add_prop("cal_binary_distance_all", estimator_i=self.estimator_i, slices=slices, values=ret)
@@ -457,12 +457,12 @@ class GS(object):
             args for DBSCAN
         printing: bool
             default,True for GS and False for UGS
-        slices : list, or None, default self.slices
+        slices : list, or None, default spath.slices
             change to new slices to calculate
             the lists of the index of feature subsets, each feature subset is a node,each int is the index of X
             Examples 3 nodes
             [[1,4,5],[1,4,6],[1,2,7]]
-        estimator_i: int, default self.estimator_i
+        estimator_i: int, default spath.estimator_i
             change to the estimator_i to calculate
         print_noise: int
             add noise for less printing overlap
@@ -531,7 +531,7 @@ class GS(object):
                          print_noise=print_noise, node_name=node_name,
                          node_color=label, highlight=highlight)
 
-    # def distance_print(self):
+    # def distance_print(spath):
 
     def select_gs(self, alpha=0.01):
         """
@@ -627,8 +627,8 @@ class UGS(GS):
         printing: bool
             draw or not, default, False
         pre_group: None or list of different estimator's groups
-            the sort of pre_group should match to self.estimator !
-            pre-calculate results by self.cal-group for all base estimator, to escape double counting
+            the sort of pre_group should match to spath.estimator !
+            pre-calculate results by spath.cal-group for all base estimator, to escape double counting
 
 
         Returns

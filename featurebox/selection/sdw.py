@@ -39,7 +39,7 @@ class SDbw(object):
         else:
             self.__getCenterIdxs()
 
-        # self.center_idxs = center_idxs
+        # spath.center_idxs = center_idxs
 
         self.clusterNum = len(self.centerIdxs)
 
