@@ -25,7 +25,7 @@ from featurebox.tools.tool import time_this_function, parallelize
 @time_this_function
 def mainPart(x_, y_, pset, max_=5, pop_n=100, random_seed=2, cxpb=0.8, mutpb=0.1, ngen=5,
              tournsize=3, max_value=10, double=False, score=None, cal_dim=True, target_dim=None,
-             inter_add=True, iner_add=True, random_add=False):
+             inter_add=True, iner_add=True, random_add=False, store=True):
     """
 
     Parameters
@@ -117,7 +117,7 @@ def mainPart(x_, y_, pset, max_=5, pop_n=100, random_seed=2, cxpb=0.8, mutpb=0.1
     stats = MultiStatistics(score1=stats1, score2=stats2)
 
     population, logbook = eaSimple(pop, toolbox, cxpb=cxpb, mutpb=mutpb, ngen=ngen, stats=stats,
-                                   halloffame=hof, pset=pset)
+                                   halloffame=hof, pset=pset, store=store)
     # if not double:
     #     stats1 = Statistics(lambda ind: ind.fitness.values[0])
     #     stats = MultiStatistics(score1=stats1, )
@@ -136,4 +136,4 @@ def mainPart(x_, y_, pset, max_=5, pop_n=100, random_seed=2, cxpb=0.8, mutpb=0.1
     #                                         halloffame=hof, pset=pset)
     # else:
     #     raise TypeError
-    return hof
+    return population, hof

@@ -13,8 +13,10 @@ import copy
 import random
 
 import numpy as np
+from sklearn.datasets import load_boston
 
-from .mutibase import MutiBase
+from featurebox.selection.mutibase import MutiBase
+from featurebox.tools.tool import name_to_name
 
 
 class Corr(MutiBase):
@@ -45,6 +47,7 @@ class Corr(MutiBase):
             raise TypeError("pre_cal is None or coef of data_cluster with shape(data_cluster[0],data_cluster[0])")
         cov = np.nan_to_num(cov - 1) + 1
         self.cov = cov
+        self.data = data
         self.shrink_list = list(range(self.cov.shape[0]))
         self._shrink_coef(method=method)
 
@@ -156,3 +159,29 @@ class Corr(MutiBase):
                         if dela in cof_list2:
                             cof_list2.remove(dela)
         return reserve
+
+    @staticmethod
+    def cov_y(x_, y_):
+        cov = np.corrcoef(x_, y_, rowvar=False)
+        cov = cov[:, -1][:-1]
+        return cov
+
+    def remove_by_y(self, y_):
+        corr = self.cov_y(self.data, y_)
+        corr = self.feature_fold(self, corr)
+        lcount = self.list_count
+        fea_all = []
+        score = name_to_name(corr, search=lcount, search_which=0, return_which=(1,), two_layer=True)
+        for score_i, list_i in zip(score, lcount):
+            indexs = np.argmax(score_i)
+            feature_index = list_i[indexs]
+            fea_all.append(feature_index)
+
+        fea_all = sorted(list(set(fea_all)))
+        return fea_all
+
+
+if __name__ == "__main__":
+    x, y = load_boston(return_X_y=True)
+    co = Corr(threshold=0.7)
+    c = co.count_cof(np.corrcoef(x, rowvar=False))[1]

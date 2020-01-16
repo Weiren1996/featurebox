@@ -40,6 +40,7 @@ import seaborn as sns
 from matplotlib import rcParams
 from matplotlib.colorbar import ColorbarBase
 from scipy.stats import pearsonr
+from sklearn.datasets import load_boston
 
 
 class BasePlot(object):
@@ -222,6 +223,9 @@ class BasePlot(object):
         ax = fig.add_subplot(111)
         ax.imshow(np_array)
 
+    def show(self):
+        plt.show()
+
 
 def lin_cof(x0):
     results_list = []
@@ -280,8 +284,8 @@ def corr_plot(x_cof, x_name=None, left_down=None, right_top=None, threshold_left
 
     title_fontsize = round(15 * front_raito)  # c_args
     ax_fontsize = round(12 * front_raito)
-    score_fontsize = round(8 * front_raito)
-    circle_size = round(400 * front_raito)
+    score_fontsize = round(12 * front_raito)
+    circle_size = round(600 * front_raito)
 
     fig.text(0.5, 0.05, title, fontsize=title_fontsize, horizontalalignment='center',
              verticalalignment='center')  # zou, xia
@@ -367,26 +371,12 @@ def corr_plot(x_cof, x_name=None, left_down=None, right_top=None, threshold_left
 
 
 if __name__ == '__main__':
+    data = load_boston(return_X_y=False)
 
-    name0 = ['a', 'b', 'd', 'e', 'f', 'a', 'f', 'a'] * 2
-    datax = np.random.rand(16, 16)
+    name0 = data["feature_names"]
+    x = data["data"]
+    y = data["target"]
+    x_cof = np.corrcoef(x.T)
 
-
-    def lin_cof(x0):
-        results_list = []
-        xx = x0.T
-        yy = x0.T
-        for a in xx:
-            for b in yy:
-                results = pearsonr(a, b)[0]
-                results_list.append(results)
-        results1 = np.array(results_list).reshape((x0.shape[-1], x0.shape[-1]))
-        return results1
-
-
-    x_cof0 = lin_cof(datax)
-
-    # data_frame = pd.read_excel(r"C:\Users\Administrator\Desktop\2dsdf.xlsx",sheet_name=0,index_col=0)
-    # x_cof = data_frame.values
-    # name0 = data_frame.columns.values
-    # corr_plot(x_cof, name0, left_down="circle", right_top="circle", threshold_right=0.0, label_axis="off")
+    corr_plot(x_cof, name0, left_down="circle", right_top="text", threshold_right=0.7, label_axis="off",
+              front_raito=0.6)

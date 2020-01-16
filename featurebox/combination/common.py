@@ -396,7 +396,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
                                                    "socre_dim": i.fitness.values[0] if i.withdim else 0,
                                                    "socre_target_dim": i.fitness.values[
                                                        0] if i.dim in target_dim else 0,
-                                                   } for n, i in enumerate(population)}
+                                                   } for n, i in enumerate(population) if i is not None}
             data_all.update(data)
         random.setstate(rst)
         # select_gs the next generation individuals
