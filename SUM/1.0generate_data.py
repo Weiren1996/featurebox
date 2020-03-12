@@ -23,7 +23,7 @@ if __name__ == "__main__":
                              sheet_name='binary_4_structure')
 
     """for element site"""
-    element_table = pd.read_excel(r'F:\machine learning\feature_toolbox1.0\featurebox\data\element_table.xlsx',
+    element_table = pd.read_excel(r'C:\Users\Administrator\Desktop\band_gap_exp\element_table.xlsx',
                                   header=4, skiprows=0, index_col=0)
     """get x_name and abbr"""
 
@@ -31,8 +31,9 @@ if __name__ == "__main__":
     def get_abbr():
         abbr = list(element_table.loc["abbrTex"])
         name = list(element_table.columns)
-        name.extend(['face_dist1', 'vor_area1', 'face_dist2', 'vor_area2', "destiny", 'volume', "ele_ratio"])
+        name.extend(['face_dist1', 'vor_area1', 'face_dist2', 'vor_area2', "cell density", 'cell volume', "ele_ratio"])
         abbr.extend(['$d_{vf1}$', '$S_{vf1}$', '$d_{vf2}$', '$S_{vf2}$', r"$\rho_c$", "$V_c$", "$ele_ratio$"])
+
         return name, abbr
 
 
@@ -57,11 +58,8 @@ if __name__ == "__main__":
                      ])
         return dims
 
-
     name_and_abbr = get_abbr()
     dims = get_dim()
-    store.to_pkl_pd(dims, "dims")
-    store.to_pkl_pd(name_and_abbr, "name_and_abbr")
 
     element_table = element_table.iloc[5:, 7:]
     feature_select = [
@@ -73,7 +71,6 @@ if __name__ == "__main__":
         'radii ionic(pauling)',
         'radii ionic(shannon)',
         'radii covalent',
-        'radii covalent 2',
         'radii metal(waber)',
         'distance valence electron(schubert)',
         'distance core electron(schubert)',
@@ -85,7 +82,7 @@ if __name__ == "__main__":
         'enthalpy atomization',
         'enthalpy vaporization',
         'latent heat of fusion',
-        'latent heat of fusion 2',
+
         'energy cohesive brewer',
         'total energy',
 
@@ -133,7 +130,7 @@ if __name__ == "__main__":
     #     r'C:\Users\Administrator\Desktop\band_gap_exp\1.generate_data\id_structures.pkl.pd')
 
     """get departed element feature"""
-    departElementProPFeature = DepartElementFeaturizer(elem_data=select_element_table, n_composition=2, n_jobs=4, )
+    departElementProPFeature = DepartElementFeaturizer(elem_data=select_element_table, n_composition=2, n_jobs=1, )
     departElement = departElementProPFeature.fit_transform(composition_mp)
     """join"""
     depart_elements_table = departElement.set_axis(com_data.index.values, axis='index', inplace=False)
@@ -142,10 +139,21 @@ if __name__ == "__main__":
     all_import_title = com_data.join(ele_ratio)
     all_import_title = all_import_title.join(depart_elements_table)
 
-    store.to_csv(all_import_title, "all_import_title")
+    """sub density to e density"""
+    select2 = ['electron number_0', 'electron number_1', 'cell volume']
+    x_rame = (all_import_title['electron number_0'] + all_import_title['electron number_1']) / all_import_title['cell volume']
+    all_import_title['cell density'] = x_rame
+    all_import_title.rename(columns={'cell density': "electron density"}, inplace=True)
+
+    name = ["electron density" if i == "cell density" else i for i in name_and_abbr[0]]
+    abbr = [r"$\rho_e$" if i == r"$\rho_c$" else i for i in name_and_abbr[1]]
+    name_and_abbr = [name, abbr]
+    dims[-3]=np.array([0, -3, 0, 0, 0, 0, 0])
 
     all_import = all_import_title.drop(
         ['name_number', 'name_number', "name", "structure", "structure_type", "space_group", "reference", 'material_id',
          'composition', "com_0", "com_1"], axis=1)
 
+    store.to_pkl_pd(dims, "dims")
+    store.to_pkl_pd(name_and_abbr, "name_and_abbr")
     store.to_csv(all_import, "all_import")

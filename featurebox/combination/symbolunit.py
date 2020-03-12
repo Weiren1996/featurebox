@@ -101,19 +101,19 @@ def mainPart(x_, y_, pset, max_=5, pop_n=100, random_seed=2, cxpb=0.8, mutpb=0.1
                      inter_add=inter_add, iner_add=iner_add, random_add=random_add)
     toolbox.register("evaluate2", calculatePrecision, pset=pset, x=x_, y=y_, scoring=score[1], cal_dim=cal_dim,
                      inter_add=inter_add, iner_add=iner_add, random_add=random_add)
-    toolbox.register("parallel", parallelize, n_jobs=4, func=toolbox.evaluate, respective=False)
-    toolbox.register("parallel2", parallelize, n_jobs=4, func=toolbox.evaluate2, respective=False)
+    toolbox.register("parallel", parallelize, n_jobs=1, func=toolbox.evaluate, respective=False)
+    toolbox.register("parallel2", parallelize, n_jobs=1, func=toolbox.evaluate2, respective=False)
 
     pop = toolbox.population(n=pop_n)
 
     haln = 5
     hof = HallOfFame(haln)
 
-    stats1 = Statistics(lambda ind: ind.fitness.values[0])
+    stats1 = Statistics(lambda ind: ind.fitness.values[0] if ind and ind.dim in target_dim else 0)
     stats1.register("max", np.max)
 
-    stats2 = Statistics(lambda ind: ind.withdim)
-    stats2.register("with dim number", np.sum)
+    stats2 = Statistics(lambda ind: ind.dim in target_dim if ind else 0)
+    stats2.register("countable_number", np.sum)
     stats = MultiStatistics(score1=stats1, score2=stats2)
 
     population, logbook = eaSimple(pop, toolbox, cxpb=cxpb, mutpb=mutpb, ngen=ngen, stats=stats,

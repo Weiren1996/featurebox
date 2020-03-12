@@ -26,5 +26,5 @@ import json
 #
 # m = MPRester("Di2IZMunaeR8vr9w")
 # a=m.get_data( "mp-1234", data_type='vasp')
-e = open(r"C:\Users\Administrator\Desktop\a.txt")
-a = json.load(e, encoding="UTF-8")
+# e = open(r"C:\Users\Administrator\Desktop\a.txt")
+# a = json.load(e, encoding="UTF-8")

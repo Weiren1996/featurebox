@@ -81,14 +81,17 @@ class Store(object):
             self._file_list.remove(self._filename)
         self._file_list.append(self._filename)
 
-    def to_csv(self, data, file_new_name=None, model="w"):
+    def to_csv(self, data, file_new_name=None, model="w",reverse=True):
 
         self._check_name("csv", file_new_name, model=model)
         if isinstance(data, (dict, list)):
             data = pd.DataFrame.from_dict(data)
+
         elif isinstance(data, np.ndarray):
             data = pd.DataFrame(data)
         if isinstance(data, pd.DataFrame):
+            if reverse:
+                data = data.T
             data.to_csv(path_or_buf="%s" % self._filename, sep=",", na_rep='', float_format=None,
                         columns=None, header=True, index=True, index_label=None,
                         mode=model, encoding=None, )

@@ -16,10 +16,11 @@ from sklearn.model_selection import GridSearchCV
 
 from featurebox.combination.dimanalysis import dimension_check
 from featurebox.selection.exhaustion import Exhaustion
+from featurebox.selection.quickmethod import dict_method_reg
 from featurebox.selection.sum import SUM
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
-from featurebox.tools.quickmethod import dict_method_reg
+
 from featurebox.tools.show import BasePlot
 from featurebox.tools.tool import name_to_name
 
@@ -35,31 +36,24 @@ if __name__ == "__main__":
     data_import = data.csv().all_import
     name_init, abbr_init = data.pickle_pd().name_and_abbr
 
-    select = ['volume', 'destiny', 'lattice constants a', 'lattice constants c', 'radii covalent',
+    select = ['cell volume', 'electron density', 'lattice constants a', 'lattice constants c', 'radii covalent',
               'radii ionic(shannon)',
               'distance core electron(schubert)', 'latent heat of fusion', 'energy cohesive brewer', 'total energy',
               'charge nuclear effective(slater)', 'valence electron number', 'electronegativity(martynov&batsanov)',
               'volume atomic(villars,daams)']
 
-    select = ['volume', 'destiny'] + [j + "_%i" % i for j in select[2:] for i in range(2)]
+    select = ['cell volume', 'electron density'] + [j + "_%i" % i for j in select[2:] for i in range(2)]
 
-    data216_import = data_import.iloc[np.where(data_import['group_number'] == 216)[0]]
     data225_import = data_import.iloc[np.where(data_import['group_number'] == 225)[0]]
-    data216_225_import = pd.concat((data216_import, data225_import))
 
     X_frame = data225_import[select]
     y_frame = data225_import['exp_gap']
 
-    select2 = ['electron number_0', 'electron number_1', 'volume']
-    X_frame2 = data225_import[select2]
-    x_rame = (X_frame2['electron number_0'] + X_frame2['electron number_1']) / X_frame2['volume']
-    X_frame['destiny'] = x_rame
-
     """base_method"""
-    # method_name = ['GPR-set', 'SVR-set', 'KRR-set']
+
     method_name = ['GPR-set', 'SVR-set', 'KRR-set', 'KNR-set', 'GBR-em', 'AdaBR-em', 'RFR-em', "DTR-em"]
 
-    index_all = [data.pickle_pd.GPR_set23, data.pickle_pd.SVR_set23, data.pickle_pd.KRR_set23]
+    index_all = [data.pickle_pd().GPR_set23, data.pickle_pd().SVR_set23, data.pickle_pd().KRR_set23]
 
     estimator_all = []
     for i in method_name:
@@ -89,8 +83,8 @@ if __name__ == "__main__":
         X = X_frame.values
         y = y_frame.values
 
-        scal = preprocessing.MinMaxScaler()
-        X = scal.fit_transform(X)
+        # scal = preprocessing.MinMaxScaler()
+        # X = scal.fit_transform(X)
         X, y = utils.shuffle(X, y, random_state=i)
 
         # X,y = utils.resample(X,y,replace=True,random_state=i)
@@ -102,7 +96,7 @@ if __name__ == "__main__":
         # X, y = X_train, y_train
 
         """run"""
-        self = SUM(estimator_all, index_slice, estimator_n=[0, 1, 2, 3, 4, 5, 6, 7], n_jobs=4)
+        self = SUM(estimator_all, index_slice, estimator_n=[0, 1, 2, 3, 4, 5, 6, 7], n_jobs=1)
         self.fit(X, y)
         mp = self.pareto_method()
         partotimei = list(list(zip(*mp))[0])
@@ -118,20 +112,20 @@ if __name__ == "__main__":
     means_y = np.mean(table, axis=0).T
     result = pd.DataFrame(means_y)
     all_mean = np.mean(means_y, axis=1).T
+    all_std = np.std(means_y, axis=1).T
 
     select_support = np.zeros(len(index_slice))
     mean_parto_index = self._pareto(means_y)
     select_support[mean_parto_index] = 1
 
     result["all_mean"] = all_mean
+    result["all_std"] = all_std
     result["parto_support"] = select_support
     result['index_all_abbr'] = index_all_abbr
     result['index_all_name'] = index_all_name
     result['index_all'] = index_slice
 
     dim_init = data.dims
-
-    dim_init[-3] = np.array([0, -3, 0, 0, 0, 0, 0])
 
     index_all_name = name_to_name(X_frame.columns.values, search=[i for i in index_slice],
                                   search_which=0, return_which=(1,), two_layer=True)

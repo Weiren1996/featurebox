@@ -329,6 +329,120 @@ def varAnd(population, toolbox, cxpb, mutpb):
             del offspring[i].fitness.values
     return offspring
 
+# def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
+#              halloffame=None, verbose=__debug__, pset=None, store=True):
+#     """
+#
+#     Parameters
+#     ----------
+#     population
+#     toolbox
+#     cxpb
+#     mutpb
+#     ngen
+#     stats
+#     halloffame
+#     verbose
+#     pset
+#     store
+#     Returns
+#     -------
+#
+#     """
+#     rst = random.getstate()
+#     len_pop = len(population)
+#     logbook = Logbook()
+#     logbook.header = ['gen', 'pop'] + (stats.fields if stats else [])
+#
+#     # Evaluate the individuals with an invalid fitness
+#     invalid_ind = [ind for ind in population if not ind.fitness.valid]
+#
+#     # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+#     fitnesses = toolbox.parallel(iterable=population)
+#     for ind, fit, in zip(invalid_ind, fitnesses):
+#         ind.fitness.values = fit[0],
+#         ind.expr = fit[1]
+#         ind.dim = fit[2]
+#         ind.withdim = fit[3]
+#
+#     add_ind = toolbox.select_kbest_target_dim(population, K_best=0.1 * len_pop)
+#     if halloffame is not None:
+#         halloffame.update(add_ind)
+#
+#     record = stats.compile(population) if stats else {}
+#     logbook.record(gen=0, nevals=len(population), **record)
+#     if verbose:
+#         print(logbook.stream)
+#     data_all = {}
+#
+#     # Begin the generational process
+#     random.setstate(rst)
+#     for gen in range(1, ngen + 1):
+#         rst = random.getstate()
+#
+#         if store:
+#             rst = random.getstate()
+#             target_dim = toolbox.select_kbest_target_dim.keywords['dim_type']
+#             subp = functools.partial(sub, subed=pset.rep_name_list, subs=pset.real_name_list)
+#             data = {"gen{}_pop{}".format(gen, n): {"gen": gen, "pop": n,
+#                                                    "score": i.fitness.values[0],
+#                                                    "expr": str(subp(i.expr)),
+#                                                    "with_dim": 1 if i.withdim else 0,
+#                                                    "dim_is_target_dim": 1 if i.dim in target_dim else 0,
+#                                                    "gen_dim": "{}{}".format(gen, 1 if i.withdim else 0),
+#                                                    "gen_target_dim": "{}{}".format(gen,
+#                                                                                    1 if i.dim in target_dim else 0),
+#                                                    "socre_dim": i.fitness.values[0] if i.withdim else 0,
+#                                                    "socre_target_dim": i.fitness.values[
+#                                                        0] if i.dim in target_dim else 0,
+#                                                    } for n, i in enumerate(population) if i is not None}
+#             data_all.update(data)
+#         random.setstate(rst)
+#         # select_gs the next generation individuals
+#         offspring = toolbox.select_gs(population, len_pop)
+#
+#         # Vary the pool of individuals
+#         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
+#
+#         rst = random.getstate()
+#
+#         # Evaluate the individuals with an invalid fitness
+#         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+#         # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+#         # fitnesses = parallelize(n_jobs=3, func=toolbox.evaluate, iterable=invalid_ind,  respective=False)
+#         fitnesses = toolbox.parallel(iterable=invalid_ind)
+#         for ind, fit in zip(invalid_ind, fitnesses):
+#             ind.fitness.values = fit[0],
+#             ind.expr = fit[1]
+#             ind.dim = fit[2]
+#             ind.withdim = fit[3]
+#
+#         add_ind = toolbox.select_kbest_target_dim(population, K_best=0.1 * len_pop)
+#         # add_ind2 = toolbox.select_kbest_dimless(population, K_best=0.2 * len_pop)
+#         # add_ind3 = toolbox.select_kbest(population, K_best=5)
+#         offspring += add_ind
+#         # offspring += add_ind2
+#         # offspring += add_ind3
+#
+#         # Update the hall of fame with the generated individuals
+#         if halloffame is not None:
+#             halloffame.update(add_ind)
+#             if len(halloffame.items) > 0 and halloffame.items[-1].fitness.values[0] >= 0.95:
+#                 print(halloffame.items[-1])
+#                 print(halloffame.items[-1].fitness.values[0])
+#                 break
+#
+#         population[:] = offspring
+#         # Append the current generation statistics to the logbook
+#         record = stats.compile(population) if stats else {}
+#         logbook.record(gen=gen, nevals=len(population), **record)
+#         if verbose:
+#             print(logbook.stream)
+#         random.setstate(rst)
+#
+#     store = Store()
+#     store.to_csv(data_all)
+#     return population, logbook
 
 def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
              halloffame=None, verbose=__debug__, pset=None, store=True):
@@ -353,36 +467,39 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     rst = random.getstate()
     len_pop = len(population)
     logbook = Logbook()
-    logbook.header = ['gen', 'pop'] + (stats.fields if stats else [])
-
-    # Evaluate the individuals with an invalid fitness
-    invalid_ind = [ind for ind in population if not ind.fitness.valid]
-
-    # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
-    fitnesses = toolbox.parallel(iterable=population)
-    for ind, fit, in zip(invalid_ind, fitnesses):
-        ind.fitness.values = fit[0],
-        ind.expr = fit[1]
-        ind.dim = fit[2]
-        ind.withdim = fit[3]
-
-    add_ind = toolbox.select_kbest_target_dim(population, K_best=0.1 * len_pop)
-    if halloffame is not None:
-        halloffame.update(add_ind)
-
-    record = stats.compile(population) if stats else {}
-    logbook.record(gen=0, nevals=len(population), **record)
-    if verbose:
-        print(logbook.stream)
+    logbook.header = [] + (stats.fields if stats else [])
     data_all = {}
-
-    # Begin the generational process
     random.setstate(rst)
-    for gen in range(1, ngen + 1):
-        rst = random.getstate()
 
+    for gen in range(1, ngen + 1):
+        "评价"
+        rst = random.getstate()
+        """score"""
+        invalid_ind = [ind for ind in population if not ind.fitness.valid]
+        fitnesses = toolbox.parallel(iterable=population)
+        for ind, fit, in zip(invalid_ind, fitnesses):
+            ind.fitness.values = fit[0],
+            ind.expr = fit[1]
+            ind.dim = fit[2]
+            ind.withdim = fit[3]
+        random.setstate(rst)
+
+        rst = random.getstate()
+        """elite"""
+        add_ind = []
+        add_ind1 = toolbox.select_kbest_target_dim(population, K_best=0.1 * len_pop)
+        add_ind2 = toolbox.select_kbest_dimless(population, K_best=0.1 * len_pop)
+        add_ind3 = toolbox.select_kbest(population, K_best=5)
+        add_ind += add_ind1
+        add_ind += add_ind2
+        add_ind += add_ind3
+        elite_size = len(add_ind)
+        random.setstate(rst)
+
+
+        rst = random.getstate()
+        """score"""
         if store:
-            rst = random.getstate()
             target_dim = toolbox.select_kbest_target_dim.keywords['dim_type']
             subp = functools.partial(sub, subed=pset.rep_name_list, subs=pset.real_name_list)
             data = {"gen{}_pop{}".format(gen, n): {"gen": gen, "pop": n,
@@ -399,54 +516,112 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
                                                    } for n, i in enumerate(population) if i is not None}
             data_all.update(data)
         random.setstate(rst)
-        # select_gs the next generation individuals
-        offspring = toolbox.select_gs(population, len_pop)
-
-        # Vary the pool of individuals
-        offspring = varAnd(offspring, toolbox, cxpb, mutpb)
 
         rst = random.getstate()
-
-        # Evaluate the individuals with an invalid fitness
-        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-        # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
-        # fitnesses = parallelize(n_jobs=3, func=toolbox.evaluate, iterable=invalid_ind,  respective=False)
-        fitnesses = toolbox.parallel(iterable=invalid_ind)
-        for ind, fit in zip(invalid_ind, fitnesses):
-            ind.fitness.values = fit[0],
-            ind.expr = fit[1]
-            ind.dim = fit[2]
-            ind.withdim = fit[3]
-
-        add_ind = toolbox.select_kbest_target_dim(population, K_best=0.1 * len_pop)
-        add_ind2 = toolbox.select_kbest_dimless(population, K_best=0.2 * len_pop)
-        add_ind3 = toolbox.select_kbest(population, K_best=5)
-        offspring += add_ind
-        offspring += add_ind2
-        offspring += add_ind3
-
-        # Update the hall of fame with the generated individuals
+        """record"""
         if halloffame is not None:
-            halloffame.update(add_ind)
-
+            halloffame.update(add_ind1)
             if len(halloffame.items) > 0 and halloffame.items[-1].fitness.values[0] >= 0.95:
                 print(halloffame.items[-1])
                 print(halloffame.items[-1].fitness.values[0])
                 break
-        # Replace the current population by the offspring
-        population[:] = offspring
+        random.setstate(rst)
 
-        # Append the current generation statistics to the logbook
+        rst = random.getstate()
+        """Dynamic output"""
+
         record = stats.compile(population) if stats else {}
-        logbook.record(gen=gen, nevals=len(population), **record)
+        logbook.record(gen=gen, pop=len(population), **record)
+
         if verbose:
             print(logbook.stream)
+        random.setstate(rst)
 
+        """crossover, mutate"""
+        offspring = toolbox.select_gs(population, len_pop-elite_size)
+        # Vary the pool of individuals
+        offspring = varAnd(offspring, toolbox, cxpb, mutpb)
+
+        rst = random.getstate()
+        """re-run"""
+        offspring.extend(add_ind)
+        population[:] = offspring
         random.setstate(rst)
 
     store = Store()
     store.to_csv(data_all)
     return population, logbook
+
+    #
+    # # Begin the generational process
+    # random.setstate(rst)
+    # for gen in range(1, ngen + 1):
+    #     rst = random.getstate()
+    #
+    #     if store:
+    #         rst = random.getstate()
+    #         target_dim = toolbox.select_kbest_target_dim.keywords['dim_type']
+    #         subp = functools.partial(sub, subed=pset.rep_name_list, subs=pset.real_name_list)
+    #         data = {"gen{}_pop{}".format(gen, n): {"gen": gen, "pop": n,
+    #                                                "score": i.fitness.values[0],
+    #                                                "expr": str(subp(i.expr)),
+    #                                                "with_dim": 1 if i.withdim else 0,
+    #                                                "dim_is_target_dim": 1 if i.dim in target_dim else 0,
+    #                                                "gen_dim": "{}{}".format(gen, 1 if i.withdim else 0),
+    #                                                "gen_target_dim": "{}{}".format(gen,
+    #                                                                                1 if i.dim in target_dim else 0),
+    #                                                "socre_dim": i.fitness.values[0] if i.withdim else 0,
+    #                                                "socre_target_dim": i.fitness.values[
+    #                                                    0] if i.dim in target_dim else 0,
+    #                                                } for n, i in enumerate(population) if i is not None}
+    #         data_all.update(data)
+    #     random.setstate(rst)
+    #     # select_gs the next generation individuals
+    #     offspring = toolbox.select_gs(population, len_pop)
+    #
+    #     # Vary the pool of individuals
+    #     offspring = varAnd(offspring, toolbox, cxpb, mutpb)
+    #
+    #     rst = random.getstate()
+    #
+    #     # Evaluate the individuals with an invalid fitness
+    #     invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+    #     # fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+    #     # fitnesses = parallelize(n_jobs=3, func=toolbox.evaluate, iterable=invalid_ind,  respective=False)
+    #     fitnesses = toolbox.parallel(iterable=invalid_ind)
+    #     for ind, fit in zip(invalid_ind, fitnesses):
+    #         ind.fitness.values = fit[0],
+    #         ind.expr = fit[1]
+    #         ind.dim = fit[2]
+    #         ind.withdim = fit[3]
+    #
+    #     add_ind = toolbox.select_kbest_target_dim(population, K_best=0.1 * len_pop)
+    #     # add_ind2 = toolbox.select_kbest_dimless(population, K_best=0.2 * len_pop)
+    #     # add_ind3 = toolbox.select_kbest(population, K_best=5)
+    #     # offspring += add_ind
+    #     # offspring += add_ind2
+    #     # offspring += add_ind3
+    #
+    #     # Update the hall of fame with the generated individuals
+    #     hal = len(add_ind)
+    #     if halloffame is not None:
+    #         halloffame.update(add_ind)
+    #         if len(halloffame.items) > 0 and halloffame.items[-1].fitness.values[0] >= 0.95:
+    #             print(halloffame.items[-1])
+    #             print(halloffame.items[-1].fitness.values[0])
+    #             break
+    #
+    #     population[:] = offspring
+    #     # Append the current generation statistics to the logbook
+    #     record = stats.compile(population) if stats else {}
+    #     logbook.record(gen=gen, nevals=len(population), **record)
+    #     if verbose:
+    #         print(logbook.stream)
+    #     random.setstate(rst)
+    #
+    # store = Store()
+    # store.to_csv(data_all)
+    # return population, logbook
 
 
 def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False):
@@ -469,6 +644,11 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False):
             add_ind = [ind for ind in chosen if ind.dim == dim_type]
     else:
         raise TypeError("dim_type should be None, 'integer', special Dim or list of Dim")
+    if K_best is None:
+        try:
+            K_best = round(len(add_ind)/10)
+        except:
+            K_best = 0
     if len(add_ind) >= round(K_best):
         return add_ind[:round(K_best)]
     else:

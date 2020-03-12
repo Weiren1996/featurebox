@@ -283,7 +283,7 @@ def corr_plot(x_cof, x_name=None, left_down=None, right_top=None, threshold_left
     fig = plt.figure(figsize=(6, 6), frameon=True)  # args
 
     title_fontsize = round(15 * front_raito)  # c_args
-    ax_fontsize = round(12 * front_raito)
+    ax_fontsize = round(14 * front_raito)
     score_fontsize = round(12 * front_raito)
     circle_size = round(600 * front_raito)
 
@@ -313,12 +313,18 @@ def corr_plot(x_cof, x_name=None, left_down=None, right_top=None, threshold_left
             ax.set_facecolor(fill_colors[i, j])
             [ax.spines[_].set_color('w') for _ in ['right', 'top', 'left', 'bottom']]
 
+            ax.set_xticks([])
+            ax.set_yticks([])
+
+        elif types is "fillandtext":
+            ax = plt.subplot(gs[i, j])
+            ax.set_facecolor(fill_colors[i, j])
+            [ax.spines[_].set_color('w') for _ in ['right', 'top', 'left', 'bottom']]
+
             ax.text(0.5, 0.5, size[i, j],
                     fontdict={"color": "black"},  # args
                     fontsize=score_fontsize,  # c_arg
                     horizontalalignment='center', verticalalignment='center')
-            ax.set_xticks([])
-            ax.set_yticks([])
         elif types is "text":
             ax = plt.subplot(gs[i, j])
             ax.text(0.5, 0.5, size[i, j],
@@ -364,7 +370,7 @@ def corr_plot(x_cof, x_name=None, left_down=None, right_top=None, threshold_left
             plt.axis('off')
 
     fig.subplots_adjust(right=0.75)
-    cbar_ax = fig.add_axes([0.8, 0.125, 0.05, 0.75])
+    cbar_ax = fig.add_axes([0.80, 0.125, 0.03, 0.75])
     ColorbarBase(cbar_ax, cmap=cmap)
     fig.set_size_inches(7, 6, forward=True)
     plt.show()

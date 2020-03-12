@@ -8,10 +8,11 @@ from sklearn import preprocessing, utils
 from sklearn.model_selection import GridSearchCV
 
 from featurebox.combination.dimanalysis import dimension_check
+from featurebox.selection.quickmethod import dict_method_reg
 from featurebox.selection.sum import SUM
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
-from featurebox.tools.quickmethod import dict_method_reg
+
 from featurebox.tools.tool import name_to_name
 
 warnings.filterwarnings("ignore")
