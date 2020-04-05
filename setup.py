@@ -17,7 +17,7 @@ setup(
                 'details can be shown in their sources',
     license='BSD 3-Clause',
     install_requires=['pandas', 'numpy', 'sympy', 'scipy', 'scikit-learn', 'joblib', 'matplotlib',
-                      'networkx', 'seaborn', 'requests', 'tqdm', 'six', 'deap', 'scikit-image'],
+                      'networkx', 'seaborn', 'requests', 'tqdm', 'six', 'deap', 'scikit-image', 'minepy'],
     include_package_data=True,
     author='wangchangxin',
     author_email='986798607@qq.com',

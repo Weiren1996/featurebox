@@ -81,7 +81,7 @@ def mainPart(x_, y_, pset, max_=5, pop_n=100, random_seed=2, cxpb=0.8, mutpb=0.1
         Fitness_ = creator.create("Fitness_", Fitness, weights=(1.0,))
 
     PTrees_ = creator.create("PTrees_", PTrees, fitness=Fitness_, dim=dnan, withdim=0)
-    toolbox.register("generate", Generate, pset=pset, min_=2, max_=max_)
+    toolbox.register("generate", Generate, pset=pset, min_=1, max_=max_)
     toolbox.register("individual", initIterate, container=PTrees_, generator=toolbox.generate)
     toolbox.register('population', initRepeat, container=list, func=toolbox.individual)
     # def selection

@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import sympy
 from deap.tools import Logbook
+
 from scipy import optimize
 from sklearn.exceptions import DataConversionWarning
 from sklearn.metrics import r2_score
@@ -153,6 +154,11 @@ def calculateExpr(expr01, x, y, terminals, scoring=None, add_coeff=True,
     -------
 
     """
+    def split_x(x):
+        if x.ndim == 1:
+            return [x]
+        else:
+            return [*x.T]
 
     if filter_warning:
         warnings.filterwarnings("ignore")
@@ -171,7 +177,9 @@ def calculateExpr(expr01, x, y, terminals, scoring=None, add_coeff=True,
             def func(x_, p):
                 """"""
                 num_list = []
-                num_list.extend([*x_.T])
+
+                num_list.extend(split_x(x))
+
                 num_list.extend(p)
                 return func0(*num_list)
 
@@ -203,7 +211,7 @@ def calculateExpr(expr01, x, y, terminals, scoring=None, add_coeff=True,
             for expri in expr01.args:
                 if not isinstance(expri, sympy.Float):
                     func0 = sympy.utilities.lambdify(terminals, expri)
-                    re = np.mean(func0(*x.T))
+                    re = np.mean(func0(*split_x(x)))
                     if abs(re) > abs(0.001 * np.mean(y)):
                         re_list.append(expri)
                 else:
@@ -213,13 +221,14 @@ def calculateExpr(expr01, x, y, terminals, scoring=None, add_coeff=True,
             pass
 
         func0 = sympy.utilities.lambdify(terminals, expr01)
-        re = func0(*x.T)
+        re = func0(*split_x(x))
+        re = re.ravel()
         assert y.shape == re.shape
         # assert_all_finite(re)
         re = check_array(re, ensure_2d=False)
         score = scoring(y, re)
 
-    except (ValueError, DataConversionWarning, TypeError, NameError, KeyError, AssertionError, AttributeError):
+    except (ValueError, DataConversionWarning, NameError, KeyError, AssertionError, AttributeError):
         score = -0
     else:
         if np.isnan(score):
@@ -267,18 +276,23 @@ def calculatePrecision(individual, pset, x, y, scoring=None, add_coeff=True, fil
     if cal_dim:
         rep_list = pset.rep_name_list
         dim_list = pset.dim_list
-        dim = calcualte_dim(expr, rep_list, dim_list)
+        try:
+            dim = calcualte_dim(expr, rep_list, dim_list)
+        except TypeError:
+            dim = dnan
     else:
         dim = dnan
 
-    if isinstance(dim, (float, int)):
+    if isinstance(dim, (float, int)) or dim is None:
         dim = dnan
         withdim = 0
 
-    elif dim.anyisnan:
-        withdim = 0
-    else:
+    elif isinstance(dim,Dim) and not dim.anyisnan:
         withdim = 1
+    else:
+        dim = dnan
+        withdim = 0
+
 
     return score, expr, dim, withdim
 
@@ -495,7 +509,6 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         add_ind += add_ind3
         elite_size = len(add_ind)
         random.setstate(rst)
-
 
         rst = random.getstate()
         """score"""
