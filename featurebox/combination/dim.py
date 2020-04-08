@@ -49,7 +49,7 @@ class Dim(numeric.ndarray):
         try:
             arr.reshape((7, 1))
         except BaseException:
-            raise IndexError("the size of data is not 7")
+            raise IndexError("the size of datamnist is not 7")
 
         shape = arr.shape
 

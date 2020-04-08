@@ -387,10 +387,10 @@ if __name__ == "__main__":
 ######
 # if __name__ == "__main__":
 #     store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp_last\4.symbollearning')
-#     data = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
+#     datamnist = Call(r'C:\Users\Administrator\Desktop\band_gap_exp_last\1.generate_data',
 #                 r'C:\Users\Administrator\Desktop\band_gap_exp_last\3.MMGS')
 #
-#     all_import = data.csv.all_import
+#     all_import = datamnist.csv.all_import
 #     data_import = all_import
 #
 #     select = ['destiny', 'energy cohesive brewer', 'electronegativity(martynov&batsanov)']

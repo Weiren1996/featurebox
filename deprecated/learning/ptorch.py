@@ -104,10 +104,10 @@ writer.close()  # 执行close立即刷新，否则将每120秒自动刷新
 #     with SummaryWriter(log_dir=r'C:\Users\Administrator\Desktop/logs', comment='train') as writer: #可以直接使用python的with语法，自动调用close方法
 #         writer.add_histogram('his/x', x, epoch)
 #         writer.add_histogram('his/y', y, epoch)
-#         writer.add_scalar('data/x', x, epoch)
-#         writer.add_scalar('data/y', y, epoch)
-#         writer.add_scalar('data/loss', loss, epoch)
-#         writer.add_scalars('data/data_group', {'x': x,
+#         writer.add_scalar('datamnist/x', x, epoch)
+#         writer.add_scalar('datamnist/y', y, epoch)
+#         writer.add_scalar('datamnist/loss', loss, epoch)
+#         writer.add_scalars('datamnist/data_group', {'x': x,
 
 net2 = torch.nn.Sequential(
     torch.nn.Linear(2, 10),
@@ -335,29 +335,29 @@ if __name__ == '__main__':
     # Can work with any model, but it assumes that the model has a
     # feature method, and a classifier method,
     # as in the VGG models in torchvision.
-    from skimage.io import imshow
-    from skimage import io
-    from skimage.transform import resize
-
-    img = io.imread(r"C:\Users\Administrator\Desktop\fig\5dog.png")
-    img2 = io.imread(r"C:\Users\Administrator\Desktop\fig\dog.png") / 255
-    img = np.float32(resize(img, (224, 224)))
-    input0 = preprocess_image(img)
-
-    # If None, returns the map for the highest scoring category.
-    # Otherwise, targets the requested index.
-    target_index = False
-
-    grad_cam = GradCam(model=models.vgg19(pretrained=True), target_layer_names=["35"], use_cuda=True)
+    # from skimage.io import imshow
+    # from skimage import io
+    # from skimage.transform import resize
     #
-    mask = grad_cam(input0, target_index)
-
-    #  test1 dimension mask 255
-    # mask = np.arange(0, 224) / 224
-    # mask = mask.reshape(-1, 1) * mask.reshape(1, -1)
-    # mask[:-50, -100:-50] = 0
-
-    heatmap = show_cam_on_image(img, mask)
+    # img = io.imread(r"C:\Users\Administrator\Desktop\fig\5dog.png")
+    # img2 = io.imread(r"C:\Users\Administrator\Desktop\fig\dog.png") / 255
+    # img = np.float32(resize(img, (224, 224)))
+    # input0 = preprocess_image(img)
+    #
+    # # If None, returns the map for the highest scoring category.
+    # # Otherwise, targets the requested index.
+    # target_index = False
+    #
+    # grad_cam = GradCam(model=models.vgg19(pretrained=True), target_layer_names=["35"], use_cuda=True)
+    # #
+    # mask = grad_cam(input0, target_index)
+    #
+    # #  test1 dimension mask 255
+    # # mask = np.arange(0, 224) / 224
+    # # mask = mask.reshape(-1, 1) * mask.reshape(1, -1)
+    # # mask[:-50, -100:-50] = 0
+    #
+    # heatmap = show_cam_on_image(img, mask)
 
     # del grad_cam
     #     # import gc
@@ -389,3 +389,5 @@ if __name__ == '__main__':
     # import gc
     #
     # gc.collect()
+
+

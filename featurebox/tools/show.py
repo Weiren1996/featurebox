@@ -380,7 +380,7 @@ if __name__ == '__main__':
     data = load_boston(return_X_y=False)
 
     name0 = data["feature_names"]
-    x = data["data"]
+    x = data["datamnist"]
     y = data["target"]
     x_cof = np.corrcoef(x.T)
 

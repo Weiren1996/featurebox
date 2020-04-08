@@ -69,8 +69,8 @@ if __name__ == "__main__":
     me1, cv1, scoring1, param_grid1 = method = dict_method_reg()[method_name]
 
     estimator = GridSearchCV(me1, cv=cv1, scoring=scoring1, param_grid=param_grid1, n_jobs=1)
-    n_select = [1,]
-    # n_select = (2, 3)
+    # n_select = [1,]
+    n_select = (2, 3)
     clf = Exhaustion(estimator, n_select=n_select, muti_grade=2, muti_index=[2, X.shape[1]], must_index=None,
                      n_jobs=1, refit=True).fit(X, y)
 
@@ -80,15 +80,15 @@ if __name__ == "__main__":
 
     for i in clf.score_ex[:]:
         print(i[1])
-    # for i in name_:
-    #     print(i)
+    for i in name_:
+        print(i)
 
-    # t = clf.predict(X)
-    # p = BasePlot()
-    # p.scatter(y, t, strx='True $E_{gap}$', stry='Calculated $E_{gap}$')
-    # plt.show()
-    # p.scatter(sc[:, 0], sc[:, 1], strx='Number', stry='Score')
-    # plt.show()
-    #
-    # store.to_csv(sc, method_name + "".join([str(i) for i in n_select]))
-    # store.to_pkl_pd(clf.score_ex, method_name + "".join([str(i) for i in n_select]))
+    t = clf.predict(X)
+    p = BasePlot()
+    p.scatter(y, t, strx='True $E_{gap}$', stry='Calculated $E_{gap}$')
+    plt.show()
+    p.scatter(sc[:, 0], sc[:, 1], strx='Number', stry='Score')
+    plt.show()
+
+    store.to_csv(sc, method_name + "".join([str(i) for i in n_select]))
+    store.to_pkl_pd(clf.score_ex, method_name + "".join([str(i) for i in n_select]))

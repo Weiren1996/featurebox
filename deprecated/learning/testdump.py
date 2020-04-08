@@ -9,7 +9,7 @@ import json
 # import requests
 # from pymatgen import MPRester
 #
-# data = {
+# datamnist = {
 #     'criteria': {
 #         'elements': {'$in': ['Li', 'Na', 'K'], '$all': ['O']},
 #         'nelements': 2,
@@ -21,7 +21,7 @@ import json
 # }
 # r = requests.post('https://materialsproject.org/rest/v2/query',
 #                  headers={'X-API-KEY': "Di2IZMunaeR8vr9w"},
-#                  data={k: json.dumps(v) for k,v in data.items()})
+#                  datamnist={k: json.dumps(v) for k,v in datamnist.items()})
 # response_content = r.json() # a dict
 #
 # m = MPRester("Di2IZMunaeR8vr9w")

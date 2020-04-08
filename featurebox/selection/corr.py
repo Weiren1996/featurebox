@@ -230,13 +230,13 @@ if __name__ == "__main__":
     #
     # def MIC_matirx(dataframe, mine):
     #
-    #     data = np.array(dataframe)
-    #     n = len(data[0, :])
+    #     datamnist = np.array(dataframe)
+    #     n = len(datamnist[0, :])
     #     result = np.zeros([n, n])
     #
     #     for i in range(n):
     #         for j in range(n):
-    #             mine.compute_score(data[:, i], data[:, j])
+    #             mine.compute_score(datamnist[:, i], datamnist[:, j])
     #             result[i, j] = mine.mic()
     #             result[j, i] = mine.mic()
     #     RT = result

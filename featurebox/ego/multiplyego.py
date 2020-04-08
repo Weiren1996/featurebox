@@ -237,9 +237,9 @@ class MutilplyEgo:
 #     svr = joblib.load(r'SVR')
 #     svr_el = joblib.load(r'svr-EL')
 #     file_path = r'C:\Users\scc\Desktop\lmx\UTS-deta.csv'
-#     data = pd.read_csv(file_path)
-#     X = data.iloc[:, :-2].values
-#     y = data.iloc[:, -2:].values
+#     datamnist = pd.read_csv(file_path)
+#     X = datamnist.iloc[:, :-2].values
+#     y = datamnist.iloc[:, -2:].values
 #
 #     pca = PCA()
 #     X = pca.fit_transform(X)

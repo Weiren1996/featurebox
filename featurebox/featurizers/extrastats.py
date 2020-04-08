@@ -22,7 +22,7 @@ class PropertyStats(object):
     when computing features.
     The primary way for interacting with this class is to call the
     ``calc_stat`` function, which takes the x_name of the statistic you would
-    like to compute and the weights/values of data to be assessed. For example,
+    like to compute and the weights/values of datamnist to be assessed. For example,
     computing the mean of a list looks like::
         x = [1, 2, 3]
         PropertyStats.calc_stat(x, 'mean') # Result is 2
@@ -32,7 +32,7 @@ class PropertyStats(object):
     two colons. For example, the 0th Holder mean would be::
         PropertyStats.calc_stat(x, 'holder_mean::0')
     You can, of course, call the statistical functions directly. All take at
-    least two arguments.  The first is the data being assessed and the second,
+    least two arguments.  The first is the datamnist being assessed and the second,
     optional, argument is the weights.
     """
 
@@ -114,7 +114,7 @@ class PropertyStats(object):
 
     @staticmethod
     def avg_dev(data_lst, weights=None):
-        """Mean absolute deviation of list of element data.
+        """Mean absolute deviation of list of element datamnist.
         This is computed by first calculating the mean of the list,
         and then computing the average absolute difference between each value
         and the mean.
@@ -129,7 +129,7 @@ class PropertyStats(object):
 
     @staticmethod
     def std_dev(data_lst, weights=None):
-        """Standard deviation of a list of element data
+        """Standard deviation of a list of element datamnist
         Args:
             data_lst (list of floats): List of values to be assessed
             weights (list of floats): Weights for each value
@@ -153,7 +153,7 @@ class PropertyStats(object):
 
     @staticmethod
     def skewness(data_lst, weights=None):
-        """Skewness of a list of data
+        """Skewness of a list of datamnist
         Args:
             data_lst (list of floats): List of values to be assessed
             weights (list of floats): Weights for each value
@@ -182,7 +182,7 @@ class PropertyStats(object):
 
     @staticmethod
     def kurtosis(data_lst, weights=None):
-        """Kurtosis of a list of data
+        """Kurtosis of a list of datamnist
         Args:
             data_lst (list of floats): List of values to be assessed
             weights (list of floats): Weights for each value
@@ -233,7 +233,7 @@ class PropertyStats(object):
 
     @staticmethod
     def mode(data_lst, weights=None):
-        """Mode of a list of data.
+        """Mode of a list of datamnist.
         If multiple elements occur equally-frequently (or same weight, if
         weights are provided), this function will return the minimum of those
         values.
@@ -332,7 +332,7 @@ class PropertyStats(object):
         """
         Return a specific quantile.
         Args:
-            data_lst (list or np.ndarray): 1D data list to be used for computing
+            data_lst (list or np.ndarray): 1D datamnist list to be used for computing
                 quantiles
             q (float): The quantile, as a fraction between 0 and 1.
         Returns:

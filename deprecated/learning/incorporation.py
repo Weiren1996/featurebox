@@ -17,7 +17,7 @@ import sympy
 from deap import creator, gp
 from sympy.physics.units import Dimension
 
-from deprecated.incorporationbase import Dim, dim_func, fea_compile, spilt_couple
+from deprecated.learning.incorporationbase import Dim, dim_func, fea_compile, spilt_couple
 from featurebox.tools.tool import time_this_function
 
 warnings.filterwarnings("ignore")

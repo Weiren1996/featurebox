@@ -398,7 +398,7 @@ def varAnd(population, toolbox, cxpb, mutpb):
 #             rst = random.getstate()
 #             target_dim = toolbox.select_kbest_target_dim.keywords['dim_type']
 #             subp = functools.partial(sub, subed=pset.rep_name_list, subs=pset.real_name_list)
-#             data = {"gen{}_pop{}".format(gen, n): {"gen": gen, "pop": n,
+#             datamnist = {"gen{}_pop{}".format(gen, n): {"gen": gen, "pop": n,
 #                                                    "score": i.fitness.values[0],
 #                                                    "expr": str(subp(i.expr)),
 #                                                    "with_dim": 1 if i.withdim else 0,
@@ -410,7 +410,7 @@ def varAnd(population, toolbox, cxpb, mutpb):
 #                                                    "socre_target_dim": i.fitness.values[
 #                                                        0] if i.dim in target_dim else 0,
 #                                                    } for n, i in enumerate(population) if i is not None}
-#             data_all.update(data)
+#             data_all.update(datamnist)
 #         random.setstate(rst)
 #         # select_gs the next generation individuals
 #         offspring = toolbox.select_gs(population, len_pop)
@@ -575,7 +575,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     #         rst = random.getstate()
     #         target_dim = toolbox.select_kbest_target_dim.keywords['dim_type']
     #         subp = functools.partial(sub, subed=pset.rep_name_list, subs=pset.real_name_list)
-    #         data = {"gen{}_pop{}".format(gen, n): {"gen": gen, "pop": n,
+    #         datamnist = {"gen{}_pop{}".format(gen, n): {"gen": gen, "pop": n,
     #                                                "score": i.fitness.values[0],
     #                                                "expr": str(subp(i.expr)),
     #                                                "with_dim": 1 if i.withdim else 0,
@@ -587,7 +587,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     #                                                "socre_target_dim": i.fitness.values[
     #                                                    0] if i.dim in target_dim else 0,
     #                                                } for n, i in enumerate(population) if i is not None}
-    #         data_all.update(data)
+    #         data_all.update(datamnist)
     #     random.setstate(rst)
     #     # select_gs the next generation individuals
     #     offspring = toolbox.select_gs(population, len_pop)

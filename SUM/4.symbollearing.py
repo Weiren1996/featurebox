@@ -19,14 +19,14 @@ from featurebox.tools.imports import Call
 from featurebox.tools.show import BasePlot
 from featurebox.tools.tool import name_to_name
 
-# 3
+# 4
 # if __name__ == '__main__':
 #     import pandas as pd
 #
 #     store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp\4.symbol')
-#     data = Call(r'C:\Users\Administrator\Desktop\band_gap_exp')
-#     data_import = data.csv().all_import
-#     name_init, abbr_init = data.name_and_abbr
+#     datamnist = Call(r'C:\Users\Administrator\Desktop\band_gap_exp')
+#     data_import = datamnist.csv().all_import
+#     name_init, abbr_init = datamnist.name_and_abbr
 #
 #     select = ['electron density', 'energy cohesive brewer', 'distance core electron(schubert)']
 #
@@ -91,6 +91,7 @@ from featurebox.tools.tool import name_to_name
 #     result = mainPart(X, y, pset, pop_n=500, random_seed=1, cxpb=0.8, mutpb=0.6, ngen=20, tournsize=3, max_value=10,
 #                       double=False, score=[r2_score, custom_loss_func], target_dim=target_dim)
 
+#5
 if __name__ == '__main__':
     import pandas as pd
 
@@ -152,7 +153,6 @@ if __name__ == '__main__':
 
                             [-2, [0, 1, 2, 3, "Self"]],
                             [-1, [0, 1, 2, 3, "Self"]],
-
                         ],
                         definate_variable=[
                             [-4, [0]],
@@ -162,9 +162,9 @@ if __name__ == '__main__':
                         operate_linkage=[[-1, -2], [-3, -4]],
                         variable_linkage=None)
     #
-    # result = mainPart(X, y, pset, pop_n=500, random_seed=1, cxpb=1, mutpb=0.6, ngen=30, tournsize=3, max_value=10,
-    #                   max_=4,
-    #                   double=False, score=[r2_score, custom_loss_func], inter_add=False, target_dim=target_dim)
+    result = mainPart(X, y, pset, pop_n=500, random_seed=1, cxpb=1, mutpb=0.6, ngen=30, tournsize=3, max_value=10,
+                      max_=4,
+                      double=False, score=[r2_score, custom_loss_func], inter_add=False, target_dim=target_dim)
 
     import sympy
 

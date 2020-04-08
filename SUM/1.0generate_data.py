@@ -155,6 +155,6 @@ if __name__ == "__main__":
         ['name_number', 'name_number', "name", "structure", "structure_type", "space_group", "reference", 'material_id',
          'composition', "com_0", "com_1"], axis=1)
 
-    # store.to_pkl_pd(dims, "dims")
-    # store.to_pkl_pd(name_and_abbr, "name_and_abbr")
-    # store.to_csv(all_import, "all_import")
+    store.to_pkl_pd(dims, "dims")
+    store.to_pkl_pd(name_and_abbr, "name_and_abbr")
+    store.to_csv(all_import, "all_import")
