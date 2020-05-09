@@ -11,6 +11,7 @@
 """
 
 import warnings
+from functools import partial
 
 import numpy as np
 from sklearn import kernel_ridge, gaussian_process, neighbors
@@ -257,7 +258,7 @@ def dict_method_reg():
     cv11 = 5
     scoring11 = 'r2'
     param_grid11 = [{'alpha': [0.0001, 0.001, 0.01, 0.1, 1, 10], 'l1_ratio': [0.3, 0.5, 0.8]}]
-    dict_method.update({"ElasticNet-L1": [me11, cv11, scoring11, param_grid11]})
+    dict_method.update({"EN-L1": [me11, cv11, scoring11, param_grid11]})
 
     'Lasso'
     me12 = Lasso(alpha=1.0, fit_intercept=True, normalize=False, precompute=False, copy_X=True, max_iter=1000,
@@ -267,7 +268,7 @@ def dict_method_reg():
     cv12 = 5
     scoring12 = 'r2'
     param_grid12 = [{'alpha': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 10, 100, 1000]}, ]
-    dict_method.update({"LASSO-set": [me12, cv12, scoring12, param_grid12]})
+    dict_method.update({"LASSO-L1": [me12, cv12, scoring12, param_grid12]})
 
     """2BayesianRidge"""
     me2 = BayesianRidge(alpha_1=1e-06, alpha_2=1e-06, compute_score=False,
@@ -276,7 +277,7 @@ def dict_method_reg():
     cv2 = 5
     scoring2 = 'r2'
     param_grid2 = [{'alpha_1': [1e-07, 1e-06, 1e-05], 'alpha_2': [1e-07, 1e-06, 1e-05]}]
-    dict_method.update({'BRR-set': [me2, cv2, scoring2, param_grid2]})
+    dict_method.update({'BRR-L1': [me2, cv2, scoring2, param_grid2]})
 
     """3SGDRL2"""
     me3 = SGDRegressor(alpha=0.0001, average=False,
@@ -289,7 +290,7 @@ def dict_method_reg():
     scoring3 = 'r2'
     param_grid3 = [{'alpha': [100, 10, 1, 0.1, 0.01, 0.001, 0.0001, 1e-05], 'loss': ['squared_loss', "huber"],
                     "penalty": ["l1", "l2"]}]
-    dict_method.update({'SGDR-set': [me3, cv3, scoring3, param_grid3]})
+    dict_method.update({'SGDR-L1': [me3, cv3, scoring3, param_grid3]})
 
     """PassiveAggressiveRegressor"""
     me14 = PassiveAggressiveRegressor(C=1.0, fit_intercept=True, max_iter=1000, tol=0.001, early_stopping=False,
@@ -299,7 +300,7 @@ def dict_method_reg():
     cv14 = 5
     scoring14 = 'r2'
     param_grid14 = [{'C': [1.0e8, 1.0e6, 10000, 100, 50, 10, 5, 2.5, 1, 0.5, 0.1, 0.01]}]
-    dict_method.update({'PAR-set': [me14, cv14, scoring14, param_grid14]})
+    dict_method.update({'PAR-L1': [me14, cv14, scoring14, param_grid14]})
 
     return dict_method
 
@@ -314,7 +315,9 @@ def dict_me(me="clf"):
 
 def method_pack(method_all, me="reg", gd=True):
     if not method_all:
-        method_all = ['KNR-set', 'SVR-set', "KRR-set"]
+        method_all = ['KNR-set', 'SVR-set', "KRR-set","GPR-set",
+                      "RFR-em","AdaBR-em","DTR-em",
+                      "LASSO-L1","BRR-L1","SGDR-L1","PAR-L1"]
     dict_method = dict_me(me=me)
 
     print(dict_method.keys())
@@ -337,7 +340,8 @@ def method_pack(method_all, me="reg", gd=True):
                 scoring2 = 'balanced_accuracy'
             if me == "reg":
                 scoring2 = 'r2'
-            gd2 = cross_val_score(me2, cv=cv2, scoring=scoring2)
+            gd2=partial(cross_val_score,estimator=me2,cv=cv2,scoring=scoring2)
+            # gd2 = cross_val_score(me2, cv=cv2, scoring=scoring2)
             estimator.append(gd2)
         return estimator
 
@@ -377,52 +381,52 @@ def pack_score(y_test_true_all, y_test_predict_all, scoring):
     return score_mean
 
 
-def my_score(gd_method, train_X, test_X, train_Y, test_Y):
-    # train_X, test_X = my_pca(train_X, test_X, 0.9)
-
-    # s_X = preprocessing.StandardScaler()
-    # train_X = s_X.fit_transform(train_X)
-    # test_X = s_X.transform(test_X)
-
-    # train_X,train_Y,= utils.shuffle(train_X,train_Y, random_state=3)
-
-    grid = gd_method
-    n_splits = 5
-    kf = KFold(n_splits=n_splits, shuffle=False)
-    grid.cv = kf
-    grid.fit(train_X, train_Y)
-
-    print("最好的参数：", grid.best_params_)
-    print("最好的模型：", grid.best_estimator_)
-    print("\ngrid.best_score:\n", grid.best_score_)
-
-    metrics_method1 = "rmse"
-    metrics_method2 = "r2"
-
-    # cv_train
-    kf = KFold(n_splits=n_splits, shuffle=False)
-    kf = list(kf.split(train_X))
-    y_train_true_all, y_train_predict_all = cv_predict(train_X, train_Y, grid.best_estimator_, kf)
-
-    cv_pre_train_y = np.concatenate([i.ravel() for i in y_train_predict_all]).T
-    score1 = pack_score(y_train_true_all, y_train_predict_all, metrics_method1)
-    score2 = pack_score(y_train_true_all, y_train_predict_all, metrics_method2)
-    print("train_X's cv score %s" % score1, "train_X's cv score %s" % score2)
-
-    # all_train
-    grid = grid.best_estimator_
-    # grid.fit(train_X,train_Y)
-    pre_train_y = grid.predict(train_X)
-    score3 = pack_score(train_Y, pre_train_y, metrics_method1)
-    score4 = pack_score(train_Y, pre_train_y, metrics_method2)
-    print("train_X's score %s " % score3, "train_X's score %s" % score4)
-    # test
-    pre_test_y = grid.predict(test_X)
-    score5 = pack_score(test_Y, pre_test_y, metrics_method1)
-    score6 = pack_score(test_Y, pre_test_y, metrics_method2)
-    print("test_X's score %s" % score5, "test_X's score %s" % score6)
-
-    return cv_pre_train_y, pre_train_y, pre_test_y
+# def my_score(gd_method, train_X, test_X, train_Y, test_Y):
+#     # train_X, test_X = my_pca(train_X, test_X, 0.9)
+#
+#     # s_X = preprocessing.StandardScaler()
+#     # train_X = s_X.fit_transform(train_X)
+#     # test_X = s_X.transform(test_X)
+#
+#     # train_X,train_Y,= utils.shuffle(train_X,train_Y, random_state=3)
+#
+#     grid = gd_method
+#     n_splits = 5
+#     kf = KFold(n_splits=n_splits, shuffle=False)
+#     grid.cv = kf
+#     grid.fit(train_X, train_Y)
+#
+#     print("最好的参数：", grid.best_params_)
+#     print("最好的模型：", grid.best_estimator_)
+#     print("\ngrid.best_score:\n", grid.best_score_)
+#
+#     metrics_method1 = "rmse"
+#     metrics_method2 = "r2"
+#
+#     # cv_train
+#     kf = KFold(n_splits=n_splits, shuffle=False)
+#     kf = list(kf.split(train_X))
+#     y_train_true_all, y_train_predict_all = cv_predict(train_X, train_Y, grid.best_estimator_, kf)
+#
+#     cv_pre_train_y = np.concatenate([i.ravel() for i in y_train_predict_all]).T
+#     score1 = pack_score(y_train_true_all, y_train_predict_all, metrics_method1)
+#     score2 = pack_score(y_train_true_all, y_train_predict_all, metrics_method2)
+#     print("train_X's cv score %s" % score1, "train_X's cv score %s" % score2)
+#
+#     # all_train
+#     grid = grid.best_estimator_
+#     # grid.fit(train_X,train_Y)
+#     pre_train_y = grid.predict(train_X)
+#     score3 = pack_score(train_Y, pre_train_y, metrics_method1)
+#     score4 = pack_score(train_Y, pre_train_y, metrics_method2)
+#     print("train_X's score %s " % score3, "train_X's score %s" % score4)
+#     # test
+#     pre_test_y = grid.predict(test_X)
+#     score5 = pack_score(test_Y, pre_test_y, metrics_method1)
+#     score6 = pack_score(test_Y, pre_test_y, metrics_method2)
+#     print("test_X's score %s" % score5, "test_X's score %s" % score6)
+#
+#     return cv_pre_train_y, pre_train_y, pre_test_y
 
 # if __name__ == "__main__":
 #     import pandas as pd

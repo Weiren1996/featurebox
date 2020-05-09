@@ -11,87 +11,89 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
+
 from torch import optim
+from torchvision.utils import save_image
 
-
-class Net(nn.Module):
-
-    def __init__(self):
-        super(Net, self).__init__()
-        # 1 input0 image channel, 6 output channels, 5x5 square convolution
-        # kernel
-        self.conv1 = nn.Conv2d(1, 6, 5)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        # an affine operation: y = Wx + b
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
-
-    def forward(self, x):
-        # Max pooling over a (2, 2) window
-        x = self.conv1(x)
-        x = F.relu(x)
-        x = F.max_pool2d(x, (2, 2))
-        # If the size is a square you can only specify a single number
-        x = self.conv2(x)
-        x = F.relu(x)
-        x = F.max_pool2d(x, 2)
-        x = x.view(-1, self.num_flat_features(x))
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
-
-    def num_flat_features(self, x):
-        size = x.size()[1:]  # all dimensions except the batch dimension
-        num_features = 1
-        for s in size:
-            num_features *= s
-        return num_features
-
-
-net = Net()
 #
-input0 = torch.randn(1, 1, 32, 32)
+# class Net(nn.Module):
 #
-target = torch.randn(10)  # 随机值作为样例
-target = target.view(1, -1)  # 使target和output的shape相同
-criterion = nn.MSELoss()
+#     def __init__(self):
+#         super(Net, self).__init__()
+#         # 1 input0 image channel, 6 output channels, 5x5 square convolution
+#         # kernel
+#         self.conv1 = nn.Conv2d(1, 6, 5)
+#         self.conv2 = nn.Conv2d(6, 16, 5)
+#         # an affine operation: y = Wx + b
+#         self.fc1 = nn.Linear(16 * 5 * 5, 120)
+#         self.fc2 = nn.Linear(120, 84)
+#         self.fc3 = nn.Linear(84, 10)
+#
+#     def forward(self, x):
+#         # Max pooling over a (2, 2) window
+#         x = self.conv1(x)
+#         x = F.relu(x)
+#         x = F.max_pool2d(x, (2, 2))
+#         # If the size is a square you can only specify a single number
+#         x = self.conv2(x)
+#         x = F.relu(x)
+#         x = F.max_pool2d(x, 2)
+#         x = x.view(-1, self.num_flat_features(x))
+#         x = F.relu(self.fc1(x))
+#         x = F.relu(self.fc2(x))
+#         x = self.fc3(x)
+#         return x
+#
+#     def num_flat_features(self, x):
+#         size = x.size()[1:]  # all dimensions except the batch dimension
+#         num_features = 1
+#         for s in size:
+#             num_features *= s
+#         return num_features
+#
+#
+# net = Net()
+# #
+# input0 = torch.randn(1, 1, 32, 32)
+# #
+# target = torch.randn(10)  # 随机值作为样例
+# target = target.view(1, -1)  # 使target和output的shape相同
+# criterion = nn.MSELoss()
+#
+# out = net(input0)
+# out.backward(torch.randn(1, 10))
+# # create your optimizer
+# optimizer = optim.SGD(net.parameters(), lr=0.01)
+# for i in range(60):
+#     # in your training loop:
+#     optimizer.zero_grad()  # zero the gradient buffers
+#     output = net(input0)
+#     loss = criterion(output, target)
+#
+#     loss.backward()
+#     optimizer.step()
 
-out = net(input0)
-out.backward(torch.randn(1, 10))
-# create your optimizer
-optimizer = optim.SGD(net.parameters(), lr=0.01)
-for i in range(60):
-    # in your training loop:
-    optimizer.zero_grad()  # zero the gradient buffers
-    output = net(input0)
-    loss = criterion(output, target)
+# from tensorboardX import SummaryWriter
+#
+# with SummaryWriter(log_dir=r'C:\Users\Administrator\Desktop/logs', comment='vgg161') as writer:
+#     writer.add_graph(net, input0)
 
-    loss.backward()
-    optimizer.step()
-
-from tensorboardX import SummaryWriter
-
-with SummaryWriter(log_dir=r'C:\Users\Administrator\Desktop/logs', comment='vgg161') as writer:
-    writer.add_graph(net, input0)
-
-from torchvision import transforms
-from tensorboardX import SummaryWriter
-
-# from torch.utils.tensorboard import SummaryWriter
-cat_img = Image.open(r'C:\Users\Administrator\Desktop\图片1.png')
-cat_img.size
-
-transform_224 = transforms.Compose([
-    transforms.Resize(224),  # 这里要说明下 Scale 已经过期了，使用Resize
-    transforms.CenterCrop(224),
-    transforms.Totensor(),
-])
-cat_img_224 = transform_224(cat_img)
-writer = SummaryWriter(log_dir=r'C:\Users\Administrator\Desktop/logs', comment='cat image')  # 这里的logs要与--logdir的参数一样
-writer.add_image("cat", cat_img_224)
-writer.close()  # 执行close立即刷新，否则将每120秒自动刷新
+# from torchvision import transforms
+# from tensorboardX import SummaryWriter
+#
+# # from torch.utils.tensorboard import SummaryWriter
+# cat_img = Image.open(r'C:\Users\Administrator\Desktop\图片1.png')
+# cat_img.size
+#
+# transform_224 = transforms.Compose([
+#     transforms.Resize(224),  # 这里要说明下 Scale 已经过期了，使用Resize
+#     transforms.CenterCrop(224),
+#     transforms.Totensor(),
+# ])
+# cat_img_224 = transform_224(cat_img)
+# writer = SummaryWriter(log_dir=r'C:\Users\Administrator\Desktop/logs', comment='cat image')  # 这里的logs要与--logdir的参数一样
+# writer.add_image("cat", cat_img_224)
+# writer.close()  # 执行close立即刷新，否则将每120秒自动刷新
 
 # x = torch.Floattensor([100])
 # y = torch.Floattensor([500])
@@ -109,15 +111,15 @@ writer.close()  # 执行close立即刷新，否则将每120秒自动刷新
 #         writer.add_scalar('datamnist/loss', loss, epoch)
 #         writer.add_scalars('datamnist/data_group', {'x': x,
 
-net2 = torch.nn.Sequential(
-    torch.nn.Linear(2, 10),
-    torch.nn.ReLU(),
-    torch.nn.Linear(10, 2),
-)
-print('方法2：\n', net2)
-with SummaryWriter(log_dir=r'C:\Users\Administrator\Desktop/logs', comment='seq') as writer:
-    input0 = torch.randn(100, 2)
-    writer.add_graph(net2, input0)
+# net2 = torch.nn.Sequential(
+#     torch.nn.Linear(2, 10),
+#     torch.nn.ReLU(),
+#     torch.nn.Linear(10, 2),
+# )
+# print('方法2：\n', net2)
+# with SummaryWriter(log_dir=r'C:\Users\Administrator\Desktop/logs', comment='seq') as writer:
+#     input0 = torch.randn(100, 2)
+#     writer.add_graph(net2, input0)
 
 import numpy as np
 import torch
@@ -148,8 +150,8 @@ class FeatureExtractor():
         for name, module in self.model._modules.items():
             x = module(x)  # 累计计算新图片，每一层顺序叠加
             if name in self.target_layers:
-                x.register_hook(self.save_gradient)  # 保留目标相对与 最后一层的梯度
-                outputs += [x]
+                x.register_hook(self.save_gradient)  # 保留 target层的梯度
+                outputs += [x]#添加
         return outputs, x  # 获取多少层输出列表output，以及及最后输出x
 
 
@@ -164,7 +166,7 @@ class ModelOutputs():
         self.feature_extractor = FeatureExtractor(self.model.features, target_layers)
 
     def get_gradients(self):
-        return self.feature_extractor.gradients
+        return self.feature_extractor.gradients #梯度列表
 
     def __call__(self, x):
         target_activations, output = self.feature_extractor(x)  # 分类层之前的目标层
@@ -195,6 +197,7 @@ class GradCam:
         if index == None:
             index = np.argmax(output.cpu().data.numpy())  # 最终目标
 
+        #看index影响的部分，其他置0
         one_hot = np.zeros((1, output.size()[-1]), dtype=np.float32)
         one_hot[0][index] = 1
         one_hot = torch.from_numpy(one_hot).requires_grad_(True)
@@ -207,17 +210,18 @@ class GradCam:
         self.model.classifier.zero_grad()
         one_hot.backward()
 
-        grads_val = self.extractor.get_gradients()[-1].cpu().data.numpy()  # 1 512,14,14 保留目标相对与 最后一层的梯度
+        grads_val = self.extractor.get_gradients()[-1].cpu().data.numpy()  # 1 512,14,14 收敛的最后一个结果的target层梯度
 
         target = features[-1]  # 取了最后一层feature层，在分类层之前
         target = target.cpu().data.numpy()[0, :]  # 512,14,14
 
-        weights = np.mean(grads_val, axis=(2, 3))[0, :]  # 512 取平均梯度，相当于衡量512个特征中哪个特征更重要！！
+        weights = np.mean(grads_val, axis=(2, 3))[0, :]  # 512个特征的2，3维度取平均梯度（临近平均），相当于衡量512个特征中哪个特征更重要！！
+
         cam = np.zeros(target.shape[1:], dtype=np.float32)  # 14,14
 
         for i, w in enumerate(weights):
             cam += w * target[i, :, :]
-            # feature*权值 然后加和！！！！
+            # 每一个feature*其对应的权值 然后加和！！！！
             # 梯度考察哪个特征更重要
             # 然后乘上相应的特征层
             # 此重要性映射到原先图片，肯定会模糊
@@ -233,14 +237,16 @@ class GradCam:
         return cam
 
 
-class FuncGuidedBackpropReLU(Function):
+class GuidedBackpropReLU(Function):
 
+    @staticmethod
     def forward(self, input):
         positive_mask = (input > 0).type_as(input)
         output = torch.addcmul(torch.zeros(input.size()).type_as(input), input, positive_mask)
         self.save_for_backward(input, output)
         return output
 
+    @staticmethod
     def backward(self, grad_output):
         input, output = self.saved_tensors
         grad_input = None
@@ -265,7 +271,7 @@ class GuidedBackpropReLUModel:
         # replace ReLU with GuidedBackpropReLU
         for idx, module in self.model.features._modules.items():
             if module.__class__.__name__ == 'ReLU':
-                self.model.features._modules[idx] = FuncGuidedBackpropReLU()
+                self.model.features._modules[idx] = GuidedBackpropReLU.apply
 
     def forward(self, input):
         return self.model(input)
@@ -289,7 +295,7 @@ class GuidedBackpropReLUModel:
 
         # self.model.features.zero_grad()
         # self.model.classifier.zero_grad()
-        one_hot.backward()
+        one_hot.backward(retain_graph=True)
 
         output = input.grad.cpu().data.numpy()
         output = output[0, :, :, :]
@@ -303,9 +309,9 @@ def show_cam_on_image(img, mask):
     heatmap = np.float32(mask)
     cam = heatmap + np.float32(img)
     cam /= np.max(cam)
-    from skimage.io import imshow
+    cam = np.nan_to_num(cam)
     imshow(cam)
-    return heatmap, cam
+
 
 
 def preprocess_image(img):
@@ -335,59 +341,46 @@ if __name__ == '__main__':
     # Can work with any model, but it assumes that the model has a
     # feature method, and a classifier method,
     # as in the VGG models in torchvision.
-    # from skimage.io import imshow
-    # from skimage import io
-    # from skimage.transform import resize
-    #
-    # img = io.imread(r"C:\Users\Administrator\Desktop\fig\5dog.png")
-    # img2 = io.imread(r"C:\Users\Administrator\Desktop\fig\dog.png") / 255
-    # img = np.float32(resize(img, (224, 224)))
-    # input0 = preprocess_image(img)
-    #
-    # # If None, returns the map for the highest scoring category.
-    # # Otherwise, targets the requested index.
-    # target_index = False
-    #
-    # grad_cam = GradCam(model=models.vgg19(pretrained=True), target_layer_names=["35"], use_cuda=True)
-    # #
-    # mask = grad_cam(input0, target_index)
-    #
-    # #  test1 dimension mask 255
-    # # mask = np.arange(0, 224) / 224
-    # # mask = mask.reshape(-1, 1) * mask.reshape(1, -1)
-    # # mask[:-50, -100:-50] = 0
-    #
-    # heatmap = show_cam_on_image(img, mask)
+    from skimage.io import imshow, imsave
+    from skimage import io
+    from skimage.transform import resize
 
+    img1 = io.imread(r"C:\Users\Administrator\Desktop\fig\dog.png") / 255
+    img2 = io.imread(r"C:\Users\Administrator\Desktop\fig\cat.png") / 255
+    img = np.float32(resize(img2, (224, 224)))
+    input0 = preprocess_image(img)
+    #
+    # If None, returns the map for the highest scoring category.
+    # Otherwise, targets the requested index.
+    target_index = None
+    grad_cam = GradCam(model=models.vgg19(pretrained=True), target_layer_names=["35"], use_cuda=False)
+    mask = grad_cam(input0, target_index)
+
+    show_cam_on_image(img, mask)
     # del grad_cam
-    #     # import gc
-    #     #
-    #     # gc.collect()
+    # import gc
+    # gc.collect()
 
+
+    gb_model = GuidedBackpropReLUModel(model=models.vgg19(pretrained=True), use_cuda=False)
     #
-    # gb_model = GuidedBackpropReLUModel(model=models.vgg19(pretrained=True), use_cuda=True)
-    #
-    # gb = gb_model(input0, index=target_index)
-    # utils.save_image(torch.from_numpy(gb), 'gb.jpg')
-    #
-    # cam_mask = np.zeros(gb.shape)
-    # for i in range(0, gb.shape[0]):
-    #     cam_mask[i, :, :] = mask
-    # #
-    # cam_gb = np.multiply(cam_mask, gb)
-    # cam_gb = cam_gb.swapaxes(0, 1)
-    # cam_gb = cam_gb.swapaxes(1, 2)
-    #
-    #
-    # imshow(cam_gb)
-    #
-    # gb = gb.swapaxes(0, 1)
-    # gb = gb.swapaxes(1, 2)
+    gb = gb_model(input0, index=target_index)
+    gb = gb.transpose((1, 2, 0))
+    # from skimage.io import imshow
     # imshow(gb)
-    # # utils.save_image(torch.from_numpy(cam_gb), 'cam_gb.jpg')
+    # #
+    cam_mask = np.zeros(gb.shape)
+    for i in range(0, gb.shape[2]):
+        cam_mask[:, :, i] = mask
+    # #
+    cam_gb = np.multiply(cam_mask, gb)
+
+
+    imsave('cam_gb.jpg',cam_gb)
+
+
     # del gb_model
     # import gc
-    #
     # gc.collect()
 
 

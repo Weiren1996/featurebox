@@ -89,7 +89,6 @@ if __name__ == "__main__":
     #
     # corr_plot(cov_select, select_abbr,title="", left_down="fill", right_top="pie", threshold_right=0, front_raito=0.6)
 
-
     select = ['cell volume', 'electron density', 'lattice constants a', 'lattice constants c', 'radii covalent',
               'radii ionic(shannon)',
               'distance core electron(schubert)', 'latent heat of fusion', 'energy cohesive brewer', 'total energy',

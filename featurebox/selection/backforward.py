@@ -205,7 +205,7 @@ class BackForward(BaseEstimator, MetaEstimatorMixin, SelectorMixin, MutiBase):
         su[select_feature] = 1
         self.support_ = su
         self.estimator_ = clone(self.estimator)
-        self.estimator_._fit(x[:, select_feature], y)
+        self.estimator_.fit(x[:, select_feature], y)
         self.n_feature_ = len(select_feature)
 
         return self

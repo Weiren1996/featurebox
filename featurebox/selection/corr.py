@@ -99,7 +99,7 @@ class Corr(MutiBase):
             self.cov_shrink = cov_new
             return self.cov_shrink
         else:
-            pass
+            self.cov_shrink = self.cov
 
     def transform_index(self, data):
         if isinstance(data, int):
