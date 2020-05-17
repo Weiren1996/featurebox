@@ -2,11 +2,8 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Python 3.7 (featurebox)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.7.6 (sftp://wangchangxin@222.28.70.247:22/data/home/wangchangxin/anaconda3/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-  </component>
-  <component name="PackageRequirementsSettings">
-    <option name="requirementsPath" value="" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="NUMPY" />
@@ -14,6 +11,6 @@
     <option name="renderExternalDocumentation" value="true" />
   </component>
   <component name="TestRunnerService">
-    <option name="PROJECT_TEST_RUNNER" value="Unittests" />
+    <option name="PROJECT_TEST_RUNNER" value="pytest" />
   </component>
 </module>

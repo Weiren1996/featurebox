@@ -543,7 +543,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         rst = random.getstate()
         """Dynamic output"""
 
-        record = stats.compile(population) if stats else {}
+        record = stats.compile_(population) if stats else {}
         logbook.record(gen=gen, pop=len(population), **record)
 
         if verbose:

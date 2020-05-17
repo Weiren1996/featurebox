@@ -49,7 +49,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     for gen in range(1, ngen + 1):
 
         # Append the current generation statistics to the logbook
-        record = stats.compile(population + halloffame.items) if stats else {}
+        record = stats.compile_(population + halloffame.items) if stats else {}
         logbook.record(gen=gen, nevals=len(invalid_ind), **record)
         if verbose:
             print(logbook.stream)

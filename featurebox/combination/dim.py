@@ -58,7 +58,7 @@ class Dim(numeric.ndarray):
                                       order='F')
         return ret
 
-    def __init__(self, data):
+    def __init__(self, *data):
         _ = data
         self.unit = ["kg", "m", "s", "A", "K", "mol", "cd"]
 

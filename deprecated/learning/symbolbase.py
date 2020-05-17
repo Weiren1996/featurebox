@@ -958,7 +958,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     if halloffame is not None:
         halloffame.update(population)
     random.seed(random_seed)
-    record = stats.compile(population) if stats else {}
+    record = stats.compile_(population) if stats else {}
     logbook.record(gen=0, nevals=len(invalid_ind), **record)
     if verbose:
         print(logbook.stream)
@@ -1005,7 +1005,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         population[:] = offspring
 
         # Append the current generation statistics to the logbook
-        record = stats.compile(population) if stats else {}
+        record = stats.compile_(population) if stats else {}
         logbook.record(gen=gen, nevals=len(invalid_ind), **record)
         if verbose:
             print(logbook.stream)
@@ -1068,7 +1068,7 @@ def multiEaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     if halloffame is not None:
         halloffame.update(population)
     random.seed(random_seed)
-    record = stats.compile(population) if stats else {}
+    record = stats.compile_(population) if stats else {}
     logbook.record(gen=0, nevals=len(invalid_ind), **record)
     if verbose:
         print(logbook.stream)
@@ -1118,7 +1118,7 @@ def multiEaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         # Replace the current population by the offspring
         population[:] = offspring
         # Append the current generation statistics to the logbook
-        record = stats.compile(population) if stats else {}
+        record = stats.compile_(population) if stats else {}
         logbook.record(gen=gen, nevals=len(invalid_ind), **record)
         if verbose:
             print(logbook.stream)
@@ -1247,7 +1247,7 @@ def generate(pset, min_, max_, condition, type_=None):
                 term = random.choice(pset.terminals[type_])
             except IndexError:
                 _, _, traceback = sys.exc_info()
-                raise IndexError("The gp.generate function tried to add " \
+                raise IndexError("The symbol.generate function tried to add " \
                                  "a terminal of type '%s', but there is " \
                                  "none available." % (type_,)).with_traceback(traceback)
             if isclass(term):
@@ -1258,7 +1258,7 @@ def generate(pset, min_, max_, condition, type_=None):
                 prim = random.choice(pset.primitives[type_])
             except IndexError:
                 _, _, traceback = sys.exc_info()
-                raise IndexError("The gp.generate function tried to add " \
+                raise IndexError("The symbol.generate function tried to add " \
                                  "a primitive of type '%s', but there is " \
                                  "none available." % (type_,)).with_traceback(traceback)
             expr.append(prim)
@@ -1352,8 +1352,8 @@ def genGrow(pset, min_, max_, type_=None):
 
 def genHalfAndHalf(pset, min_, max_, type_=None):
     """Generate an expression with a PrimitiveSet *pset*.
-    Half the time, the expression is generated with :func:`~deap.gp.genGrow`,
-    the other half, the expression is generated with :func:`~deap.gp.genFull`.
+    Half the time, the expression is generated with :func:`~deap.symbol.genGrow`,
+    the other half, the expression is generated with :func:`~deap.symbol.genFull`.
 
     :param pset: Primitive set from which primitives are selected.
     :param min_: Minimum height of the produced trees.
