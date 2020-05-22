@@ -73,6 +73,9 @@
           <option value="object.astype" />
           <option value="list.extend" />
           <option value="typing.Iterable.__add__" />
+          <option value="featurebox.symbol.base.CalculatePrecisionSet.*" />
+          <option value="featurebox.tools.packbox.Toolbox.*" />
+          <option value="str.*" />
         </list>
       </option>
     </inspection_tool>

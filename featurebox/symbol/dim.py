@@ -1,20 +1,16 @@
 #!/usr/bin/python
-# coding:utf-8
-
-"""
-@author: wangchangxin
-@contact: 986798607@qq.com
-@software: PyCharm
-@file: dim.py
-@time: 2020/5/14 13:00
-"""
 # -*- coding: utf-8 -*-
 
-# @Time    : 2019/11/12 15:35
+# @Time    : 2019/11/12 15:13
 # @Email   : 986798607@qq.com
 # @Software: PyCharm
 # @License: BSD 3-Clause
-# -*- coding: utf-8 -*-
+
+"""
+Notes:
+    this some of this part are a copy from deap
+"""
+
 
 from __future__ import division
 
@@ -35,8 +31,10 @@ def dim_map():
     """expr to dim function """
 
     def my_abs(dim):
-
-        return dim
+        if isinstance(dim, (numbers.Real, sympy.Rational, sympy.Float)):
+            return dless
+        else:
+            return dim
 
     def my_sqrt(dim):
 
@@ -51,11 +49,15 @@ def dim_map():
                 return dless
             else:
                 return dnan
+        elif isinstance(dim, (numbers.Real, sympy.Rational, sympy.Float)):
+            return dless
+        else:
+            return dless
 
     my_log = my_cos = my_sin = my_exp
 
-    my_funcs = {"Abs": my_abs, "exp": my_exp, "log": my_log, 'cos': my_cos, 'sin': my_sin, 'sqrt': my_sqrt,
-                "flat": my_flat, "Self": my_self}
+    my_funcs = {"Abs": my_abs, "exp": my_exp, "log": my_log, 'cos': my_cos, 'sin': my_sin,
+                'sqrt': my_sqrt, "Flat": my_flat, "Self": my_self}
     return my_funcs
 
 
@@ -120,10 +122,11 @@ class Dim(numeric.ndarray):
 
     def __init__(self, data):
         _ = data
-        self.unit_map = {'meter': "m", 'kilogram/1000': "kg", 'second': "s",
+        self.unit_map = {'meter': "m", 'kilogram': "kg", 'second': "s",
                          'ampere': "A", 'mole': "mol", 'candela': "cd", 'kelvin': "K"}
         self.unit = SI._base_units
-        self.dim = ['length', 'mass', 'time', 'current', 'amount_of_substance', 'luminous_intensity', 'temperature']
+        self.dim = ['length', 'mass', 'time', 'current', 'amount_of_substance',
+                    'luminous_intensity', 'temperature']
 
     def __add__(self, other):
 
@@ -420,83 +423,4 @@ class Dim(numeric.ndarray):
 dnan = Dim(np.array([np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]))
 dless = Dim(np.array([0, 0, 0, 0, 0, 0, 0]))
 
-# from sympy.physics.units import J, eV, Dimension, m,mm, kg, mol,N
-# a = m
-# b = Dim.convert_to_Dim(a)
-# c = Dim.inverse_convert(b[1],b[0],target_units=[mm])
-# if __name__=="__main__":
-#
-#
-# ta = time.time()
-#
-# x = Dim([1, 2, 3, 4, 5, 6, 7])
 
-# b = Dim(np.array([1, 1, 1, 1, 1, 1, 1]))
-
-# c = b + 8
-# d = 8 + b
-# e = b + a
-# f = a + b
-# g = b + x
-#
-# g1 = a + dless
-# g2 = dless+a
-# g3 = dless + x
-# g4 = x+dless
-# g5 = dless + 1
-# g6 = 1 + dless
-
-# c = b - 8
-# d = 8 - b
-# e = b - a
-# f = a - b
-# g = b - x
-#
-# c = b * 8
-# d = 8 * b
-# e = b * a
-# f = a * b
-# g = b * x
-#
-# c = b / 8
-# d = 8 / b
-# e = b / a
-# f = a / b
-# g = b / x
-#
-# c = b ** 8
-# d = 8 ** b
-# e = b ** a
-# f = a ** b
-# g = b ** x
-
-# h = abs(b)
-# j = abs(a)
-#
-# h = -b
-# j = -a
-
-# xx = np.copy(a)
-# print(a == dnan)
-# print(a is a)
-# print(a != b)
-# print(a == 1)
-# #
-# k = dim_func()["exp"](a)
-# l = dim_func()["exp"](b)
-# m = dim_func()["exp"](dless)
-#
-#
-# tb = time.time()
-# print(tb - ta)
-
-# print(SI._collect_factor_and_dimension(a))
-# print(SI.get_quantity_scale_factor(a))
-# print(SI.get_default_unit_system())
-# print(SI.get_dimension_system())
-# print(SI.get_quantity_dimension(a))
-
-# bb=b[1]
-# print(bb.dim)
-# print(bb.unit)
-# print(bb.inverse_convert(scale=b[0], target_units=None, unit_system="SI"))

@@ -1,13 +1,12 @@
 #!/usr/bin/python
-# coding:utf-8
+# -*- coding: utf-8 -*-
+
+# @Time    : 2019/11/12 15:13
+# @Email   : 986798607@qq.com
+# @Software: PyCharm
+# @License: BSD 3-Clause
 
 """
-@author: wangchangxin
-@contact: 986798607@qq.com
-@software: PyCharm
-@file: function.py
-@time: 2020/5/15 22:06
-
 Notes: the translation process
     the three function should be the same key.
     1.
@@ -54,14 +53,12 @@ def func_map():
 
 def func_map_dispose():
     """user's str to sympy.expr function"""
-    flat = Function("flat")
-    return {"flat": flat, "Self": lambda x_: x_}
+    return {"Flat": Function("Flat"), "Self": lambda x_: x_}
 
 
 def np_map():
     """user's sympy.expr to np.ndarray function"""
-    # flat = functools.partial(np.sum, axis=0)
-    def flat(x):
+    def Flat(x):
         if isinstance(x, np.ndarray):
             if x.ndim == 2:
                 return np.sum(x, axis=0)
@@ -70,4 +67,4 @@ def np_map():
         else:
             return x
 
-    return {"flat": flat, "Self": lambda x_: x_}
+    return {"Flat": Flat, "Self": lambda x_: x_}

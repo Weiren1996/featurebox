@@ -1,1 +1,1 @@
-__all__ = ["exports", "fetcher_pymatgen", "imports", "show", "tool"]
+__all__ = ["exports", "imports", "show", "tool"]

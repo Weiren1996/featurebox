@@ -8,14 +8,12 @@
 @file: ttt.py
 @time: 2020/5/14 23:13
 """
+from functools import partial
+
 import numpy as np
+def fu(a,b):
+    print([i+b for i in a])
 
-class Nac(object):
-    def __init__(self):
-        pass
-    def __str__(self):
-        return "im str"
-    def __repr__(self):
-        return "im repr"
-
-a=Nac()
+s = [1,2,3,4]
+pfunc = partial(fu, a=s)
+pfunc(b=1)

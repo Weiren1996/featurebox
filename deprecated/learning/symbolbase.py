@@ -600,7 +600,7 @@ def generate_(pset, min_=None, max_=None):
 
     """
     if max_ is None:
-        max_ = len(pset.terminals)
+        max_ = len(pset.terminals_and_constant)
     if min_ is None:
         min_ = max_
 
@@ -610,7 +610,7 @@ def generate_(pset, min_=None, max_=None):
     max_varibale_set_long = max_
     varibale_set_long = random.randint(min_, max_varibale_set_long)
     '''random'''
-    trem_set = random.sample(pset.terminals, varibale_set_long) * 20
+    trem_set = random.sample(pset.terminals_and_constant, varibale_set_long) * 20
     '''sequence'''
     # trem_set = pset.terminals[:varibale_set_long] * 20
 
@@ -641,7 +641,7 @@ def generate_(pset, min_=None, max_=None):
 
     if definate_variable:
         for i in definate_variable:
-            individual2[i[0]] = pset.terminals[random.choice(i[1])]
+            individual2[i[0]] = pset.terminals_and_constant[random.choice(i[1])]
 
     individual_all = protect_individual + individual1 + individual2
     if linkage:
@@ -791,7 +791,7 @@ def calculateExpr(expr01, pset, x, y, score_method=r2_score, add_coeff=True,
 
     """
     if not terminals:
-        terminals = pset.terminals[object] if isinstance(pset.terminals, defaultdict) else pset.terminals
+        terminals = pset.terminals_and_constant[object] if isinstance(pset.terminals_and_constant, defaultdict) else pset.terminals_and_constant
         terminals = [_.value for _ in terminals]
     if filter_warning:
         warnings.filterwarnings("ignore")
@@ -1244,7 +1244,7 @@ def generate(pset, min_, max_, condition, type_=None):
         depth, type_ = stack.pop()
         if condition(height, depth):
             try:
-                term = random.choice(pset.terminals[type_])
+                term = random.choice(pset.terminals_and_constant[type_])
             except IndexError:
                 _, _, traceback = sys.exc_info()
                 raise IndexError("The symbol.generate function tried to add " \
@@ -1382,7 +1382,7 @@ def mutNodeReplacement(individual, pset):
     node = individual[index]
 
     if node.arity == 0:  # Terminal
-        term = random.choice(pset.terminals[node.ret])
+        term = random.choice(pset.terminals_and_constant[node.ret])
         if isclass(term):
             term = term()
         individual[index] = term
