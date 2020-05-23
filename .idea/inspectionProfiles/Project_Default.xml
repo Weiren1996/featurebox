@@ -76,6 +76,7 @@
           <option value="featurebox.symbol.base.CalculatePrecisionSet.*" />
           <option value="featurebox.tools.packbox.Toolbox.*" />
           <option value="str.*" />
+          <option value="featurebox.symbol.flow.BaseLoop.*" />
         </list>
       </option>
     </inspection_tool>

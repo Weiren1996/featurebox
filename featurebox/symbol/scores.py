@@ -170,10 +170,10 @@ def calculate_y(expr01, x, y, terminals, add_coef=True,
 
 def uniform_score(score_pen=1):
     """return the worse score"""
-    if score_pen == 1:
-        return np.inf
-    elif score_pen == -1:
+    if score_pen >= 0:
         return -np.inf
+    elif score_pen <= 0:
+        return np.inf
     elif score_pen == 0:
         return 0
     else:
@@ -240,7 +240,7 @@ def calculate_score(expr01, x, y, terminals, scoring=None, score_pen=(1,), add_c
     return sc_all, expr01, pre_y
 
 
-def calcualte_dim(expr01, terminals, dim_list, dim_maps=None):
+def calcualte_dim(expr01, terminals, dim_list, y_dim, dim_maps=None):
     """
 
     Parameters
@@ -252,22 +252,30 @@ def calcualte_dim(expr01, terminals, dim_list, dim_maps=None):
         dims of features and constants
     dim_maps: Callable
         user dim_maps
+    y_dim:list of Dim
+        target dim
 
     Returns
     -------
     Dim
+    dim_score
     """
     terminals = [str(i) for i in terminals]
     if not dim_maps:
         dim_maps = dim_map()
     func0 = sympy.utilities.lambdify(terminals, expr01, modules=[dim_maps])
     dim_ = func0(*dim_list)
-    return dim_
+    if dim_ in y_dim:
+        dim_score = 1
+    else:
+        dim_score = 0
+    return dim_, dim_score
 
 
-def calculate_collect(ind, context, x, y, terminals_and_constants_repr, scoring=None, score_pen=(1,),
+def calculate_collect(ind, context, x, y, terminals_and_constants_repr, dim_ter_con_list, y_dim, scoring=None,
+                      score_pen=(1,),
                       add_coef=True, filter_warning=True, inter_add=True, inner_add=False, np_maps=None,
-                      dim_ter_con_list=None, dim_maps=None, cal_dim=True):
+                      dim_maps=None, cal_dim=True):
     expr01 = compile_context(ind, context)
 
     score, expr01, pre_y = calculate_score(expr01, x, y, terminals_and_constants_repr,
@@ -278,8 +286,8 @@ def calculate_collect(ind, context, x, y, terminals_and_constants_repr, scoring=
                                            np_maps=np_maps)
 
     if cal_dim:
-        dim = calcualte_dim(expr01, terminals_and_constants_repr, dim_ter_con_list, dim_maps=dim_maps)
+        dim, dim_score = calcualte_dim(expr01, terminals_and_constants_repr, dim_ter_con_list, y_dim, dim_maps=dim_maps)
     else:
-        dim = dless
+        dim, dim_score = dless, 1
 
-    return score, dim
+    return score, dim, dim_score

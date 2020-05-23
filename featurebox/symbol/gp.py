@@ -18,9 +18,11 @@ import time
 from collections import Counter
 from functools import wraps
 from inspect import isclass
+
+from deap.tools import Statistics, MultiStatistics
 from numpy import random
 from operator import attrgetter
-from featurebox.symbol.dim import Dim
+from featurebox.symbol.dim import Dim, dnan
 import numpy as np
 
 
@@ -305,7 +307,7 @@ def mutNodeReplacement(individual, pset):
 
     if index % 2 == 0:
         prims = [p for p in pset.dispose if p.arity == node.arity]
-        p_d = np.array([pset.prob_dispose[repr(i)] for i in prims])
+        p_d = np.array([pset.prob_dispose[repr(i)] for i in prims], 'float32')
         p_d /= np.sum(p_d)
 
         a = prims[random.choice(len(prims), p=p_d)]
@@ -318,9 +320,10 @@ def mutNodeReplacement(individual, pset):
             individual[index] = term
         else:  # Primitive
             prims = [p for p in pset.primitives if p.arity == node.arity]
-            p_p = np.array([pset.prob_ter_con[repr(i)] for i in prims])
-            p_p /= np.sum(p_p)
+            p_p = np.array([pset.prob_pri[repr(i)] for i in prims], 'float32')
 
+            p_p /= np.sum(p_p)
+            # except:
             a = prims[random.choice(len(prims), p=p_p)]
 
             individual[index] = a
@@ -497,6 +500,40 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
         return add_ind[:round(K_best)]
     else:
         return add_ind
+
+
+def Statis_func(stats=None):
+    if stats is None:
+        stats = {"fitness": ("max",), "dim_is_traget": ("sum",)}
+
+    func = {"max": np.max, "mean": np.mean, "min": np.mean, "std": np.std, "sum": np.sum}
+    att = {"fitness": lambda ind: ind.fitness.values[0],
+           "fitness_dim_is_True": lambda ind: ind.fitness.values[0] if ind.y_dim is not dnan else np.nan,
+           "fitness__dim_is_target": lambda ind: ind.fitness.values[0] if ind.dim_score else np.nan,
+           "dim_is_True": lambda ind: 1 if ind.y_dim is not dnan else 0,
+           "dim_is_traget": lambda ind: 1 if ind.dim_score else 0}
+
+    sa_all = {}
+
+    for a, f in stats.items():
+        if a in att:
+            a_s = att[a]
+        else:
+            a_s = a
+            a = str(a).split(" ")[1]
+
+        sa = Statistics(a_s)
+
+        for i, fi in enumerate(f):
+            assert fi in func
+            ff = func[fi]
+
+            sa.register(fi, ff)
+
+        sa_all["Cal_%s" % a] = sa
+    stats = MultiStatistics(sa_all)
+
+    return stats
 
 
 ######################################

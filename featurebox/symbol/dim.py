@@ -96,17 +96,17 @@ class Dim(numeric.ndarray):
     """Redefine the Dimension of sympy, the default dimension SI system with 7 number,
     1.can be constructed by list of number.
     1.can be translated from a sympy.physics.unit.
-        >>>from sympy.physics.units import N
-        >>>scale,dim = Dim.convert_to_Dim(N)
+        # >>>from sympy.physics.units import N
+        # >>>scale,dim = Dim.convert_to_Dim(N)
         #inverse back
-        >>>Dim.inverse_convert(dim, scale=scale, target_units=None, unit_system="SI")
     """
     __slots__ = ("unit", "unit_map", "dim")
 
-    def __new__(cls, data, dtype=np.float16, copy=True):
+    def __new__(cls, data, *kwargs):
 
         assert isinstance(data, (numeric.ndarray, list))
-
+        dtype = np.float16
+        copy = True
         arr = numeric.array(data, dtype=dtype, copy=copy)
 
         arr.reshape((1, -1))
@@ -118,13 +118,16 @@ class Dim(numeric.ndarray):
                                       buffer=arr,
                                       order='F')
 
+
         return ret
 
-    def __init__(self, data):
-        _ = data
+    def __init__(self, *kwargs):
+        _ = kwargs
+
+        self.unit = [i for i in SI._base_units]
+
         self.unit_map = {'meter': "m", 'kilogram': "kg", 'second': "s",
                          'ampere': "A", 'mole': "mol", 'candela': "cd", 'kelvin': "K"}
-        self.unit = SI._base_units
         self.dim = ['length', 'mass', 'time', 'current', 'amount_of_substance',
                     'luminous_intensity', 'temperature']
 
@@ -236,8 +239,10 @@ class Dim(numeric.ndarray):
     __rmul__ = __mul__
 
     def __str__(self):
-        strr = "".join(["{}^{}*".format(i, j) for i, j in zip(self.unit, self)])[:-1]
-
+        try:
+            strr = "".join(["{}^{}*".format(i, j) for i, j in zip(self.unit, self)])[:-1]
+        except AttributeError:
+            strr = super().__str__()
         return strr
 
     @staticmethod

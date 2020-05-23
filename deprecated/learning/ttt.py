@@ -11,9 +11,6 @@
 from functools import partial
 
 import numpy as np
-def fu(a,b):
-    print([i+b for i in a])
 
-s = [1,2,3,4]
-pfunc = partial(fu, a=s)
-pfunc(b=1)
+a=[1,2,3,4]
+b=a[:1]

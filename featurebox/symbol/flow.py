@@ -1,195 +1,218 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# #!/usr/bin/python
+# # -*- coding: utf-8 -*-
+#
+# # @Time    : 2019/11/12 15:13
+# # @Email   : 986798607@qq.com
+# # @Software: PyCharm
+# # @License: BSD 3-Clause
 
-# @Time    : 2019/11/12 15:13
-# @Email   : 986798607@qq.com
-# @Software: PyCharm
-# @License: BSD 3-Clause
-
-from numpy import random
-
+import copy
 import operator
-from functools import partial
+import os
 
-import numpy as np
-from deap.base import Fitness, Toolbox
-from deap.gp import staticLimit
-from deap.tools import Logbook, HallOfFame, MultiStatistics, Statistics
-from sklearn.metrics import explained_variance_score, r2_score
+from deap.base import Fitness
+from deap.tools import HallOfFame, Logbook
+from numpy import random
+from sklearn.datasets import load_boston
+from sklearn.metrics import r2_score
 
-from featurebox.symbol.base import SymbolSet, SymbolTree, CalculatePrecisionSet
-from featurebox.symbol.dim import Dim
-from featurebox.symbol.gp import selTournament, selKbestDim, mutUniform, generate, cxOnePoint, varAnd
+from featurebox.symbol.base import CalculatePrecisionSet
+from featurebox.symbol.base import SymbolSet
+from featurebox.symbol.base import SymbolTree
+from featurebox.symbol.dim import dless, Dim, dnan
+from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, selKbestDim, \
+    selTournament, Statis_func, mutNodeReplacement
 from featurebox.tools import newclass
-from featurebox.tools.tool import time_this_function, parallelize
+from featurebox.tools.exports import Store
+from featurebox.tools.packbox import Toolbox
 
 
-def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
-             halloffame=None, verbose=__debug__):
-    """This algorithm reproduce the simplest evolutionary algorithm as
-    presented in chapter 7 of [Back2000]_.
+class BaseLoop(Toolbox):
+    """base loop"""
 
-    :param population: A list of individuals.
-    :param toolbox: A :class:`~deap.base.Toolbox` that contains the evolution
-                    operators.
-    :param cxpb: The probability of mating two individuals.
-    :param mutpb: The probability of mutating an individual.
-    :param ngen: The number of generation.
-    :param stats: A :class:`~deap.tools.Statistics` object that is updated
-                  inplace, optional.
-    :param halloffame: A :class:`~deap.tools.HallOfFame` object that will
-                       contain the best individuals, optional.
-    :param verbose: Whether or not to log the statistics.
-    :returns: The final population
-    :returns: A class:`~deap.tools.Logbook` with the statistics of the
-              evolution
+    def __init__(self, pset, pop=500, gen=20, mutate_prob=0.1, mate_prob=0.5,
+                 hall=1, re_hall=3, re_Tree=1, initial_max=3, max_value=10,
+                 scoring=(r2_score,), score_pen=(1,), filter_warning=True,
+                 add_coef=True, inter_add=True, inner_add=False,
+                 cal_dim=True, dim_type=None, fuzzy=False,
+                 n_jobs=1, batch_size=10, random_state=None,
+                 stats=None, verbose=True, tq=True, store=True
+                 ):
+        """
 
-    The algorithm takes in a population and evolves it in place using the
-    :meth:`varAnd` method. It returns the optimized population and a
-    :class:`~deap.tools.Logbook` with the statistics of the evolution. The
-    logbook will contain the generation number, the number of evaluations for
-    each generation and the statistics if a :class:`~deap.tools.Statistics` is
-    given as argument. The *cxpb* and *mutpb* arguments are passed to the
-    :func:`varAnd` function. The pseudocode goes as follow ::
+        Parameters
+        ----------
+        pset:SymbolSet
+            the feature x and traget y and others should have been added.
+        pop:int
+            popolation
+        gen:int
+            number of generation
+        mutate_prob:float
+            probability of mutate
+        mate_prob:float
+            probability of mate(crossover)
+        initial_max:int
+            max initial size of expression when first producing.
+        max_value:int
+            max size of expression
+        hall:int
+            number of HallOfFame(elite) to store
+        re_hall: None or int
+            Notes: must >=2
+            number of HallOfFame to add to next generation.
+        re_Tree: int
+            number of new features to add to next generation.
+            0 is false to add.
+        scoring: list of Callbale, default is [sklearn.metrics.r2_score,]
+            See Also sklearn.metrics
+        score_pen: tuple of  1, -1 or float but 0.
+            >0 : best is positive, worse -np.inf
+            <0 : best is negative, worse np.inf
+            Notes:
+            if multiply score method, the scores must be turn to same dimension in preprocessing
+            or weight by score_pen. Because the all the selection are stand on the mean(w_i*score_i)
+            Examples: [r2_score] is [1],
+        filter_warning:bool
+        add_coef:bool
+        inter_add：bool
+        inner_add:bool
+        n_jobs:int
+        batch_size:int
+        random_state:int
+        cal_dim:bool
+        dim_type:Dim or None or list of Dim
+        fuzzy:bool
+        stats:bool
+        verbose:bool
+        tq:bool
+        store:bool
+        """
 
-        evaluate(population)
-        for g in range(ngen):
-            population = select(population, len(population))
-            offspring = varAnd(population, toolbox, cxpb, mutpb)
-            evaluate(offspring)
-            population = offspring
+        if cal_dim:
+            assert all(
+                [isinstance(i, Dim) for i in pset.dim_ter_con.values()]), \
+                "all import dim of pset should be Dim object."
 
-    As stated in the pseudocode above, the algorithm goes as follow. First, it
-    evaluates the individuals with an invalid fitness. Second, it enters the
-    generational loop where the selection procedure is applied to entirely
-    replace the parental population. The 1:1 replacement ratio of this
-    algorithm **requires** the selection procedure to be stochastic and to
-    select multiple times the same individual, for example,
-    :func:`~deap.tools.selTournament` and :func:`~deap.tools.selRoulette`.
-    Third, it applies the :func:`varAnd` function to produce the next
-    generation population. Fourth, it evaluates the new individuals and
-    compute the statistics on this population. Finally, when *ngen*
-    generations are done, the algorithm returns a tuple with the final
-    population and a :class:`~deap.tools.Logbook` of the evolution.
+        random.seed(random_state)
+        pset.compress()
+        self.cpset = CalculatePrecisionSet(pset, scoring=scoring, score_pen=score_pen,
+                                           filter_warning=filter_warning, cal_dim=cal_dim,
+                                           add_coef=add_coef, inter_add=inter_add, inner_add=inner_add,
+                                           n_jobs=n_jobs, batch_size=batch_size, tq=tq)
 
-    .. note::
+        Fitness_ = newclass.create("Fitness_", Fitness, weights=score_pen)
+        self.PTree = newclass.create("PTrees", SymbolTree, fitness=Fitness_)
+        # def produce
+        self.register("genGrow", genGrow, pset=self.cpset, min_=2, max_=initial_max)
+        # def selection
 
-        Using a non-stochastic selection method will result in no selection as
-        the operator selects *n* individuals from a pool of *n*.
+        self.register("select", selTournament, tournsize=3)
 
-    This function expects the :meth:`toolbox.mate`, :meth:`toolbox.mutate`,
-    :meth:`toolbox.select` and :meth:`toolbox.evaluate` aliases to be
-    registered in the toolbox.
+        dim_type = self.cpset.y_dim if not dim_type else dim_type
+        self.register("selKbestDim", selKbestDim, dim_type=dim_type, fuzzy=fuzzy)
+        # selBest
+        self.register("mate", cxOnePoint)
+        # def mutate
+        self.register("gen_mu", genGrow, pset=self.cpset, min_=2, max_=3)
 
-    .. [Back2000] Back, Fogel and Michalewicz, "Evolutionary Computation 1 :
-       Basic Algorithms and Operators", 2000.
-    """
-    logbook = Logbook()
-    logbook.header = ['gen'] + (stats.fields if stats else [])
+        # self.register("mutate", mutUniform, expr=self.gen_mu, pset=self.cpset)
+        self.register("mutate", mutNodeReplacement, pset=self.cpset)
+        # self.register("mutate", mutShrink)
+        # self.register("mutate", mutDifferentReplacement, pset=self.cpset)
 
-    # Evaluate the individuals with an invalid fitness
-    invalid_ind = [ind for ind in population if not ind.fitness.valid]
-    invalid_ind = toolbox.map(toolbox.evaluate, invalid_ind)
-    for ind in invalid_ind:
-        ind.fitness.values = ind.coef_score
+        self.decorate("mate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
+        self.decorate("mutate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
+        self.stats = Statis_func(stats=stats)
+        logbook = Logbook()
+        logbook.header = ['gen'] + (self.stats.fields if self.stats else [])
+        self.logbook = logbook
 
-    if halloffame is not None:
-        halloffame.update(population)
+        self.hall = HallOfFame(hall)
+        self.pop = pop
+        self.gen = gen
+        self.mutate_prob = mutate_prob
+        self.mate_prob = mate_prob
+        self.verbose = verbose
+        self.cal_dim = cal_dim
+        self.re_hall = re_hall
+        self.re_Tree = re_Tree
+        self.store = store
 
-    record = stats.compile(population) if stats else {}
-    logbook.record(gen=0, nevals=len(invalid_ind), **record)
-    if verbose:
-        print(logbook.stream)
+    def run(self):
 
-    # Begin the generational process
-    for gen in range(1, ngen + 1):
-        # Select the next generation individuals
-        offspring = toolbox.select(population, len(population))
+        population = [self.PTree(self.genGrow()) for _ in range(self.pop)]
+        data_all = []
+        for gen_i in range(self.gen):
+            # evaluate################################################################
 
-        # Vary the pool of individuals
-        offspring = varAnd(offspring, toolbox, cxpb, mutpb)
+            invalid_ind = [ind for ind in population if not ind.fitness.valid]
+            invalid_ind_score = self.cpset.parallelize_score(invalid_ind)
 
-        # Evaluate the individuals with an invalid fitness
-        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-        invalid_ind = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind in invalid_ind:
-            ind.fitness.values = ind.coef_score
-            # ind.compress()
+            for ind, score in zip(invalid_ind, invalid_ind_score):
+                ind.fitness.values = score[0]
+                ind.y_dim = score[1]
+                ind.dim_score = score[2]
 
-        # Update the hall of fame with the generated individuals
-        if halloffame is not None:
-            halloffame.update(offspring)
+            # hall###################################################################
+            if self.re_hall:
+                if self.cal_dim:
+                    inds_dim = self.selKbestDim(population, self.re_hall)
+                else:
+                    inds_dim = self.select(population, self.re_hall)
+            else:
+                inds_dim = []
 
-        # Replace the current population by the offspring
-        population[:] = offspring
+            if self.hall is not None:
+                self.hall.update(inds_dim)
+            record = self.stats.compile(population) if self.stats else {}
+            self.logbook.record(gen=gen_i, **record)
+            if self.verbose:
+                print(self.logbook.stream)
+            if self.store:
+                datas = [{"gen": gen_i, "name": str(gen_i), "value": str(gen_i.fitness.values),
+                          "dimension": str(gen_i.y_dim),
+                          "target_dim": str(gen_i.dim_score)} for gen_i in population]
+                data_all.extend(datas)
+            # next generation
+            # selection and mutate,mate##############################################
 
-        # Append the current generation statistics to the logbook
-        record = stats.compile(population) if stats else {}
-        logbook.record(gen=gen, nevals=len(invalid_ind), **record)
-        if verbose:
-            print(logbook.stream)
+            population = self.select(population, len(population) - len(inds_dim))
+            offspring = varAnd(population, self, self.mate_prob, self.mutate_prob)
+            offspring.extend(inds_dim)
+            population[:] = offspring
 
-    return population, logbook
+            # re_tree################################################################
+            if self.hall.items and self.re_Tree:
+                it = self.hall.items
+                indo = it[random.choice(len(it))]
+                ind = copy.deepcopy(indo)
+                inds = ind.depart()
+                if not inds:
+                    pass
+                else:
+                    inds = [self.cpset.calculate_detail(indi) for indi in inds]
+                    le = min(self.re_Tree, len(inds))
+                    indi = inds[random.choice(le)]
+                    self.cpset.add_tree_to_features(indi)
+                    self.refresh(("gen_mu", "genGrow"), pset=self.cpset)
+        if self.store:
+            st = Store(os.getcwd())
+            st.to_csv(data_all.T)
+            print("store data to ", os.getcwd())
 
 
-@time_this_function
-def flow(pset, max_=5, pop_n=100, random_seed=2, cxpb=0.8, mutpb=0.1, ngen=5,
-         tournsize=3, max_value=10, scoring=None, cal_dim=True,
-         add_coef=True, inter_add=True, inner_add=True, store=True, score_pen=None,
-         stats=None):
+if __name__ == "__main__":
+    pset0 = SymbolSet()
+    data = load_boston()
+    x = data["data"]
+    y = data["target"]
 
-    cpset = CalculatePrecisionSet(pset, scoring=scoring, score_pen=score_pen, filter_warning=True, cal_dim=cal_dim)
-
-    if cal_dim:
-        assert all(
-            [isinstance(i, Dim) for i in cpset.dim_ter_con.value()]), "all import dim of pset should be Dim object"
-
-    np.random.seed(random_seed)
-
-    # def Tree
-    Fitness_ = newclass.create("Fitness_", Fitness, weights=score_pen)
-    PTree = newclass.create("PTrees_", SymbolTree, fitness=Fitness_)
-
-    # def selection
-    toolbox = Toolbox()
-
-    toolbox.register("select", selTournament, tournsize=tournsize)
-    toolbox.register("select_k_best_target_dim", selKbestDim, dim_type=cpset.y_dim, fuzzy=False)
-    toolbox.register("select_k_best_dimless", selKbestDim, dim_type="integer")
-    toolbox.register("select_k_best", selKbestDim, dim_type='ignore')
-    # def mate
-    toolbox.register("mate", cxOnePoint)
-    # def mutate
-    toolbox.register("generate", generate, pset=cpset, min_=1, max_=max_)
-    toolbox.register("mutate", mutUniform, expr=toolbox.generate, pset=cpset)
-
-    toolbox.decorate("mate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
-    toolbox.decorate("mutate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
-    # def elaluate
-    toolbox.register("evaluate", cpset.calculate_detail, add_coef=add_coef, inter_add=inter_add, inner_add=inner_add)
-    toolbox.register("parallel", parallelize, n_jobs=1, func=toolbox.evaluate, respective=False, tq=True)
-
-    pop = [PTree.genGrow(cpset, min_=2, max_=max_) for _ in range(pop_n)]
-
-    haln = 5
-    hof = HallOfFame(haln)
-
-    sa_all = {}
-
-    if stats:
-        for i, si in enumerate(stats):
-            sa = Statistics(si[0])
-            sa.register(si[1], si[2])
-            sa_all["Calculate%s" % i] = sa
-            stats = MultiStatistics(sa_all)
-
-    population, logbook = eaSimple(pop, toolbox, cxpb=cxpb, mutpb=mutpb, ngen=ngen, stats=stats,
-                                   halloffame=hof, pset=cpset, store=store)
-
-    return hof
-
-    # stats1 = Statistics(lambda ind: ind.fitness.values[0] if ind and ind.y_dim in target_dim else 0)
-    # stats1.register("max", np.max)
-    #
-    # stats2 = Statistics(lambda ind: ind.y_dim in target_dim if ind else 0)
-    # stats2.register("countable_number", np.sum)
+    # self.pset.add_features(x, y, )
+    pset0.add_features(x, y, group=[[1, 2], [4, 5]])
+    pset0.add_constants([6, 3, 4], dim=[dless, dless, dnan], prob=None)
+    pset0.add_operations(power_categories=(2, 3, 0.5),
+                         categories=("Add", "Mul", "Neg", "Abs"),
+                         self_categories=None)
+    bl = BaseLoop(pset=pset0, gen=8, pop=500, hall=2, batch_size=50, n_jobs=10, re_Tree=0, store=False)
+    bl.run()

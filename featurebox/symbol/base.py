@@ -15,12 +15,12 @@ import functools
 
 import numpy as np
 import sympy
-from sklearn.utils import check_X_y
+from sklearn.utils import check_X_y, check_array
 
 from featurebox.symbol.dim import dless, dim_map, dnan
 from featurebox.symbol.function import func_map_dispose, func_map, np_map
 from featurebox.symbol.gp import generate, genGrow, genFull, depart, compile_context
-from featurebox.symbol.scores import calculate_y, calcualte_dim, calculate_score, calculate_collect
+from featurebox.symbol.scores import calcualte_dim, calculate_score, calculate_collect
 from featurebox.tools.tool import parallelize
 
 
@@ -547,14 +547,20 @@ class SymbolSet(object):
         -------
         self
         """
-        dim = Tree.y_dim
-        init_name = str(Tree)
-        value = Tree.pre_y  # self.expr are not passed
+        try:
+            check_array(Tree.pre_y, ensure_2d=False)
+            assert Tree.y_dim is not dnan
+        except(ValueError, AssertionError):
+            pass
+        else:
+            dim = Tree.y_dim
+            init_name = str(Tree)
+            value = Tree.pre_y  # self.expr are not passed
 
-        name = "new%s" % self.new_num
-        self.new_num += 1
-        Tree.p_name = name
-        self._add_terminal(value, name, dim=dim, prob=prob, init_name=init_name)
+            name = "new%s" % self.new_num
+            self.new_num += 1
+            Tree.p_name = name
+            self._add_terminal(value, name, dim=dim, prob=prob, init_name=init_name)
         return self
 
     def add_features(self, X, y, feature_name=None, x_dim=1, y_dim=1, prob=None, group=None):
@@ -707,15 +713,19 @@ class SymbolSet(object):
         return self.get_values(self.ter_con_dict, mean=False)
 
     @property
+    def terminals_and_constants_repr(self):
+        return [sympy.Symbol(repr(i)) for i in self.terminals_and_constants]
+
+    @property
     def data_x(self):
         return self.get_values(self.data_x_dict, mean=False)
 
     def compress(self):
         """Delete unnecessary detials, used before build Tree"""
-        [delattr(i, "func") for i in self.dispose]
-        [delattr(i, "func") for i in self.primitives]
-        [delattr(i, "value") for i in self.terminals_and_constants]
-        [delattr(i, "dim") for i in self.terminals_and_constants]
+        [delattr(i, "func") for i in self.dispose if hasattr(i, "func")]
+        [delattr(i, "func") for i in self.primitives if hasattr(i, "func")]
+        [delattr(i, "value") for i in self.terminals_and_constants if hasattr(i, "value")]
+        [delattr(i, "dim") for i in self.terminals_and_constants if hasattr(i, "dim")]
 
         return self
 
@@ -856,6 +866,7 @@ class SymbolTree(_ExprTree):
         self.y_dim = dnan
         self.pre_y = None
         self.expr = None
+        self.dim_score = 0
 
     def __setitem__(self, key, val):
         """keep these attribute refreshed"""
@@ -863,6 +874,7 @@ class SymbolTree(_ExprTree):
         self.y_dim = dnan
         self.pre_y = None
         self.expr = None
+        self.dim_score = 0
 
         _ExprTree.__setitem__(self, key, val)
 
@@ -953,32 +965,16 @@ class CalculatePrecisionSet(SymbolSet):
     def __hash__(self):
         return hash(self.hasher(self))
 
-    def __new__(cls, pset, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True):
-        """
+    def __new__(cls, pset, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True,
+                add_coef=True, inter_add=True, inner_add=False, n_jobs=1, batch_size=20, tq=True):
 
-        Parameters
-        ----------
-        pset:SymbolSet
-        scoring: Callbale, default is sklearn.metrics.r2_score
-            See Also sklearn.metrics
-        score_pen: tuple, default is sklearn.metrics.r2_score
-            See Also sklearn.metrics
-        filter_warning:bool
-        score_pen: tuple of 1 or -1
-            1 : best is positive, worse -np.inf
-            -1 : best is negative, worse np.inf
-            0 : best is positive , worse 0
-        cal_dim: calculate dim or not, if not return dimless
-        """
         cpset = super().__new__(cls)
         cpset.__dict__.update(copy.deepcopy((pset.__dict__)))
 
-        cpset.terminals_and_constants_repr = [sympy.Symbol(repr(i))
-                                              for i in cpset.terminals_and_constants]
         return cpset
 
     def __init__(self, pset, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True,
-                 add_coef=True, inter_add=True, inner_add=False):
+                 add_coef=True, inter_add=True, inner_add=False, n_jobs=1, batch_size=20, tq=True):
         """
 
         Parameters
@@ -997,6 +993,12 @@ class CalculatePrecisionSet(SymbolSet):
         add_coef: bool
         inter_add: bool
         inner_add: bool
+        n_jobs:int
+            running core
+        batch_size:int
+            batch size, advice batch_size*n_jobs = inds/n
+        tq:bool
+
         """
         _ = pset
         self.name = "CPSet"
@@ -1007,6 +1009,9 @@ class CalculatePrecisionSet(SymbolSet):
         self.add_coef = add_coef
         self.inter_add = inter_add
         self.inner_add = inner_add
+        self.n_jobs = n_jobs
+        self.batch_size = batch_size
+        self.tq = tq
 
     def calculate_detail(self, ind):
         """
@@ -1019,15 +1024,9 @@ class CalculatePrecisionSet(SymbolSet):
         -------
         SymbolTree
         """
+        ind = self.calculate_simple(ind)
 
-        if isinstance(ind, SymbolTree):
-            expr = compile_context(ind, self.context)
-        elif isinstance(ind, sympy.Expr):
-            expr = ind
-        else:
-            raise TypeError("must be SymbolTree or sympy.Expr")
-
-        score, expr01, pre_y = calculate_score(expr, self.data_x, self.y,
+        score, expr01, pre_y = calculate_score(ind.expr, self.data_x, self.y,
                                                self.terminals_and_constants_repr,
                                                add_coef=self.add_coef, inter_add=self.inter_add,
                                                inner_add=self.inner_add,
@@ -1035,30 +1034,14 @@ class CalculatePrecisionSet(SymbolSet):
                                                filter_warning=self.filter_warning,
                                                np_maps=self.np_map)
 
-        pure_pre_y, _ = calculate_y(expr, self.data_x, self.y, self.terminals_and_constants_repr,
-                                    add_coef=False, inter_add=False, inner_add=False,
-                                    filter_warning=self.filter_warning, np_maps=self.np_map,
-                                    )
-        if self.cal_dim:
-            dim = calcualte_dim(expr, self.terminals_and_constants_repr,
-                                self.dim_ter_con_list, self.dim_map)
-        else:
-            dim = dless
-
         # this group should be get onetime and get all.
         ind.coef_expr = expr01
         ind.coef_pre_y = pre_y
 
         ind.coef_score = score
 
-        ind.pure_expr = expr
-        ind.pure_pre_y = pure_pre_y
-
-        # add this attr for circle
-        # see SymbolSet.add_Tree_to_feature
-        ind.y_dim = dim
-        ind.expr = expr
-        ind.pre_y = pure_pre_y
+        ind.pure_expr = ind.expr
+        ind.pure_pre_y = ind.pre_y
 
         return ind
 
@@ -1085,42 +1068,38 @@ class CalculatePrecisionSet(SymbolSet):
                                                scoring=self.scoring, score_pen=self.score_pen,
                                                filter_warning=self.filter_warning, np_maps=self.np_map)
         if self.cal_dim:
-            dim = calcualte_dim(expr, self.terminals_and_constants_repr,
-                                self.dim_ter_con_list, self.dim_map)
+            dim, dim_score = calcualte_dim(expr, self.terminals_and_constants_repr,
+                                           self.dim_ter_con_list, self.y_dim, self.dim_map)
         else:
-            dim = dless
+            dim, dim_score = dless, 1
 
         ind.y_dim = dim
         ind.expr = expr01
         ind.pre_y = pre_y
+        ind.dim_score = dim_score
 
         return ind
 
-    def parallelize_score(self, inds, n_jobs=2, batch_size=10):
+    def parallelize_score(self, inds):
         """
 
         Parameters
         ----------
         inds:SymbolTree
-        n_jobs:int
-            running core
-        batch_size:int
-            batch size, advice batch_size*n_jobs = inds/n
-
         Returns
         -------
-        list of (score,dim)
+        list of (score,dim,dim_score)
         """
         inds = [i.capsule() for i in inds]
         calls = functools.partial(calculate_collect, context=self.context, x=self.data_x, y=self.y,
                                   terminals_and_constants_repr=self.terminals_and_constants_repr,
+                                  dim_ter_con_list=self.dim_ter_con_list, y_dim=self.y_dim,
                                   scoring=self.scoring, score_pen=self.score_pen,
                                   add_coef=self.add_coef, inter_add=self.inter_add,
                                   inner_add=self.inner_add, np_maps=self.np_map,
                                   filter_warning=self.filter_warning,
-                                  dim_ter_con_list=self.dim_ter_con_list,
                                   dim_maps=self.dim_map, cal_dim=self.cal_dim)
-        score_dim_list = parallelize(func=calls, iterable=inds, n_jobs=n_jobs, respective=False,
-                                     tq=True, batch_size=batch_size)
+        score_dim_list = parallelize(func=calls, iterable=inds, n_jobs=self.n_jobs, respective=False,
+                                     tq=self.tq, batch_size=self.batch_size)
 
         return score_dim_list

@@ -119,36 +119,47 @@ class Toolbox(object):
         self.register(alias, function, *args, **kargs)
 
     def refresh(self, alias=None, *nargs, **nkwargs):
-        if alias:
-            pfunc = getattr(self, alias)
-            function, args, kargs = pfunc.func, pfunc.args, pfunc.keywords
+        if isinstance(alias, str):
+            if hasattr(self, alias):
+                pfunc = getattr(self, alias)
+                function, args, kargs = pfunc.func, pfunc.args, pfunc.keywords
 
-            detail = getfullargspec(function)
+                detail = getfullargspec(function)
 
-            n_arg = len(detail.args)
-            defu = [None] * (n_arg - len(detail.defaults))
-            defu.extend(detail.defaults)
+                n_arg = len(detail.args)
+                if detail.defaults:
+                    defu = [None] * (n_arg - len(detail.defaults))
+                    defu.extend(detail.defaults)
+                else:
+                    defu = [None] * n_arg
 
-            defu_dict = {}
-            for i, j in zip(detail.args, defu):
-                defu_dict[i] = j
-            if detail.kwonlydefaults:
-                defu_dict.update(detail.kwonlydefaults)
+                defu_dict = {}
+                for i, j in zip(detail.args, defu):
+                    defu_dict[i] = j
+                if detail.kwonlydefaults:
+                    defu_dict.update(detail.kwonlydefaults)
 
-            for i, j in zip(detail.args, args):
-                defu_dict[i] = j
-            defu_dict.update(kargs)
+                for i, j in zip(detail.args, args):
+                    defu_dict[i] = j
+                defu_dict.update(kargs)
 
-            for i, j in zip(detail.args, nargs):
-                defu_dict[i] = j
-            defu_dict.update(nkwargs)
-            self.register(alias, function, **defu_dict)
+                for i, j in zip(detail.args, nargs):
+                    defu_dict[i] = j
+                defu_dict.update(nkwargs)
+                self.register(alias, function, **defu_dict)
+            else:
+                pass
+
+        elif isinstance(alias, (list, tuple)):
+            for i in alias:
+                self.refresh(alias=i, *nargs, **nkwargs)
 
 
 if __name__ == "__main__":
     def func(a, b, c=2, name=4, **kwargs):
         print(a, b, c, name, kwargs)
         pass
+
 
     to = Toolbox()
     to.register("a", func, 1, 5, abss=3)
