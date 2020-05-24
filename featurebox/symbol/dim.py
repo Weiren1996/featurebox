@@ -8,9 +8,8 @@
 
 """
 Notes:
-    this some of this part are a copy from deap
+    this some of this part are a copy from sympy
 """
-
 
 from __future__ import division
 
@@ -118,13 +117,12 @@ class Dim(numeric.ndarray):
                                       buffer=arr,
                                       order='F')
 
-
         return ret
 
     def __init__(self, *kwargs):
         _ = kwargs
 
-        self.unit = [i for i in SI._base_units]
+        self.unit = [str(i) for i in SI._base_units]
 
         self.unit_map = {'meter': "m", 'kilogram': "kg", 'second': "s",
                          'ampere': "A", 'mole': "mol", 'candela': "cd", 'kelvin': "K"}
@@ -340,7 +338,7 @@ class Dim(numeric.ndarray):
             return expr_scale_factor, d
 
     @classmethod
-    def convert_x(cls, xi, ui, target_units=None, unit_system="SI"):
+    def convert_xi(cls, xi, ui, target_units=None, unit_system="SI"):
         """
         Quick method. translate xi and ui to standard system.
         Parameters
@@ -359,6 +357,35 @@ class Dim(numeric.ndarray):
         """
         expr_scale_factor, d = cls.convert_to_Dim(ui, target_units=target_units, unit_system=unit_system)
         return expr_scale_factor * xi, d
+
+    @classmethod
+    def convert_x(cls, x, u, target_units=None, unit_system="SI"):
+        """
+         Quick method. translate x and u to standard system.
+         Parameters
+         ----------
+         x: np.ndarray or list of ndarray
+         u: list of sympy.physics.unit or Expr of sympy.physics.unit
+         target_units: None or list of sympy.physics.unit
+             if None, the target_units is 7 SI units
+         unit_system: str
+             default is unit_system="SI"
+
+         Returns
+         -------
+         x: np.ndarray
+         expr: Expr
+         """
+        if isinstance(x, list):
+            pass
+        elif isinstance(x, np.ndarray):
+            x = x.T
+        else:
+            raise TypeError("values must be list or np.array")
+        x_and_d = [cls.convert_xi(xi, x_ui, target_units, unit_system) for xi, x_ui in zip(x, u)]
+        x = np.array([xi for xi, d in x_and_d]).T
+        x_dim = [d for xi, d in x_and_d]
+        return x, x_dim
 
     @classmethod
     def inverse_convert(cls, dim, scale=1, target_units=None, unit_system="SI"):
@@ -402,7 +429,7 @@ class Dim(numeric.ndarray):
         return sc, scale * tar * bas
 
     @classmethod
-    def inverse_convert_x(cls, xi, dim, scale=1, target_units=None, unit_system="SI"):
+    def inverse_convert_xi(cls, xi, dim, scale=1, target_units=None, unit_system="SI"):
         """
         Quick method. Translate xi, dim to other unit.
         Parameters
@@ -427,5 +454,3 @@ class Dim(numeric.ndarray):
 
 dnan = Dim(np.array([np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]))
 dless = Dim(np.array([0, 0, 0, 0, 0, 0, 0]))
-
-

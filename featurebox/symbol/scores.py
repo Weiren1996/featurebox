@@ -5,7 +5,7 @@
 # @contact: 986798607@qq.com
 # @software: PyCharm
 # @file: scores.py
-# @time: 2020/5/22 13:53
+# @License: GNU
 """
 Notes:
     score method.

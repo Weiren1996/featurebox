@@ -4,17 +4,18 @@
 # # @Time    : 2019/11/12 15:13
 # # @Email   : 986798607@qq.com
 # # @Software: PyCharm
-# # @License: BSD 3-Clause
+# # @License: GNU
 
 import copy
 import operator
 import os
-
+import numpy as np
 from deap.base import Fitness
 from deap.tools import HallOfFame, Logbook
 from numpy import random
 from sklearn.datasets import load_boston
 from sklearn.metrics import r2_score
+from sympy.physics.units import kg
 
 from featurebox.symbol.base import CalculatePrecisionSet
 from featurebox.symbol.base import SymbolSet
@@ -203,16 +204,32 @@ class BaseLoop(Toolbox):
 
 
 if __name__ == "__main__":
-    pset0 = SymbolSet()
+    # data
     data = load_boston()
     x = data["data"]
     y = data["target"]
+    c = [6, 3, 4]
+    # unit
+    from sympy.physics.units import kg
 
-    # self.pset.add_features(x, y, )
+    x_u = [kg] * 13
+    y_u = kg
+    c_u = [dless, dless, dless]
+
+    x, x_dim = Dim.convert_x(x, x_u, target_units=None, unit_system="SI")
+    y, y_dim = Dim.convert_xi(y, y_u)
+    c, c_dim = Dim.convert_x(c, c_u)
+
+    # symbolset
+    pset0 = SymbolSet()
     pset0.add_features(x, y, group=[[1, 2], [4, 5]])
-    pset0.add_constants([6, 3, 4], dim=[dless, dless, dnan], prob=None)
+    pset0.add_constants(c, dim=c_dim, prob=None)
     pset0.add_operations(power_categories=(2, 3, 0.5),
                          categories=("Add", "Mul", "Neg", "Abs"),
                          self_categories=None)
-    bl = BaseLoop(pset=pset0, gen=8, pop=500, hall=2, batch_size=50, n_jobs=10, re_Tree=0, store=False)
+
+    bl = BaseLoop(pset=pset0, gen=8, pop=500, hall=2, batch_size=50, n_jobs=10,
+                  re_Tree=0, store=False)
     bl.run()
+
+    # self.pset.add_features(x, y, )

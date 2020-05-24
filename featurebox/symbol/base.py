@@ -4,11 +4,11 @@
 # @Time    : 2019/11/12 15:13
 # @Email   : 986798607@qq.com
 # @Software: PyCharm
-# @License: BSD 3-Clause
+# @License: GNU
 
 """
 Notes:
-    this part is a customization from deap
+    this part is a customization from deap.
 """
 import copy
 import functools

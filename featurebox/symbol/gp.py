@@ -4,7 +4,7 @@
 # @Time    : 2019/11/12 15:13
 # @Email   : 986798607@qq.com
 # @Software: PyCharm
-# @License: BSD 3-Clause
+# @License: GNU
 
 """
 Notes:
