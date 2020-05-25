@@ -45,3 +45,6 @@ Install
 ```bash
 pip install featurebox
 ```
+License
+----------------------
+GUN
