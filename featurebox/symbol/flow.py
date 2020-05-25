@@ -4,23 +4,23 @@
 # # @Time    : 2019/11/12 15:13
 # # @Email   : 986798607@qq.com
 # # @Software: PyCharm
-# # @License: GNU
+# # @License: GNU Lesser General Public License v3.0
 
 import copy
 import operator
 import os
-import numpy as np
+import time
+
 from deap.base import Fitness
 from deap.tools import HallOfFame, Logbook
 from numpy import random
 from sklearn.datasets import load_boston
 from sklearn.metrics import r2_score
-from sympy.physics.units import kg
 
 from featurebox.symbol.base import CalculatePrecisionSet
 from featurebox.symbol.base import SymbolSet
 from featurebox.symbol.base import SymbolTree
-from featurebox.symbol.dim import dless, Dim, dnan
+from featurebox.symbol.dim import dless, Dim
 from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, selKbestDim, \
     selTournament, Statis_func, mutNodeReplacement
 from featurebox.tools import newclass
@@ -36,7 +36,7 @@ class BaseLoop(Toolbox):
                  scoring=(r2_score,), score_pen=(1,), filter_warning=True,
                  add_coef=True, inter_add=True, inner_add=False,
                  cal_dim=True, dim_type=None, fuzzy=False,
-                 n_jobs=1, batch_size=10, random_state=None,
+                 n_jobs=1, batch_size=40, random_state=None,
                  stats=None, verbose=True, tq=True, store=True
                  ):
         """
@@ -46,7 +46,7 @@ class BaseLoop(Toolbox):
         pset:SymbolSet
             the feature x and traget y and others should have been added.
         pop:int
-            popolation
+            number of popolation
         gen:int
             number of generation
         mutate_prob:float
@@ -58,7 +58,7 @@ class BaseLoop(Toolbox):
         max_value:int
             max size of expression
         hall:int
-            number of HallOfFame(elite) to store
+            number of HallOfFame(elite) to maintain
         re_hall: None or int
             Notes: must >=2
             number of HallOfFame to add to next generation.
@@ -76,18 +76,47 @@ class BaseLoop(Toolbox):
             Examples: [r2_score] is [1],
         filter_warning:bool
         add_coef:bool
+            add coef in expression or not.
         inter_add：bool
         inner_add:bool
         n_jobs:int
+            default 1, advise 6
         batch_size:int
+            default 40, depend of machine
         random_state:int
+            None,int
         cal_dim:bool
+            excape the dim calculation
         dim_type:Dim or None or list of Dim
+            "coef":af(x)+b. a,b have dimension,f(x) is not dnan.
+            "integer":af(x)+b. f(x) is interger dimension.
+            [Dim1,Dim2]: f(x) in list.
+            Dim: f(x) ~= Dim. (see fuzzy)
+            Dim: f(x) == Dim.
+            None: f(x) == pset.y_dim
         fuzzy:bool
-        stats:bool
+            choose the dim with same base with dim_type,such as m,m^2,m^3.
+        stats:dict
+            details of logbook to show.
+            Map:
+            values = {"max": np.max, "mean": np.mean, "min": np.mean, "std": np.std, "sum": np.sum}
+            keys = {"fitness": lambda ind: ind.fitness.values[0],
+                   "fitness_dim_is_True": lambda ind: ind.fitness.values[0] if ind.y_dim is not dnan else np.nan,
+                   "fitness__dim_is_target": lambda ind: ind.fitness.values[0] if ind.dim_score else np.nan,
+                   "dim_is_True": lambda ind: 1 if ind.y_dim is not dnan else 0,
+                   "dim_is_traget": lambda ind: 1 if ind.dim_score else 0}
+            if stats is None:
+                stats = {"fitness": ("max",), "dim_is_traget": ("sum",)}
+            if self-defination, the key is func to get attribute of each ind.
+            Examples:
+                def func(ind):
+                    return ind.height
+                stats = {func: ("mean",), "dim_is_traget": ("sum",)}
         verbose:bool
+            print verbose logbook or not
         tq:bool
-        store:bool
+            print progress bar or not
+        store:bool or path
         """
 
         if cal_dim:
@@ -157,6 +186,8 @@ class BaseLoop(Toolbox):
 
             # hall###################################################################
             if self.re_hall:
+                if self.re_hall == 1:
+                    self.re_hall = 2
                 if self.cal_dim:
                     inds_dim = self.selKbestDim(population, self.re_hall)
                 else:
@@ -197,10 +228,26 @@ class BaseLoop(Toolbox):
                     indi = inds[random.choice(le)]
                     self.cpset.add_tree_to_features(indi)
                     self.refresh(("gen_mu", "genGrow"), pset=self.cpset)
+
         if self.store:
-            st = Store(os.getcwd())
-            st.to_csv(data_all.T)
-            print("store data to ", os.getcwd())
+            if isinstance(self.store, str):
+                path = self.store
+            else:
+                path = os.getcwd()
+            file_new_name = "_".join((str(self.pop), str(self.gen),
+                                      str(self.mutate_prob), str(self.mate_prob),
+                                     str(time.ctime(time.time()))))
+            try:
+                st = Store(path)
+                st.to_csv(data_all, file_new_name)
+                print("store data to ", path, file_new_name)
+            except (IOError, PermissionError):
+                st = Store(os.getcwd())
+                st.to_csv(data_all, file_new_name)
+                print("store data to ", os.getcwd(), file_new_name)
+
+        self.hall.items = [self.cpset.calculate_detail(indi) for indi in self.hall.items]
+        return self.hall
 
 
 if __name__ == "__main__":
@@ -220,16 +267,18 @@ if __name__ == "__main__":
     y, y_dim = Dim.convert_xi(y, y_u)
     c, c_dim = Dim.convert_x(c, c_u)
 
+    z = time.time()
     # symbolset
     pset0 = SymbolSet()
-    pset0.add_features(x, y, group=[[1, 2], [4, 5]])
+    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2], [4, 5]])
     pset0.add_constants(c, dim=c_dim, prob=None)
     pset0.add_operations(power_categories=(2, 3, 0.5),
                          categories=("Add", "Mul", "Neg", "Abs"),
                          self_categories=None)
-
-    bl = BaseLoop(pset=pset0, gen=8, pop=500, hall=2, batch_size=50, n_jobs=10,
-                  re_Tree=0, store=False)
+    a = time.time()
+    bl = BaseLoop(pset=pset0, gen=1, pop=400, hall=2, batch_size=40, n_jobs=6,
+                  re_Tree=0, store=True, random_state=3, add_coef=True, cal_dim=True)
+    b = time.time()
     bl.run()
-
-    # self.pset.add_features(x, y, )
+    c = time.time()
+    print(c - b, b - a, a - z)

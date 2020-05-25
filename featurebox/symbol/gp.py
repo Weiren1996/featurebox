@@ -4,7 +4,7 @@
 # @Time    : 2019/11/12 15:13
 # @Email   : 986798607@qq.com
 # @Software: PyCharm
-# @License: GNU
+# @License: GNU Lesser General Public License v3.0
 
 """
 Notes:
@@ -14,7 +14,6 @@ Notes:
 import copy
 import operator
 import sys
-import time
 from collections import Counter
 from functools import wraps
 from inspect import isclass
@@ -86,7 +85,7 @@ def generate(pset, min_, max_, condition, *kwargs):
     dispose = list(random.choice(pset.dispose, len(expr), p=pset.prob_dispose_list))
 
     for i in pset.dispose:
-        if i.name == "Flat":
+        if i.name == "MAdd":
             dispose[0] = i
     re = []
     for i, j in zip(dispose, expr):
@@ -482,6 +481,8 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
         add_ind = chosen
     elif dim_type is 'integer':
         add_ind = [ind for ind in chosen if ind.y_dim.isinteger]
+    elif dim_type is 'coef':
+        add_ind = [ind for ind in chosen if not ind.y_dim.anyisnan()]
     elif isinstance(dim_type, list):
         add_ind = [ind for ind in chosen if ind.y_dim in dim_type]
     elif isinstance(dim_type, Dim):
@@ -615,18 +616,17 @@ def graph(expr):
 
 def varAnd(population, toolbox, cxpb, mutpb):
     offspring = copy.deepcopy(population)
-    a = time.time()
+
     # Apply crossover and mutation on the offspring
     for i in range(1, len(offspring), 2):
         if random.random() < cxpb:
             offspring[i - 1], offspring[i] = toolbox.mate(offspring[i - 1],
                                                           offspring[i])
             del offspring[i - 1].fitness.values, offspring[i].fitness.values
-    b = time.time()
+
     for i in range(len(offspring)):
         if random.random() < mutpb:
             offspring[i], = toolbox.mutate(offspring[i])
             del offspring[i].fitness.values
-    c = time.time()
-    print("mu", c - b, "mate", b - a)
+
     return offspring

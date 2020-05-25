@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 # x = np.linspace(0, 1, 1000)
 # y = np.sin(10 * np.pi * x) + x
 # mine = MINE(alpha=0.6, c=15)
@@ -37,6 +36,6 @@ import numpy as np
 # data_wine_mic = MIC_matirx(
 #     np.array([[1, 2, 3, 4, 5, 1, 5, 2, 1, 4], [2, 3, 4, 1, 2, 1, 3, 1, 6, 1], [6, 4, 5, 3, 4, 1, 4, 1, 6, 2]]).T,
 #     mine)
-u=[]
+u = []
 for i in range(10):
-    u+=i
+    u += i

@@ -791,7 +791,8 @@ def calculateExpr(expr01, pset, x, y, score_method=r2_score, add_coeff=True,
 
     """
     if not terminals:
-        terminals = pset.terminals_and_constant[object] if isinstance(pset.terminals_and_constant, defaultdict) else pset.terminals_and_constant
+        terminals = pset.terminals_and_constant[object] if isinstance(pset.terminals_and_constant,
+                                                                      defaultdict) else pset.terminals_and_constant
         terminals = [_.value for _ in terminals]
     if filter_warning:
         warnings.filterwarnings("ignore")

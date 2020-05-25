@@ -5,7 +5,7 @@
 # @contact: 986798607@qq.com
 # @software: PyCharm
 # @file: scores.py
-# @License: GNU
+# @License: GNU Lesser General Public License v3.0
 """
 Notes:
     score method.
@@ -23,6 +23,9 @@ from sklearn.utils import check_array
 from featurebox.symbol.dim import dim_map, dless
 from featurebox.symbol.function import np_map
 from featurebox.symbol.gp import compile_context
+
+
+# from featurebox.tools.tool import time_this_function
 
 
 def addCoefficient(expr01, inter_add=True, inner_add=False):
@@ -162,7 +165,7 @@ def calculate_y(expr01, x, y, terminals, add_coef=True,
         assert y.shape == re.shape
         pre_y = check_array(re, ensure_2d=False)
 
-    except (AttributeError, DataConversionWarning, AssertionError, ValueError,):
+    except (DataConversionWarning, AssertionError, ValueError,):
         pre_y = None
 
     return pre_y, expr01

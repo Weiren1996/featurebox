@@ -89,7 +89,7 @@ result_list = m_corr.count_cof(cof=None)
 
 # 机器挑选
 select = m_corr.remove_coef(result_list[1])
-x = x[:,select]
+x = x[:, select]
 # 人工挑选？
 # select=[]
 
@@ -106,7 +106,7 @@ x = x[:,select]
 #     score = methodi(X=x, y=y).mean()
 #     print(name,score)
 
-method_select=["RFR-em", "AdaBR-em", "BRR-L1"]
+method_select = ["RFR-em", "AdaBR-em", "BRR-L1"]
 
 me1 = RandomForestRegressor(n_estimators=100, max_depth=None, min_samples_split=2, min_samples_leaf=1,
                             min_weight_fraction_leaf=0.0, max_leaf_nodes=None, min_impurity_decrease=0.0,
@@ -119,19 +119,18 @@ me2 = BayesianRidge(alpha_1=1e-06, alpha_2=1e-06, compute_score=False,
                     n_iter=300, normalize=False, tol=0.01, verbose=False)
 param_grid2 = [{'alpha_1': [1e-07, 1e-06, 1e-05], 'alpha_2': [1e-07, 1e-06, 1e-05]}]
 
-
 dt = DecisionTreeRegressor(criterion="mse", splitter="best", max_features=None, max_depth=5, min_samples_split=4)
 me3 = AdaBoostRegressor(dt, n_estimators=200, learning_rate=0.05, loss='linear', random_state=0)
 param_grid3 = [{'n_estimators': [100, 200], 'learning_rate': [0.1, 0.05]}]
 
-#2 model
-ref = RFECV(me2,cv=3)
-x_ = ref.fit_transform(x,y)
+# 2 model
+ref = RFECV(me2, cv=3)
+x_ = ref.fit_transform(x, y)
 gd = GridSearchCV(me2, cv=3, param_grid=param_grid2, scoring="r2", n_jobs=1)
-gd.fit(x_,y)
+gd.fit(x_, y)
 score = gd.best_score_
 
-#1,3 model
+# 1,3 model
 # gd = GridSearchCV(me1, cv=3, param_grid=param_grid1, scoring="r2", n_jobs=1)
 # gd.fit(x,y)
 # es = gd.best_estimator_
@@ -146,7 +145,7 @@ score = gd.best_score_
 # 其他模型
 # 穷举等...
 
-#导出
+# 导出
 # pd.to_pickle(gd,r'C:\Users\Administrator\Desktop\skk\gd_model')
 # pd.read_pickle(r'C:\Users\Administrator\Desktop\skk\gd_model')
 store.to_pkl_sk(gd)

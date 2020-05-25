@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#coding:utf-8
+# coding:utf-8
 
 """
 @author: wangchangxin
@@ -12,5 +12,5 @@ from functools import partial
 
 import numpy as np
 
-a=[1,2,3,4]
-b=a[:1]
+a = [1, 2, 3, 4]
+b = a[:1]

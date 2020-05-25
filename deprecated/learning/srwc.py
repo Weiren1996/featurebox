@@ -212,13 +212,15 @@ def calculatePrecision(individual, pset, x, y, scoring=None, add_coeff=True, fil
 
     t2 = r2_score(y, input_x[:, 0] * input_x[:, 1])
 
-    score, expr = calculateExpr(expr_no, x=x, y=y, terminals=[sympy.Symbol("x0"), sympy.Symbol("x1")], scoring=scoring, add_coeff=add_coeff,
+    score, expr = calculateExpr(expr_no, x=x, y=y, terminals=[sympy.Symbol("x0"), sympy.Symbol("x1")], scoring=scoring,
+                                add_coeff=add_coeff,
                                 filter_warning=filter_warning, inter_add=inter_add, iner_add=iner_add,
                                 random_add=random_add)
     if cal_dim:
         pass
 
     return score, expr, dless, 1
+
 
 def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
              halloffame=None, verbose=__debug__, pset=None, store=True):
@@ -294,7 +296,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         random.setstate(rst)
 
         """crossover, mutate"""
-        offspring = toolbox.select_gs(population, len_pop-elite_size)
+        offspring = toolbox.select_gs(population, len_pop - elite_size)
         # Vary the pool of individuals
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
 
@@ -459,29 +461,34 @@ if __name__ == '__main__':
     G = data_import["G"].values
     y = data_import["PG_y"].values
     y = y * G
-    testfunc =  input_x[:, 0]*input_x[:, 1]
-    t = np.corrcoef(y, input_x[:, 0]*input_x[:, 1])
+    testfunc = input_x[:, 0] * input_x[:, 1]
+    t = np.corrcoef(y, input_x[:, 0] * input_x[:, 1])
 
     dim1 = Dim([0, 0, 0, 0, 0, 0, 0])
     target_dim = [Dim([0, 0, 0, 0, 0, 0, 0])]
     dim_list = [dim1]
 
-    def my_func1(y,y_pre):
-        return 1-np.mean(np.abs((y+Pmix)-(y_pre+Pmix))/Pexp)
 
-    def my_func3(y,y_pre):
-        return 1-mean_absolute_error(y,y_pre)/Pexp
+    def my_func1(y, y_pre):
+        return 1 - np.mean(np.abs((y + Pmix) - (y_pre + Pmix)) / Pexp)
 
-    def my_func2(y,y_pre):
-        return r2_score(y+Pmix,y_pre+Pmix)**0.5
+
+    def my_func3(y, y_pre):
+        return 1 - mean_absolute_error(y, y_pre) / Pexp
+
+
+    def my_func2(y, y_pre):
+        return r2_score(y + Pmix, y_pre + Pmix) ** 0.5
+
 
     pset = ExpressionSetFill(x_name=["x0"], power_categories=[1 / 3, 1 / 2, 2, 3, 2 / 3, 3 / 2, 4 / 3],
                              categories=('Add', 'Sub', 'Mul', 'Div', "Rec", 'exp', "log", "Self", "Rem"),
                              partial_categories=None, self_categories=None, dim=dim_list)
-    result = mainPart(input_x, y, pset, pop_n=500, random_seed=0, cxpb=1, mutpb=0.6, ngen=10, tournsize=3,  max_value=2,
+    result = mainPart(input_x, y, pset, pop_n=500, random_seed=0, cxpb=1, mutpb=0.6, ngen=10, tournsize=3, max_value=2,
                       max_=2,
-                      double=False, score=[my_func2, my_func2], inter_add=False,iner_add=True, target_dim=target_dim,cal_dim=False)
+                      double=False, score=[my_func2, my_func2], inter_add=False, iner_add=True, target_dim=target_dim,
+                      cal_dim=False)
     for i in [i.expr for i in result[1].items]:
         print(i)
-    for  i in [i.values for i in result[1].keys][::-1]:
+    for i in [i.values for i in result[1].keys][::-1]:
         print(i)

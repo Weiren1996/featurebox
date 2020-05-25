@@ -85,7 +85,7 @@ class Store(object):
 
         self._check_name("csv", file_new_name, model=model)
         if isinstance(data, (dict, list)):
-            data = pd.DataFrame.from_dict(data)
+            data = pd.DataFrame.from_dict(data).T
 
         elif isinstance(data, np.ndarray):
             data = pd.DataFrame(data)

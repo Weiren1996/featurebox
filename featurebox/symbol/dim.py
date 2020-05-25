@@ -4,7 +4,7 @@
 # @Time    : 2019/11/12 15:13
 # @Email   : 986798607@qq.com
 # @Software: PyCharm
-# @License: BSD 3-Clause
+# @License: GNU Lesser General Public License v3.0
 
 """
 Notes:
@@ -23,72 +23,86 @@ from sympy import Add, Mul, Pow, Tuple, sympify
 from sympy.core.compatibility import reduce, Iterable
 from sympy.physics.units import Dimension
 from sympy.physics.units.quantities import Quantity
-from sympy.physics.units.systems import SI
+
+
+# from sympy.physics.units.systems import SI
+# from featurebox.tools.tool import parallelize
 
 
 def dim_map():
     """expr to dim function """
 
-    def my_abs(dim):
-        if isinstance(dim, (numbers.Real, sympy.Rational, sympy.Float)):
-            return dless
+    def my_comp(dim):
+
+        if isinstance(dim, Dim):
+            if dim.ndim == 1:
+                return dim
+            else:
+                n = dim.shape[0]
+                dc = dim[0].copy()
+                return dc.__pow__(n)
         else:
+            return dless
+
+    def my_quot(dim):
+        if isinstance(dim, Dim):
+            if dim.ndim == 1:
+                return dim
+            elif dim.shape[0] == 2:
+                return dless
+            else:
+                return dim
+        else:
+            return dless
+
+    def my_diff(dim):
+        if isinstance(dim, Dim):
+            if dim.ndim == 1:
+                return dim
+            elif dim.shape[0] == 2:
+                return dim[0].copy()
+            else:
+                return dim
+        else:
+            return dless
+
+    def my_flat(dim):
+        if isinstance(dim, Dim):
+            if dim.ndim == 1:
+                return dim
+            else:
+                return dim[0].copy()
+        else:
+            return dless
+
+    def my_abs(dim):
+        if isinstance(dim, Dim):
             return dim
+        else:
+            return dless
 
     def my_sqrt(dim):
 
         return dim.__pow__(0.5)
 
-    my_self = my_flat = my_abs
+    my_self = my_abs
 
     def my_exp(dim):
 
         if isinstance(dim, Dim):
             if dim == dless:
-                return dless
+                return dless.get_n(dim)
             else:
-                return dnan
-        elif isinstance(dim, (numbers.Real, sympy.Rational, sympy.Float)):
-            return dless
+                return dnan.get_n(dim)
         else:
             return dless
 
     my_log = my_cos = my_sin = my_exp
 
     my_funcs = {"Abs": my_abs, "exp": my_exp, "log": my_log, 'cos': my_cos, 'sin': my_sin,
-                'sqrt': my_sqrt, "Flat": my_flat, "Self": my_self}
+                'sqrt': my_sqrt, "MAdd": my_flat, "MMul": my_comp, "MSub": my_diff,
+                "MDiv": my_quot, "Self": my_self}
     return my_funcs
-
-
-def check_dimension(x, y=None):
-    """
-    check the consistency of dimension.
-    Parameters
-    ----------
-    x: list of Dim
-    y:Dim
-
-    Returns
-    -------
-    bool
-    """
-    if y is not None:
-        x.append(y)
-    x = np.array(x).T
-    x = check_array(x, ensure_2d=True)
-    x = x.astype(np.float64)
-    det = matrix_rank(x)
-    che = []
-    for i in range(x.shape[1]):
-        x_new = np.delete(x, i, 1)
-        det2 = matrix_rank(x_new)
-        che.append(det - det2)
-    sum(che)
-
-    if sum(che) == 0:
-        return True
-    else:
-        return False
 
 
 class Dim(numeric.ndarray):
@@ -99,55 +113,59 @@ class Dim(numeric.ndarray):
         # >>>scale,dim = Dim.convert_to_Dim(N)
         #inverse back
     """
-    __slots__ = ("unit", "unit_map", "dim")
 
-    def __new__(cls, data, *kwargs):
+    def __new__(cls, data):
 
         assert isinstance(data, (numeric.ndarray, list))
         dtype = np.float16
-        copy = True
-        arr = numeric.array(data, dtype=dtype, copy=copy)
 
-        arr.reshape((1, -1))
-        if arr.shape[0] > 7:
-            raise UserWarning("The number of dim more than 7 SI")
+        arr = numeric.array(data, dtype=dtype, copy=True)
+
         shape = arr.shape
 
-        ret = numeric.ndarray.__new__(cls, shape, arr.dtype,
+        ret = numeric.ndarray.__new__(cls, shape, dtype=np.float16,
                                       buffer=arr,
-                                      order='F')
-
+                                      order='c')
         return ret
 
-    def __init__(self, *kwargs):
-        _ = kwargs
+    def __init__(self, _):
+        """
+        # self.unit = [str(i) for i in SI._base_units]
+        # self.unit_map = {'meter': "m", 'kilogram': "kg", 'second': "s",
+        #                  'ampere': "A", 'mole': "mol", 'candela': "cd", 'kelvin': "K"}
+        # self.dim = ['length', 'mass', 'time', 'current', 'amount_of_substance',
+        #             'luminous_intensity', 'temperature']
+        """
 
-        self.unit = [str(i) for i in SI._base_units]
+    def __eq__(self, other):
+        se = self.copy()
+        ot = other.copy()
+        if se.ndim == 2:
+            se = se[0]
+        if ot.ndim == 2:
+            ot = ot[0]
+        return all(np.equal(se, ot))
 
-        self.unit_map = {'meter': "m", 'kilogram': "kg", 'second': "s",
-                         'ampere': "A", 'mole': "mol", 'candela': "cd", 'kelvin': "K"}
-        self.dim = ['length', 'mass', 'time', 'current', 'amount_of_substance',
-                    'luminous_intensity', 'temperature']
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __add__(self, other):
 
         if isinstance(other, Dim) and self != other:
             if other == dless:
-                return self
+                return self.get_n(other)
             elif self == dless:
-                return other
+                return other.get_n(self)
             else:
-                return dnan
+                return dnan.get_n(self.get_n(other))  # ?
         elif isinstance(other, Dim) and self == other:
-            return self
+            return self.get_n(other)
 
-        elif isinstance(other, (numbers.Real, sympy.Rational, sympy.Float)):
-            return self
         else:
-            return dnan
+            return self
 
     def __sub__(self, other):
-        return self + other
+        return self.__add__(other)
 
     def __pow__(self, other):
         return self._eval_power(other)
@@ -156,43 +174,33 @@ class Dim(numeric.ndarray):
         if isinstance(other, (numbers.Real, sympy.Rational, sympy.Float)):
             return Dim(np.array(self) * other)
         else:
-            return dnan
+            return dnan  #
 
     def __mul__(self, other):
         if isinstance(other, Dim):
             return Dim(np.array(self) + np.array(other))
-        elif isinstance(other, (numbers.Real, sympy.Rational, sympy.Float)):
-            return self
         else:
-            return dnan
+            return self
 
     def __div__(self, other):
 
         if isinstance(other, Dim):
             return Dim(np.array(self) - np.array(other))
-        elif isinstance(other, (numbers.Real, sympy.Rational, sympy.Float)):
-            return self
         else:
-            return dnan
+            return self
 
     def __rdiv__(self, other):
-        # return other*spath._eval_power(-1)
+
         if isinstance(other, (numbers.Real, sympy.Rational, sympy.Float)):
             return self.__pow__(-1)
         else:
-            return dnan
+            return dnan  #
 
     def __abs__(self):
         return self
 
     def __rpow__(self, other):
-        return dnan
-
-    def __eq__(self, other):
-        return all(np.equal(self, other))
-
-    def __ne__(self, other):
-        return not all(np.equal(self, other))
+        return dnan  #
 
     def __neg__(self):
         return self
@@ -200,48 +208,69 @@ class Dim(numeric.ndarray):
     def __pos__(self):
         return self
 
-    @property
-    def allisnan(self):
-        return all(np.isnan(self))
-
-    @property
-    def anyisnan(self):
-        return any(np.isnan(self))
-
-    @property
-    def isfloat(self):
-        return any(np.modf(self)[0])
-
-    @property
-    def isinteger(self):
-        return not any(np.modf(self)[0])
-
-    def is_same_base(self, others):
-        if isinstance(others, Dim):
-            npself = np.array(self)
-            npothers = np.array(others)
-            x1 = np.linalg.norm(npself)
-            x2 = np.linalg.norm(npothers)
-
-            if others ** x1 == self ** x2:
-                return True
-            else:
-                return False
-        else:
-            return False
-
     __truediv__ = __div__
     __rtruediv__ = __rdiv__
     __radd__ = __add__
     __rsub__ = __sub__
     __rmul__ = __mul__
 
-    def __str__(self):
-        try:
-            strr = "".join(["{}^{}*".format(i, j) for i, j in zip(self.unit, self)])[:-1]
-        except AttributeError:
-            strr = super().__str__()
-        return strr
+    # @property
+    def allisnan(self):
+        return all(np.isnan(self))
+
+    # @property
+    def anyisnan(self):
+        return any(np.isnan(self))
+
+    # @property
+    def isfloat(self):
+        return any(np.modf(self)[0])
+
+    # @property
+    def isinteger(self):
+        return not any(np.modf(self)[0])
+
+    def is_same_base(self, others):
+        se = self.copy()
+        if others.ndim == 2:
+            others = others[0]
+        if se.ndim == 2:
+            se = se[0]
+
+        if isinstance(others, Dim):
+            npself = np.array(se)
+            npothers = np.array(others)
+            x1 = np.linalg.norm(npself)
+            x2 = np.linalg.norm(npothers)
+
+            if others ** x1 == se ** x2:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def get_n(self, others):
+        se = self.copy()
+
+        if others.ndim == 2:
+            n = others.shape[0]
+        else:
+            n = 1
+
+        if self.ndim == 2:
+            m = self.shape[0]
+        else:
+            m = 1
+
+        if m > 1 and n > 1:
+            return dnan  #
+        elif n == 1:
+            return se
+        elif m == 1 and n > 1:
+            return Dim(np.array([se] * n))
+        else:
+            return dnan  #
 
     @staticmethod
     def _get_conversion_matrix_for_expr(expr, target_units, unit_system):
@@ -452,5 +481,53 @@ class Dim(numeric.ndarray):
         return expr_scale_factor * xi, d
 
 
+def check_dimension(x, y=None):
+    """
+    check the consistency of dimension.
+    Parameters
+    ----------
+    x: list of Dim
+    y:Dim
+
+    Returns
+    -------
+    bool
+    """
+    if y is not None:
+        x.append(y)
+    x = np.array(x).T
+    x = check_array(x, ensure_2d=True)
+    x = x.astype(np.float64)
+    det = matrix_rank(x)
+    che = []
+    for i in range(x.shape[1]):
+        x_new = np.delete(x, i, 1)
+        det2 = matrix_rank(x_new)
+        che.append(det - det2)
+    sum(che)
+
+    if sum(che) == 0:
+        return True
+    else:
+        return False
+
+
 dnan = Dim(np.array([np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]))
 dless = Dim(np.array([0, 0, 0, 0, 0, 0, 0]))
+
+if __name__ == "__main__":
+    a = [Dim([1, 2, 3, 4, 5, 6, 7])] * 100
+    b = [Dim([2, 2, 3, 4, 5, 6, 7])] * 100
+
+    dl = dless
+    dn = dnan
+
+    c = Dim([1, 2, 3, 4, 5, 6, 7])
+
+    t = zip(a, b)
+
+
+    def func(k):
+        ss = k[1] * k[0]
+        return ss
+

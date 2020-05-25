@@ -4,7 +4,7 @@
 # @Time    : 2019/11/12 15:13
 # @Email   : 986798607@qq.com
 # @Software: PyCharm
-# @License: GNU
+# @License: GNU Lesser General Public License v3.0
 
 """
 Notes:
@@ -17,7 +17,7 @@ import numpy as np
 import sympy
 from sklearn.utils import check_X_y, check_array
 
-from featurebox.symbol.dim import dless, dim_map, dnan
+from featurebox.symbol.dim import dless, dim_map, dnan, Dim
 from featurebox.symbol.function import func_map_dispose, func_map, np_map
 from featurebox.symbol.gp import generate, genGrow, genFull, depart, compile_context
 from featurebox.symbol.scores import calcualte_dim, calculate_score, calculate_collect
@@ -422,7 +422,7 @@ class SymbolSet(object):
                     p = special_prob[n]
             return p
 
-        if "Self" not in self.context:
+        if "MAdd" not in self.context:
             self.add_accumulative_operation()
 
         functions1, functions2 = func_map()
@@ -469,10 +469,12 @@ class SymbolSet(object):
         Parameters
         ----------
         categories: tuple of str
-            categories=("Self","Flat")
+            categories=("Self","MAdd","MSub", "MMul","MDiv")
         categories_prob: "balance" or float (0,1]
-            probility of categories, except ("Self","Flat"), "balance" is 1/n_categories.
-            Notes: the  ("Self","Flat") are set as 1 and 0.1 to be a standard.
+            probility of categories, except ("Self","MAdd", "MSub", "MMul", "MDiv"),
+            "balance" is 1/n_categories.
+             "MSub", "MMul", "MDiv" only work on the size of group is 2, else work like "Self".
+            Notes: the  ("Self","MAdd","MSub", "MMul", "MDiv") are set as 1 and 0.1 to be a standard.
         self_categories: list of list
             Examples:
                 def rem(ast):
@@ -489,7 +491,7 @@ class SymbolSet(object):
                 1.the size of each feature group is the same, such as n_gs.
                 2.the size of ast must be the same as the size of feature group n_gs.
         special_prob: None or dict
-            Examples: {"Flat":0.5,"Self":0.5}
+            Examples: {"MAdd":0.5,"Self":0.5}
 
         Returns
         -------
@@ -503,24 +505,24 @@ class SymbolSet(object):
             return pp
 
         if not categories:
-            categories = ["Self", "Flat"]
+            categories = ["Self", "MAdd", "MSub", "MMul", "MDiv"]
         if isinstance(categories, str):
             categories = [categories, ]
 
         for i in categories:
 
             if categories_prob is "balance":
-                prob1 = 1 / len([_ for _ in categories_prob if _ not in ("Self", 'Flat')])
+                prob1 = 1 / len([_ for _ in categories_prob if _ not in ("Self", 'Flat', "MSub", "MMul", "MDiv")])
             elif isinstance(categories_prob, float):
                 prob1 = categories_prob
             else:
                 raise TypeError("categories_prob accept int from (0,1] or 'balance'.")
 
             if i is "Self":
-                p = change(i, 0.9)
+                p = change(i, 0.8)
                 self._add_dispose(func_map_dispose()[i], arity=1, name=i, prob=p)
-            elif i is "Flat":
-                p = change(i, 0.1)
+            elif i in ("MAdd", "MSub", "MMul", "MDiv"):
+                p = change(i, 0.05)
                 self._add_dispose(func_map_dispose()[i], arity=1, name=i, prob=p)
             else:
                 # to be add for future
@@ -563,7 +565,7 @@ class SymbolSet(object):
             self._add_terminal(value, name, dim=dim, prob=prob, init_name=init_name)
         return self
 
-    def add_features(self, X, y, feature_name=None, x_dim=1, y_dim=1, prob=None, group=None):
+    def add_features(self, X, y, x_dim=1, y_dim=1, prob=None, group=None, feature_name=None, ):
 
         """
 
@@ -611,20 +613,26 @@ class SymbolSet(object):
         if not group:
             group = [[]]
 
-        groups = []
-        for i in group:
-            groups.extend(i)
-
         for i, gi in enumerate(group):
-            if len(gi) > 0:
+            len_gi = len(gi)
+            if len_gi > 0:
                 init_name = str(["x%s" % j for j in gi])
+                assert all(x_dim[gi[0]] == x_dim[i] for i in gi)
+                ns = np.vstack(np.array([x_dim[i] for i in gi]))
+                dim = Dim(ns)
+                # dim = copy.deepcopy(x_dim[gi[0]])
+                # dim.n = len_gi
                 self._add_terminal(np.array(X.T[gi]),
-                                   name="gx%s" % i, dim=x_dim[gi[0]], prob=prob[gi[0]],
+                                   name="gx%s" % i, dim=dim, prob=prob[gi[0]],
                                    init_name=init_name
                                    )
                 if feature_name:
                     fea_name = str([feature_name[j] for j in gi])
                     self.terminals_fea_map["gx%s" % i] = (init_name, fea_name)
+
+        groups = []
+        for groupi in group:
+            groups.extend(groupi)
 
         for i, (v, dimi, probi) in enumerate(zip(X.T, x_dim, prob)):
             if i not in groups:

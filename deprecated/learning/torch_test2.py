@@ -35,7 +35,6 @@ class Net(Module):
         self.conv2 = nn.Linear(30, 1)
         self.relu1 = nn.Sigmoid()
 
-
     def forward(self, input):
         x = self.conv1(input)
         x = self.conv2(x)
@@ -48,16 +47,18 @@ net = Net()
 
 opitmizer = torch.optim.SGD(net.parameters(), lr=0.03)
 loss_fun = nn.BCELoss()
-feature_result=[]
-feature_result2=[]
-def hook(self,input,output):
+feature_result = []
+feature_result2 = []
 
+
+def hook(self, input, output):
     feature_result.append(output[0].data.detach())
 
-def hook2(self,input,output):
 
+def hook2(self, input, output):
     feature_result2.append(output[0].data.detach())
     print(input)
+
 
 for i in range(4):
     net.relu1.register_backward_hook(hook)

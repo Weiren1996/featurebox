@@ -21,6 +21,9 @@ from featurebox.combination.dictbase import FixedSet, FixedTree, generate_index,
 from featurebox.combination.dim import Dim, dnan
 from featurebox.tools.tool import time_this_function, parallelize
 
+print(DeprecationWarning("this module 'featurebox.combination' would deprecated in version 0.85. "
+                         "please turn to 'featurebox.symbol.'"))
+
 
 @time_this_function
 def mainPart(x_, y_, pset, max_=5, pop_n=100, random_seed=2, cxpb=0.8, mutpb=0.1, ngen=5,
@@ -53,6 +56,7 @@ def mainPart(x_, y_, pset, max_=5, pop_n=100, random_seed=2, cxpb=0.8, mutpb=0.1
     -------
 
     """
+
     if score is None:
         score = [r2_score, explained_variance_score]
 

@@ -4,7 +4,7 @@
 # @Time    : 2019/11/12 15:13
 # @Email   : 986798607@qq.com
 # @Software: PyCharm
-# @License: BSD 3-Clause
+# @License: GNU Lesser General Public License v3.0
 
 """
 Notes: the translation process
@@ -53,11 +53,13 @@ def func_map():
 
 def func_map_dispose():
     """user's str to sympy.expr function"""
-    return {"Flat": Function("Flat"), "Self": lambda x_: x_}
+    return {"MAdd": Function("MAdd"), "MMul": Function("MMul"), "MSub": Function("MSub"),
+            "MDiv": Function("MDiv"), "Self": lambda x_: x_}
 
 
 def np_map():
     """user's sympy.expr to np.ndarray function"""
+
     def Flat(x):
         if isinstance(x, np.ndarray):
             if x.ndim == 2:
@@ -67,4 +69,37 @@ def np_map():
         else:
             return x
 
-    return {"Flat": Flat, "Self": lambda x_: x_}
+    def Comp(x):
+        if isinstance(x, np.ndarray):
+            if x.ndim == 2:
+                return np.prod(x, axis=0)
+            else:
+                return x
+        else:
+            return x
+
+    def Diff(x):
+        if isinstance(x, np.ndarray):
+            if x.ndim == 2:
+                if x.shape[0] == 2:
+                    return x[0] - x[1]
+                else:
+                    return x
+            else:
+                return x
+        else:
+            return x
+
+    def Quot(x):
+        if isinstance(x, np.ndarray):
+            if x.ndim == 2:
+                if x.shape[0] == 2:
+                    return x[0] / x[1]
+                else:
+                    return x
+            else:
+                return x
+        else:
+            return x
+
+    return {"MAdd": Flat, "MMul": Comp, "MSub": Diff, "MDiv": Quot, "Self": lambda x_: x_}
