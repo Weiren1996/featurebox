@@ -22,7 +22,7 @@ from featurebox.symbol.base import SymbolSet
 from featurebox.symbol.base import SymbolTree
 from featurebox.symbol.dim import dless, Dim
 from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, selKbestDim, \
-    selTournament, Statis_func, mutNodeReplacement
+    selTournament, Statis_func, mutNodeReplacement, mutUniform, mutDifferentReplacement, mutShrink, varAndfus
 from featurebox.tools import newclass
 from featurebox.tools.exports import Store
 from featurebox.tools.packbox import Toolbox
@@ -32,7 +32,7 @@ class BaseLoop(Toolbox):
     """base loop"""
 
     def __init__(self, pset, pop=500, gen=20, mutate_prob=0.1, mate_prob=0.5,
-                 hall=1, re_hall=3, re_Tree=1, initial_max=3, max_value=10,
+                 hall=1, re_hall=0, re_Tree=0, initial_max=3, max_value=10,
                  scoring=(r2_score,), score_pen=(1,), filter_warning=True,
                  add_coef=True, inter_add=True, inner_add=False,
                  cal_dim=True, dim_type=None, fuzzy=False,
@@ -57,10 +57,10 @@ class BaseLoop(Toolbox):
             max initial size of expression when first producing.
         max_value:int
             max size of expression
-        hall:int
+        hall:int,>=1
             number of HallOfFame(elite) to maintain
-        re_hall: None or int
-            Notes: must >=2
+        re_hall: int
+            Notes: only vaild when hall
             number of HallOfFame to add to next generation.
         re_Tree: int
             number of new features to add to next generation.
@@ -135,6 +135,7 @@ class BaseLoop(Toolbox):
         self.PTree = newclass.create("PTrees", SymbolTree, fitness=Fitness_)
         # def produce
         self.register("genGrow", genGrow, pset=self.cpset, min_=2, max_=initial_max)
+        self.register("gen_mu", genGrow, min_=2, max_=3)
         # def selection
 
         self.register("select", selTournament, tournsize=3)
@@ -144,12 +145,11 @@ class BaseLoop(Toolbox):
         # selBest
         self.register("mate", cxOnePoint)
         # def mutate
-        self.register("gen_mu", genGrow, pset=self.cpset, min_=2, max_=3)
 
+        # self.register("mutate", mutNodeReplacement, pset=self.cpset)
         # self.register("mutate", mutUniform, expr=self.gen_mu, pset=self.cpset)
-        self.register("mutate", mutNodeReplacement, pset=self.cpset)
-        # self.register("mutate", mutShrink)
-        # self.register("mutate", mutDifferentReplacement, pset=self.cpset)
+        self.register("mutate", mutShrink)
+        # self.register("mutate", mutDifferentReplacement, pset=self.cpset)#refresh
 
         self.decorate("mate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
         self.decorate("mutate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
@@ -159,6 +159,7 @@ class BaseLoop(Toolbox):
         self.logbook = logbook
 
         self.hall = HallOfFame(hall)
+
         self.pop = pop
         self.gen = gen
         self.mutate_prob = mutate_prob
@@ -168,67 +169,12 @@ class BaseLoop(Toolbox):
         self.re_hall = re_hall
         self.re_Tree = re_Tree
         self.store = store
+        self.data_all = []
 
-    def run(self):
+    def varAnd(self, *arg, **kwargs):
+        return varAnd(*arg, **kwargs)
 
-        population = [self.PTree(self.genGrow()) for _ in range(self.pop)]
-        data_all = []
-        for gen_i in range(self.gen):
-            # evaluate################################################################
-
-            invalid_ind = [ind for ind in population if not ind.fitness.valid]
-            invalid_ind_score = self.cpset.parallelize_score(invalid_ind)
-
-            for ind, score in zip(invalid_ind, invalid_ind_score):
-                ind.fitness.values = score[0]
-                ind.y_dim = score[1]
-                ind.dim_score = score[2]
-
-            # hall###################################################################
-            if self.re_hall:
-                if self.re_hall == 1:
-                    self.re_hall = 2
-                if self.cal_dim:
-                    inds_dim = self.selKbestDim(population, self.re_hall)
-                else:
-                    inds_dim = self.select(population, self.re_hall)
-            else:
-                inds_dim = []
-
-            if self.hall is not None:
-                self.hall.update(inds_dim)
-            record = self.stats.compile(population) if self.stats else {}
-            self.logbook.record(gen=gen_i, **record)
-            if self.verbose:
-                print(self.logbook.stream)
-            if self.store:
-                datas = [{"gen": gen_i, "name": str(gen_i), "value": str(gen_i.fitness.values),
-                          "dimension": str(gen_i.y_dim),
-                          "target_dim": str(gen_i.dim_score)} for gen_i in population]
-                data_all.extend(datas)
-            # next generation
-            # selection and mutate,mate##############################################
-
-            population = self.select(population, len(population) - len(inds_dim))
-            offspring = varAnd(population, self, self.mate_prob, self.mutate_prob)
-            offspring.extend(inds_dim)
-            population[:] = offspring
-
-            # re_tree################################################################
-            if self.hall.items and self.re_Tree:
-                it = self.hall.items
-                indo = it[random.choice(len(it))]
-                ind = copy.deepcopy(indo)
-                inds = ind.depart()
-                if not inds:
-                    pass
-                else:
-                    inds = [self.cpset.calculate_detail(indi) for indi in inds]
-                    le = min(self.re_Tree, len(inds))
-                    indi = inds[random.choice(le)]
-                    self.cpset.add_tree_to_features(indi)
-                    self.refresh(("gen_mu", "genGrow"), pset=self.cpset)
-
+    def to_csv(self, data_all):
         if self.store:
             if isinstance(self.store, str):
                 path = self.store
@@ -236,7 +182,7 @@ class BaseLoop(Toolbox):
                 path = os.getcwd()
             file_new_name = "_".join((str(self.pop), str(self.gen),
                                       str(self.mutate_prob), str(self.mate_prob),
-                                     str(time.ctime(time.time()))))
+                                      str(time.ctime(time.time()))))
             try:
                 st = Store(path)
                 st.to_csv(data_all, file_new_name)
@@ -246,8 +192,118 @@ class BaseLoop(Toolbox):
                 st.to_csv(data_all, file_new_name)
                 print("store data to ", os.getcwd(), file_new_name)
 
+    def maintain_halls(self, population):
+
+        if self.hall is not None:
+            maxsize = self.hall.maxsize
+            if self.re_hall:
+                maxsize = max(maxsize, self.re_hall, 2)
+            else:
+                maxsize = max(maxsize, 2)
+
+            if self.cal_dim:
+                inds_dim = self.selKbestDim(population, maxsize)
+            else:
+                inds_dim = self.select(population, maxsize)
+
+            self.hall.update(inds_dim)
+        else:
+            inds_dim = []
+
+        return inds_dim
+
+    def re_add_refresh(self, *arr):
+        if self.hall.items and self.re_Tree:
+            it = self.hall.items
+            indo = it[random.choice(len(it))]
+            ind = copy.deepcopy(indo)
+            inds = ind.depart()
+            if not inds:
+                pass
+            else:
+                inds = [self.cpset.calculate_detail(indi) for indi in inds]
+                le = min(self.re_Tree, len(inds))
+                indi = inds[random.choice(le)]
+                self.cpset.add_tree_to_features(indi)
+                re_name = ["mutate", "genGrow"]
+                if len(arr) > 0:
+                    re_name.extend(arr)
+                self.refresh(re_name, pset=self.cpset)
+
+    def run(self):
+        # 1.generate###################################################################
+        population = [self.PTree(self.genGrow()) for _ in range(self.pop)]
+
+        for gen_i in range(self.gen):
+
+            # 2.evaluate###############################################################
+            invalid_ind = [ind for ind in population if not ind.fitness.valid]
+            invalid_ind_score = self.cpset.parallelize_score(invalid_ind)
+
+            for ind, score in zip(invalid_ind, invalid_ind_score):
+                ind.fitness.values = score[0]
+                ind.y_dim = score[1]
+                ind.dim_score = score[2]
+
+            # 3.log###################################################################
+            # 3.1.log-print##############################
+            record = self.stats.compile(population) if self.stats else {}
+            self.logbook.record(gen=gen_i, **record)
+            if self.verbose:
+                print(self.logbook.stream)
+
+            # 3.2.log-store##############################
+            if self.store:
+                datas = [{"gen": gen_i, "name": str(gen_i), "value": str(gen_i.fitness.values),
+                          "dimension": str(gen_i.y_dim),
+                          "target_dim": str(gen_i.dim_score)} for gen_i in population]
+                self.data_all.extend(datas)
+
+            # 3.3.log-hall###############################
+            inds_dim = self.maintain_halls(population)
+
+            # 4.next generation#######################################################
+            # selection and mutate,mate
+            population = self.select(population, len(population) - len(inds_dim))
+            offspring = self.varAnd(population, self, self.mate_prob, self.mutate_prob)
+            offspring.extend(inds_dim)
+            population[:] = offspring
+
+            # 5.re_tree###############################################################
+            if self.re_Tree:
+                self.re_add_refresh()
+
+        if self.store:
+            self.to_csv(self.data_all)
         self.hall.items = [self.cpset.calculate_detail(indi) for indi in self.hall.items]
         return self.hall
+
+
+class MutilMutateLoop(BaseLoop):
+    """add multiply mutate methods to loop"""
+
+    def __init__(self, *args, **kwargs):
+        super(MutilMutateLoop, self).__init__(*args, **kwargs)
+
+        self.register("mutate0", mutNodeReplacement, pset=self.cpset)
+        self.register("mutate1", mutUniform, expr=self.gen_mu, pset=self.cpset)
+        self.register("mutate2", mutShrink, pset=self.cpset)
+        self.register("mutate3", mutDifferentReplacement, pset=self.cpset)
+
+    def varAnd(self, population, toolbox, cxpb, mutpb):
+        names = self.__dict__.keys()
+        import re
+        patt = r'mutate[0-9]'
+        pattern = re.compile(patt)
+        result = [pattern.findall(i) for i in names]
+        att_name = []
+        for i in result:
+            att_name.extend(i)
+
+        self.re_add_refresh(self, att_name)
+
+        fus = [getattr(self, i) for i in att_name]
+        return varAndfus(population, toolbox, cxpb, mutpb, fus)
 
 
 if __name__ == "__main__":
@@ -268,6 +324,7 @@ if __name__ == "__main__":
     c, c_dim = Dim.convert_x(c, c_u)
 
     z = time.time()
+
     # symbolset
     pset0 = SymbolSet()
     pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2], [4, 5]])
@@ -276,8 +333,8 @@ if __name__ == "__main__":
                          categories=("Add", "Mul", "Neg", "Abs"),
                          self_categories=None)
     a = time.time()
-    bl = BaseLoop(pset=pset0, gen=1, pop=400, hall=2, batch_size=40, n_jobs=6,
-                  re_Tree=0, store=True, random_state=3, add_coef=True, cal_dim=True)
+    bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=3, batch_size=40, n_jobs=6, mate_prob=0.5, mutate_prob=0.1,
+                         re_Tree=1, store=True, random_state=4, add_coef=True, cal_dim=True)
     b = time.time()
     bl.run()
     c = time.time()

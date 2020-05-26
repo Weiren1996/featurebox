@@ -53,7 +53,7 @@ class MyTestgp(unittest.TestCase):
         toolbox = Toolbox()
 
         # toolbox.register("select", selTournament, tournsize=3)
-        toolbox.register("select", selKbestDim,  dim_type=dless)
+        toolbox.register("select", selKbestDim, dim_type=dless)
         # selBest
         toolbox.register("mate", cxOnePoint)
         # def mutate
@@ -61,7 +61,7 @@ class MyTestgp(unittest.TestCase):
         # toolbox.register("mutate", mutUniform, expr=toolbox.generate, pset=cpset)
         # toolbox.register("mutate", mutNodeReplacement, pset=cpset)
         toolbox.register("mutate", mutShrink)
-        toolbox.register("mutate",  mutDifferentReplacement,pset=cpset)
+        toolbox.register("mutate", mutDifferentReplacement, pset=cpset)
 
         toolbox.decorate("mate", staticLimit(key=operator.attrgetter("height"), max_value=10))
         toolbox.decorate("mutate", staticLimit(key=operator.attrgetter("height"), max_value=10))
@@ -96,6 +96,7 @@ class MyTestgp(unittest.TestCase):
             d = time.time()
             print("inval", xb - xa, "fuzhi", a - x, "cross_mutate", c - b, "select", b - a, "re", d - c)
             # cpsl.compress()
+
 
 # if __name__ == '__main__':
 #

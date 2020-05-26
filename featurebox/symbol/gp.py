@@ -24,10 +24,26 @@ from operator import attrgetter
 from featurebox.symbol.dim import Dim, dnan
 import numpy as np
 
-
 ######################################
 # Generate                         #
 ######################################
+# from featurebox.tools.tool import logg
+
+
+def checkss(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+
+        pset = kwargs["pset"]
+        for i in result[0].bot():
+            assert i in pset.dispose
+        for i in result[0].top():
+            assert i in pset.primitives + pset.terminals_and_constants
+
+        return result
+
+    return wrapper
 
 
 def generate(pset, min_, max_, condition, *kwargs):
@@ -263,6 +279,8 @@ def staticLimit(key, max_value):
 ######################################
 # mutate                       #
 ######################################
+# @logg
+# @checkss
 def mutUniform(individual, expr, pset):
     """Randomly select a point in the tree *individual*, then replace the
     subtree at that point as a root by the expression generated using method
@@ -284,6 +302,8 @@ def mutUniform(individual, expr, pset):
     return individual,
 
 
+# @logg
+# @checkss
 def mutNodeReplacement(individual, pset):
     """Replaces a randomly chosen primitive from *individual* by a randomly
     chosen primitive with the same number of arguments from the :attr:`pset`
@@ -305,10 +325,11 @@ def mutNodeReplacement(individual, pset):
     node = individual[index]
 
     if index % 2 == 0:
-        prims = [p for p in pset.dispose if p.arity == node.arity]
+        for i in pset.dispose:
+            assert i.arity == 1
+        prims = pset.dispose
         p_d = np.array([pset.prob_dispose[repr(i)] for i in prims], 'float32')
         p_d /= np.sum(p_d)
-
         a = prims[random.choice(len(prims), p=p_d)]
         individual[index] = a
     else:
@@ -330,6 +351,8 @@ def mutNodeReplacement(individual, pset):
     return individual,
 
 
+# @logg
+# @checkss
 def mutDifferentReplacement(individual, pset):
     """Replaces a randomly chosen primitive from *individual* by a randomly
     chosen primitive with the same number of arguments from the :attr:`pset`
@@ -361,7 +384,8 @@ def mutDifferentReplacement(individual, pset):
             for i in np.arange(1, len(individual), 2):
                 if repr(individual[i]) == k:
                     indi.append(i)
-            indexs.append(random.choice(indi))
+            if indi:
+                indexs.append(random.choice(indi))
         if len(indexs) <= len(nks):
             term = random.choice(nks, len(indexs), replace=False, p=p_nks)
         else:
@@ -379,13 +403,17 @@ def mutDifferentReplacement(individual, pset):
     return individual,
 
 
-def mutShrink(individual):
+# @logg
+# @checkss
+def mutShrink(individual, pset=None):
     """This operator shrinks the *individual* by choosing randomly a branch and
     replacing it with one of the branch's arguments (also randomly chosen).
 
     :param individual: The tree to be shrinked.
+    :param pset: SymbolSet.
     :returns: A tuple of one tree.
     """
+    _ = pset
     # We don't want to "shrink" the root
     if len(individual) < 6 or individual.height <= 4:
         return individual,
@@ -398,9 +426,11 @@ def mutShrink(individual):
 
     ter = [i for i in individual[slice_] if i.arity == 0]
     left = random.choice(ter)
+    hat = random.choice(pset.dispose, p=pset.prob_dispose_list)
 
     del individual[slice_]
     individual.insert(index, left)
+    individual.insert(index, hat)
 
     return individual,
 
@@ -628,5 +658,25 @@ def varAnd(population, toolbox, cxpb, mutpb):
         if random.random() < mutpb:
             offspring[i], = toolbox.mutate(offspring[i])
             del offspring[i].fitness.values
+
+    return offspring
+
+
+def varAndfus(population, toolbox, cxpb, mutpb, fus):
+    offspring = copy.deepcopy(population)
+    # Apply crossover and mutation on the offspring
+    for i in range(1, len(offspring), 2):
+        if random.random() < cxpb:
+            offspring[i - 1], offspring[i] = toolbox.mate(offspring[i - 1],
+                                                          offspring[i])
+            del offspring[i - 1].fitness.values, offspring[i].fitness.values
+
+    mutpb /= len(fus)
+
+    for j in fus:
+        for i in range(len(offspring)):
+            if random.random() < mutpb:
+                offspring[i], = j(individual=offspring[i])
+                del offspring[i].fitness.values
 
     return offspring

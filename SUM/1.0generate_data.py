@@ -7,7 +7,7 @@
 # @Software: PyCharm
 import numpy as np
 import pandas as pd
-from pymatgen import Composition
+# from pymatgen import Composition
 
 from featurebox.featurizers.compositionfeaturizer import DepartElementFeaturizer
 from featurebox.tools.exports import Store
@@ -102,8 +102,8 @@ if __name__ == "__main__":
     select_element_table = element_table[feature_select]
 
     """transform composition to pymatgen Composition"""
-    composition = pd.Series(map(eval, com_data['composition']))
-    composition_mp = pd.Series(map(Composition, composition))
+    composition_mp = pd.Series(map(eval, com_data['composition']))
+    # composition_mp = pd.Series(map(Composition, composition))
 
     """get ele_ratio"""
 

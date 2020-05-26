@@ -84,6 +84,7 @@ def parallelize(n_jobs, func, iterable, respective=False, tq=True, batch_size='a
 
     Parameters
     ----------
+    batch_size
     respective:bool
         Import the parameters respectively or as a whole
     tq:bool
@@ -144,19 +145,22 @@ def logg(func, printing=True, back=False):
     @wraps(func)
     def wrapper(*args, **kwargs):
         if inspect.isclass(func):
-            result = func(*args, **kwargs)
             name = "instance of %s" % func.__name__
-            arg_dict = result.__dict__
+            arg_dict = ""
+            if printing:
+                print(name, arg_dict)
+            result = func(*args, **kwargs)
         elif inspect.isfunction(func):
             arg_dict = inspect.getcallargs(func, *args, **kwargs)
             name = func.__name__
+            if printing:
+                print(name, arg_dict)
             result = func(*args, **kwargs)
         else:
             arg_dict = ""
             name = ""
             result = func(*args, **kwargs)
-        if printing:
-            print(name, arg_dict)
+            pass
         if back:
             return (name, arg_dict), result
         else:
