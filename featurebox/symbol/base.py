@@ -20,6 +20,7 @@ from sklearn.utils import check_X_y, check_array
 from featurebox.symbol.dim import dless, dim_map, dnan, Dim
 from featurebox.symbol.function import func_map_dispose, func_map, np_map
 from featurebox.symbol.gp import generate, genGrow, genFull, depart, compile_context
+from featurebox.symbol.preference import PreMap
 from featurebox.symbol.scores import calcualte_dim, calculate_score, calculate_collect
 from featurebox.tools.tool import parallelize
 
@@ -53,7 +54,7 @@ class SymbolTerminal:
         if dim is None:
             dim = dless
         self.value = values
-        self.name = name
+        self.name = str(name)
         self.conv_fct = str
         self.arity = 0
         self.dim = dim
@@ -72,24 +73,21 @@ class SymbolTerminal:
         if self.init_name:
             return self.conv_fct(self.init_name)
         else:
-            return self.conv_fct(self.name.name)
+            return self.conv_fct(self.name)
 
     def __str__(self):
         """represented name"""
         if self.init_name:
             return self.init_name
         else:
-            return self.name.name
+            return self.name
 
     def __repr__(self):
         """represent name"""
-        return self.name.name
+        return self.name
 
     def __eq__(self, other):
-        if type(self) is type(other):
-            return all(getattr(self, slot) == getattr(other, slot) for slot in self.__slots__)
-        else:
-            return NotImplemented
+        return self.name == other.name
 
     def __hash__(self):
         return hash(repr(self))
@@ -140,10 +138,7 @@ class SymbolPrimitive:
     format_long = format  # for function the format for machine and user is the same.
 
     def __eq__(self, other):
-        if type(self) is type(other):
-            return all(getattr(self, slot) == getattr(other, slot) for slot in self.__slots__)
-        else:
-            return NotImplemented
+        return self.name == other.name
 
     def __hash__(self):
         return hash(repr(self))
@@ -193,6 +188,8 @@ class SymbolSet(object):
         # terminals representing name "gx0" to represented name "[x1,x2]",
         # or "Mul(x2,x4)".
         self.terminals_fea_map = {}  # terminals Latex feature name.
+
+        self.premap = PreMap.from_shape(3)
 
     def __repr__(self):
         return self.name
@@ -563,9 +560,12 @@ class SymbolSet(object):
             self.new_num += 1
             Tree.p_name = name
             self._add_terminal(value, name, dim=dim, prob=prob, init_name=init_name)
+
+        self.premap = self.premap.add_new()
         return self
 
-    def add_features(self, X, y, x_dim=1, y_dim=1, prob=None, group=None, feature_name=None, ):
+    def add_features(self, X, y, x_dim=1, y_dim=1, prob=None, group=None,
+                     feature_name=None, ):
 
         """
 
@@ -640,6 +640,8 @@ class SymbolSet(object):
                 if feature_name:
                     self.terminals_fea_map["x%s" % i] = ("x%s" % i, feature_name[i])
 
+        self.premap = PreMap.from_shape(len(self.terminals_and_constants_repr))
+        # re-generate each time.
         return self
 
     def add_constants(self, c, dim=1, prob=None):
@@ -673,7 +675,15 @@ class SymbolSet(object):
         for v, dimi, probi in zip(c, dim, prob):
             self._add_constant(v, name=None, dim=dimi, prob=probi)
 
+        self.premap = PreMap.from_shape(len(self.terminals_and_constants_repr))
+        # re-generate each time.
         return self
+
+    def personal_preference(self, pers):
+        """  personal_preference:list of list
+        [[1,3,0.8],[2.3.0.5]]"""
+        for i in pers:
+            self.premap.down_others(*i)
 
     @property
     def terminalRatio(self):
@@ -935,19 +945,19 @@ class SymbolTree(_ExprTree):
         return ShortStr(self)
 
     @classmethod
-    def generate(cls, pset, min_, max_, condition, *kwargs):
+    def generate(cls, pset, min_, max_, condition, per=False, *kwargs):
         """details in generate function"""
-        return cls(generate(pset, min_, max_, condition, *kwargs))
+        return cls(generate(pset, min_, max_, condition, per=per, *kwargs))
 
     @classmethod
-    def genGrow(cls, pset, min_, max_):
+    def genGrow(cls, pset, min_, max_, per=False, ):
         """details in genGrow function"""
-        return cls(genGrow(pset, min_, max_))
+        return cls(genGrow(pset, min_, max_, per=per))
 
     @classmethod
-    def genFull(cls, pset, min_, max_):
+    def genFull(cls, pset, min_, max_, per=False, ):
         """details in genGrow function"""
-        return cls(genFull(pset, min_, max_))
+        return cls(genFull(pset, min_, max_, per=per, ))
 
 
 class ShortStr:

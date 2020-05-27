@@ -22,7 +22,8 @@ from featurebox.symbol.base import SymbolSet
 from featurebox.symbol.base import SymbolTree
 from featurebox.symbol.dim import dless, Dim
 from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, selKbestDim, \
-    selTournament, Statis_func, mutNodeReplacement, mutUniform, mutDifferentReplacement, mutShrink, varAndfus
+    selTournament, Statis_func, mutNodeReplacement, mutUniform, mutDifferentReplacement, mutShrink, varAndfus, \
+    mutDifferentReplacementVerbose, mutNodeReplacementVerbose
 from featurebox.tools import newclass
 from featurebox.tools.exports import Store
 from featurebox.tools.packbox import Toolbox
@@ -37,7 +38,8 @@ class BaseLoop(Toolbox):
                  add_coef=True, inter_add=True, inner_add=False,
                  cal_dim=True, dim_type=None, fuzzy=False,
                  n_jobs=1, batch_size=40, random_state=None,
-                 stats=None, verbose=True, tq=True, store=True
+                 stats=None, verbose=True, tq=True, store=True,
+                 automap=False
                  ):
         """
 
@@ -65,6 +67,8 @@ class BaseLoop(Toolbox):
         re_Tree: int
             number of new features to add to next generation.
             0 is false to add.
+        automap:False
+            auto learn the premap or else
         scoring: list of Callbale, default is [sklearn.metrics.r2_score,]
             See Also sklearn.metrics
         score_pen: tuple of  1, -1 or float but 0.
@@ -170,6 +174,7 @@ class BaseLoop(Toolbox):
         self.re_Tree = re_Tree
         self.store = store
         self.data_all = []
+        self.automap = automap
 
     def varAnd(self, *arg, **kwargs):
         return varAnd(*arg, **kwargs)
@@ -262,17 +267,22 @@ class BaseLoop(Toolbox):
             # 3.3.log-hall###############################
             inds_dim = self.maintain_halls(population)
 
-            # 4.next generation#######################################################
+            # 4.refresh################################################################
+            # 4.1.re_update the premap ##################
+            if self.automap:
+                [self.cpset.premap.update(indi, self.cpset) for indi in inds_dim]
+
+            # 4.2.re_add_tree and refresh pset###########
+            if self.re_Tree:
+                self.re_add_refresh()
+
+            # 5.next generation#######################################################
             # selection and mutate,mate
             population = self.select(population, len(population) - len(inds_dim))
             offspring = self.varAnd(population, self, self.mate_prob, self.mutate_prob)
             offspring.extend(inds_dim)
             population[:] = offspring
-
-            # 5.re_tree###############################################################
-            if self.re_Tree:
-                self.re_add_refresh()
-
+        # 6.store#####################################################################
         if self.store:
             self.to_csv(self.data_all)
         self.hall.items = [self.cpset.calculate_detail(indi) for indi in self.hall.items]
@@ -306,6 +316,21 @@ class MutilMutateLoop(BaseLoop):
         return varAndfus(population, toolbox, cxpb, mutpb, fus)
 
 
+class PreferenceMapLoop(MutilMutateLoop):
+    """add multiply mutate methods to loop"""
+
+    def __init__(self, *args, **kwargs):
+        super(PreferenceMapLoop, self).__init__(*args, **kwargs)
+        self.automap = True
+        self.register("genGrow", genGrow, pset=self.cpset, min_=2, max_=4, per=self.automap)
+        self.register("gen_mu", genGrow, min_=2, max_=3, per=self.automap)
+
+        self.register("mutate0", mutNodeReplacementVerbose, pset=self.cpset)
+        self.register("mutate1", mutUniform, expr=self.gen_mu, pset=self.cpset)
+        self.register("mutate2", mutShrink, pset=self.cpset)
+        self.register("mutate3", mutDifferentReplacementVerbose, pset=self.cpset)
+
+
 if __name__ == "__main__":
     # data
     data = load_boston()
@@ -333,8 +358,8 @@ if __name__ == "__main__":
                          categories=("Add", "Mul", "Neg", "Abs"),
                          self_categories=None)
     a = time.time()
-    bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=3, batch_size=40, n_jobs=6, mate_prob=0.5, mutate_prob=0.1,
-                         re_Tree=1, store=True, random_state=4, add_coef=True, cal_dim=True)
+    bl = BaseLoop(pset=pset0, gen=10, pop=500, hall=3, batch_size=40, n_jobs=6, mate_prob=0.9, mutate_prob=0.9,
+                  re_Tree=1, store=True, random_state=4, add_coef=True, cal_dim=True)
     b = time.time()
     bl.run()
     c = time.time()

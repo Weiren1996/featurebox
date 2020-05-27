@@ -78,6 +78,8 @@
           <option value="str.*" />
           <option value="featurebox.symbol.flow.BaseLoop.*" />
           <option value="featurebox.symbol.flow.MutimutateLoop.gen_mu" />
+          <option value="featurebox.symbol.flow.MutilMutateLoop.gen_mu" />
+          <option value="featurebox.symbol.flow.PreferenceMap.*" />
         </list>
       </option>
     </inspection_tool>

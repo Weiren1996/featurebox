@@ -23,11 +23,12 @@ from numpy import random
 from operator import attrgetter
 from featurebox.symbol.dim import Dim, dnan
 import numpy as np
-
+# from featurebox.tools.tool import logg
+# from featurebox.tools.tool import logg
 ######################################
 # Generate                         #
 ######################################
-# from featurebox.tools.tool import logg
+
 
 
 def checkss(func):
@@ -46,7 +47,7 @@ def checkss(func):
     return wrapper
 
 
-def generate(pset, min_, max_, condition, *kwargs):
+def generate(pset, min_, max_, condition, per=False, *kwargs):
     """
 
     Parameters
@@ -62,6 +63,7 @@ def generate(pset, min_, max_, condition, *kwargs):
         depth in the tree.
     kwargs: None
         placeholder for future
+    per:bool
 
     Returns
     -------
@@ -76,8 +78,16 @@ def generate(pset, min_, max_, condition, *kwargs):
         depth, type_ = stack.pop()
         if condition(height, depth):
             try:
+                if per:
+                    p_t = pset.premap.get_ind_value(expr, pset)
+                else:
+                    p_t = pset.prob_ter_con_list
+                if p_t is None:
+                    p_t = pset.prob_ter_con_list
+
                 term = pset.terminals_and_constants[random.choice(len(pset.terminals_and_constants),
-                                                                  p=pset.prob_ter_con_list)]
+                                                                  p=p_t)]
+
             except IndexError:
                 _, _, traceback = sys.exc_info()
                 raise IndexError("The symbol.generate function tried to add "
@@ -110,14 +120,16 @@ def generate(pset, min_, max_, condition, *kwargs):
     return re
 
 
-def genGrow(pset, min_, max_):
+def genGrow(pset, min_, max_, per=False, ):
     """Generate an expression where each leaf might have a different depth
     between *min* and *max*.
 
     :param pset: Primitive set from which primitives are selected.
     :param min_: Minimum height of the produced trees.
     :param max_: Maximum Height of the produced trees.
+    :param per: bool
     :returns: A grown tree with leaves at possibly different depths.
+
     """
 
     def condition(height, depth):
@@ -126,7 +138,7 @@ def genGrow(pset, min_, max_):
         """
         return depth == height or (depth >= min_ and random.random() < pset.terminalRatio)
 
-    return generate(pset, min_, max_, condition)
+    return generate(pset, min_, max_, condition, per=per)
 
 
 def compile_(expr, pset):
@@ -203,16 +215,15 @@ def depart(individual):
         return inds
 
 
-def genFull(pset, min_, max_, type_=None):
+def genFull(pset, min_, max_, per=False):
     """Generate an expression where each leaf has the same depth
     between *min* and *max*.
 
     :param pset: Primitive set from which primitives are selected.
     :param min_: Minimum height of the produced trees.
     :param max_: Maximum Height of the produced trees.
-    :param type_: The type that should return the tree when called, when
-                  :obj:`None` (default) the type of :pset: (pset.ret)
-                  is assumed.
+    :param per:
+
     :returns: A full tree with all leaves at the same depth.
     """
 
@@ -220,7 +231,7 @@ def genFull(pset, min_, max_, type_=None):
         """Expression generation stops when the depth is equal to height."""
         return depth == height
 
-    return generate(pset, min_, max_, condition, type_)
+    return generate(pset, min_, max_, condition, per=per)
 
 
 ######################################
@@ -431,6 +442,120 @@ def mutShrink(individual, pset=None):
     del individual[slice_]
     individual.insert(index, left)
     individual.insert(index, hat)
+
+    return individual,
+
+
+# @logg
+# @checkss
+def mutNodeReplacementVerbose(individual, pset):
+    """
+    # choice terminals_and_constants verbose
+    Replaces a randomly chosen primitive from *individual* by a randomly
+    chosen primitive with the same number of arguments from the :attr:`pset`
+    attribute of the individual.
+
+    :param individual: The normal or typed tree to be mutated.
+    :param pset: SymbolSet
+    :returns: A tuple of one tree.
+    """
+
+    if len(individual) < 4:
+        return individual,
+
+    if random.random() <= 0.8:
+        index = random.choice(np.arange(1, len(individual), step=2))
+    else:
+        index = random.choice(np.arange(0, len(individual), step=2))
+
+    node = individual[index]
+
+    if index % 2 == 0:
+        for i in pset.dispose:
+            assert i.arity == 1
+        prims = pset.dispose
+        p_d = np.array([pset.prob_dispose[repr(i)] for i in prims], 'float32')
+        p_d /= np.sum(p_d)
+        a = prims[random.choice(len(prims), p=p_d)]
+        individual[index] = a
+    else:
+
+        if node.arity == 0:  # Terminal
+
+            p_t = pset.premap.get_one_node_value(individual, pset, node=node, site=index)
+            if p_t is None:
+                p_t = pset.prob_ter_con_list
+            term = pset.terminals_and_constants[random.choice(len(pset.terminals_and_constants), p=p_t)]
+            individual[index] = term
+        else:  # Primitive
+            prims = [p for p in pset.primitives if p.arity == node.arity]
+            p_p = np.array([pset.prob_pri[repr(i)] for i in prims], 'float32')
+
+            p_p /= np.sum(p_p)
+            # except:
+            a = prims[random.choice(len(prims), p=p_p)]
+
+            individual[index] = a
+
+    return individual,
+
+
+# @logg
+# @checkss
+def mutDifferentReplacementVerbose(individual, pset):
+    """
+    # choice terminals_and_constants verbose
+    Replaces a randomly chosen primitive from *individual* by a randomly
+    chosen primitive with the same number of arguments from the :attr:`pset`
+    attribute of the individual.
+    decrease the probability of same terminals.
+
+    :param individual: The normal or typed tree to be mutated.
+    :param pset: SymbolSet
+    :returns: A tuple of one tree.
+    """
+    if len(individual) < 4:
+        return individual,
+
+    ters = [repr(i) for i in individual.terminals()]
+    pset_ters = [repr(i) for i in pset.terminals_and_constants]
+
+    cou = Counter(ters)
+    cou_mutil = {i: j for i, j in cou.items() if j >= 2}
+    ks = list(cou_mutil.keys())
+    nks = list(set(pset_ters) - (set(ks)))
+
+    p_nks = np.array([pset.prob_ter_con[i] for i in nks])
+    p_nks /= np.sum(p_nks)
+
+    if cou_mutil:
+        indexs = []
+        for k, v in cou_mutil.items():
+            indi = []
+            for i in np.arange(1, len(individual), 2):
+                if repr(individual[i]) == k:
+                    indi.append(i)
+            if indi:
+                indexs.append(random.choice(indi))
+
+        p_nks_new = pset.premap.get_nodes_value(ind=individual, pset=pset, node=None, site=indexs)
+        if p_nks_new is not None:
+            nks = list(pset.prob_ter_con.keys())
+            p_nks = p_nks_new
+
+        if len(indexs) <= len(nks):
+            term = random.choice(nks, len(indexs), replace=False, p=p_nks)
+        else:
+            term = random.choice(nks, len(indexs), replace=True, p=p_nks)
+
+        term_ters = []
+        for name in term:
+            for i in pset.terminals_and_constants:
+                if repr(i) == name:
+                    term_ters.append(i)
+
+        for o, n in zip(indexs, term_ters):
+            individual[o] = n
 
     return individual,
 
