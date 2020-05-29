@@ -22,7 +22,7 @@ from featurebox.symbol.base import SymbolSet
 from featurebox.symbol.base import SymbolTree
 from featurebox.symbol.dim import dless, Dim
 from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, selKbestDim, \
-    selTournament, Statis_func, mutNodeReplacement, mutUniform, mutDifferentReplacement, mutShrink, varAndfus, \
+    selTournament, Statis_func, mutUniform, mutShrink, varAndfus, \
     mutDifferentReplacementVerbose, mutNodeReplacementVerbose
 from featurebox.tools import newclass
 from featurebox.tools.exports import Store
@@ -33,13 +33,13 @@ class BaseLoop(Toolbox):
     """base loop"""
 
     def __init__(self, pset, pop=500, gen=20, mutate_prob=0.1, mate_prob=0.5,
-                 hall=1, re_hall=0, re_Tree=0, initial_max=3, max_value=10,
+                 hall=1, re_hall=None, re_Tree=None, initial_max=3, max_value=10,
                  scoring=(r2_score,), score_pen=(1,), filter_warning=True,
                  add_coef=True, inter_add=True, inner_add=False,
                  cal_dim=True, dim_type=None, fuzzy=False,
                  n_jobs=1, batch_size=40, random_state=None,
                  stats=None, verbose=True, tq=True, store=True,
-                 automap=False
+                 personal_map=False
                  ):
         """
 
@@ -61,14 +61,16 @@ class BaseLoop(Toolbox):
             max size of expression
         hall:int,>=1
             number of HallOfFame(elite) to maintain
-        re_hall: int
+        re_hall:None, int>=2
             Notes: only vaild when hall
             number of HallOfFame to add to next generation.
         re_Tree: int
             number of new features to add to next generation.
             0 is false to add.
-        automap:False
-            auto learn the premap or else
+        personal_map:bool or "auto"
+            "auto" is using premap and with auto refresh the premap with individual
+            True is just using constant premap
+            False is just use the prob of terminals
         scoring: list of Callbale, default is [sklearn.metrics.r2_score,]
             See Also sklearn.metrics
         score_pen: tuple of  1, -1 or float but 0.
@@ -130,39 +132,6 @@ class BaseLoop(Toolbox):
 
         random.seed(random_state)
         pset.compress()
-        self.cpset = CalculatePrecisionSet(pset, scoring=scoring, score_pen=score_pen,
-                                           filter_warning=filter_warning, cal_dim=cal_dim,
-                                           add_coef=add_coef, inter_add=inter_add, inner_add=inner_add,
-                                           n_jobs=n_jobs, batch_size=batch_size, tq=tq)
-
-        Fitness_ = newclass.create("Fitness_", Fitness, weights=score_pen)
-        self.PTree = newclass.create("PTrees", SymbolTree, fitness=Fitness_)
-        # def produce
-        self.register("genGrow", genGrow, pset=self.cpset, min_=2, max_=initial_max)
-        self.register("gen_mu", genGrow, min_=2, max_=3)
-        # def selection
-
-        self.register("select", selTournament, tournsize=3)
-
-        dim_type = self.cpset.y_dim if not dim_type else dim_type
-        self.register("selKbestDim", selKbestDim, dim_type=dim_type, fuzzy=fuzzy)
-        # selBest
-        self.register("mate", cxOnePoint)
-        # def mutate
-
-        # self.register("mutate", mutNodeReplacement, pset=self.cpset)
-        # self.register("mutate", mutUniform, expr=self.gen_mu, pset=self.cpset)
-        self.register("mutate", mutShrink)
-        # self.register("mutate", mutDifferentReplacement, pset=self.cpset)#refresh
-
-        self.decorate("mate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
-        self.decorate("mutate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
-        self.stats = Statis_func(stats=stats)
-        logbook = Logbook()
-        logbook.header = ['gen'] + (self.stats.fields if self.stats else [])
-        self.logbook = logbook
-
-        self.hall = HallOfFame(hall)
 
         self.pop = pop
         self.gen = gen
@@ -174,7 +143,46 @@ class BaseLoop(Toolbox):
         self.re_Tree = re_Tree
         self.store = store
         self.data_all = []
-        self.automap = automap
+        self.personal_map = personal_map
+
+        self.cpset = CalculatePrecisionSet(pset, scoring=scoring, score_pen=score_pen,
+                                           filter_warning=filter_warning, cal_dim=cal_dim,
+                                           add_coef=add_coef, inter_add=inter_add, inner_add=inner_add,
+                                           n_jobs=n_jobs, batch_size=batch_size, tq=tq)
+
+        Fitness_ = newclass.create("Fitness_", Fitness, weights=score_pen)
+        self.PTree = newclass.create("PTrees", SymbolTree, fitness=Fitness_)
+        # def produce
+        self.register("genGrow", genGrow, pset=self.cpset, min_=2, max_=initial_max, personal_map=self.personal_map)
+        self.register("gen_mu", genGrow, min_=2, max_=3, personal_map=self.personal_map)
+        # def selection
+
+        self.register("select", selTournament, tournsize=3)
+
+        dim_type = self.cpset.y_dim if not dim_type else dim_type
+        self.register("selKbestDim", selKbestDim, dim_type=dim_type, fuzzy=fuzzy)
+        # selBest
+        self.register("mate", cxOnePoint)
+        # def mutate
+
+        self.register("mutate", mutUniform, expr=self.gen_mu, pset=self.cpset)
+
+        self.decorate("mate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
+        self.decorate("mutate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
+        self.stats = Statis_func(stats=stats)
+        logbook = Logbook()
+        logbook.header = ['gen'] + (self.stats.fields if self.stats else [])
+        self.logbook = logbook
+
+        if hall is None:
+            hall = 1
+        self.hall = HallOfFame(hall)
+
+        if re_hall is 1 or re_hall is 0:
+            print("re_hall should more than 1")
+            re_hall = 2
+        assert re_hall >= hall, ("re_hall should more than hall")
+        self.re_hall = HallOfFame(re_hall)
 
     def varAnd(self, *arg, **kwargs):
         return varAnd(*arg, **kwargs)
@@ -198,13 +206,8 @@ class BaseLoop(Toolbox):
                 print("store data to ", os.getcwd(), file_new_name)
 
     def maintain_halls(self, population):
-
-        if self.hall is not None:
-            maxsize = self.hall.maxsize
-            if self.re_hall:
-                maxsize = max(maxsize, self.re_hall, 2)
-            else:
-                maxsize = max(maxsize, 2)
+        if self.re_hall is not None:
+            maxsize = max(self.hall.maxsize, self.re_hall.maxsize)
 
             if self.cal_dim:
                 inds_dim = self.selKbestDim(population, maxsize)
@@ -212,12 +215,16 @@ class BaseLoop(Toolbox):
                 inds_dim = self.select(population, maxsize)
 
             self.hall.update(inds_dim)
+            self.re_hall.update(inds_dim)
+
+            inds_dim += [i for i in self.re_hall.items if i not in inds_dim]
         else:
             inds_dim = []
 
-        return inds_dim
+        inds = copy.deepcopy(inds_dim)
+        return inds
 
-    def re_add_refresh(self, *arr):
+    def re_add(self):
         if self.hall.items and self.re_Tree:
             it = self.hall.items
             indo = it[random.choice(len(it))]
@@ -230,10 +237,12 @@ class BaseLoop(Toolbox):
                 le = min(self.re_Tree, len(inds))
                 indi = inds[random.choice(le)]
                 self.cpset.add_tree_to_features(indi)
-                re_name = ["mutate", "genGrow"]
-                if len(arr) > 0:
-                    re_name.extend(arr)
-                self.refresh(re_name, pset=self.cpset)
+
+    def re_fresh_by_name(self, *arr):
+        re_name = ["mutate", "genGrow"]
+        if len(arr) > 0:
+            re_name.extend(arr)
+        self.refresh(re_name, pset=self.cpset)
 
     def run(self):
         # 1.generate###################################################################
@@ -269,19 +278,20 @@ class BaseLoop(Toolbox):
 
             # 4.refresh################################################################
             # 4.1.re_update the premap ##################
-            if self.automap:
+            if self.personal_map is "auto":
                 [self.cpset.premap.update(indi, self.cpset) for indi in inds_dim]
 
             # 4.2.re_add_tree and refresh pset###########
             if self.re_Tree:
-                self.re_add_refresh()
+                self.re_add()
 
+            self.re_fresh_by_name(self)
             # 5.next generation#######################################################
             # selection and mutate,mate
             population = self.select(population, len(population) - len(inds_dim))
             offspring = self.varAnd(population, self, self.mate_prob, self.mutate_prob)
             offspring.extend(inds_dim)
-            population[:] = offspring
+            population = offspring
         # 6.store#####################################################################
         if self.store:
             self.to_csv(self.data_all)
@@ -295,10 +305,10 @@ class MutilMutateLoop(BaseLoop):
     def __init__(self, *args, **kwargs):
         super(MutilMutateLoop, self).__init__(*args, **kwargs)
 
-        self.register("mutate0", mutNodeReplacement, pset=self.cpset)
+        self.register("mutate0", mutNodeReplacementVerbose, pset=self.cpset, personal_map=self.personal_map)
         self.register("mutate1", mutUniform, expr=self.gen_mu, pset=self.cpset)
         self.register("mutate2", mutShrink, pset=self.cpset)
-        self.register("mutate3", mutDifferentReplacement, pset=self.cpset)
+        self.register("mutate3", mutDifferentReplacementVerbose, pset=self.cpset, personal_map=self.personal_map)
 
     def varAnd(self, population, toolbox, cxpb, mutpb):
         names = self.__dict__.keys()
@@ -310,25 +320,10 @@ class MutilMutateLoop(BaseLoop):
         for i in result:
             att_name.extend(i)
 
-        self.re_add_refresh(self, att_name)
+        self.re_fresh_by_name(self, att_name)
 
         fus = [getattr(self, i) for i in att_name]
         return varAndfus(population, toolbox, cxpb, mutpb, fus)
-
-
-class PreferenceMapLoop(MutilMutateLoop):
-    """add multiply mutate methods to loop"""
-
-    def __init__(self, *args, **kwargs):
-        super(PreferenceMapLoop, self).__init__(*args, **kwargs)
-        self.automap = True
-        self.register("genGrow", genGrow, pset=self.cpset, min_=2, max_=4, per=self.automap)
-        self.register("gen_mu", genGrow, min_=2, max_=3, per=self.automap)
-
-        self.register("mutate0", mutNodeReplacementVerbose, pset=self.cpset)
-        self.register("mutate1", mutUniform, expr=self.gen_mu, pset=self.cpset)
-        self.register("mutate2", mutShrink, pset=self.cpset)
-        self.register("mutate3", mutDifferentReplacementVerbose, pset=self.cpset)
 
 
 if __name__ == "__main__":
@@ -358,8 +353,10 @@ if __name__ == "__main__":
                          categories=("Add", "Mul", "Neg", "Abs"),
                          self_categories=None)
     a = time.time()
-    bl = BaseLoop(pset=pset0, gen=10, pop=500, hall=3, batch_size=40, n_jobs=6, mate_prob=0.9, mutate_prob=0.9,
-                  re_Tree=1, store=True, random_state=4, add_coef=True, cal_dim=True)
+    bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=3, n_jobs=6, mate_prob=0.8,
+                         mutate_prob=0.5,
+                         tq=False,
+                         re_Tree=0, store=True, random_state=4, add_coef=True, cal_dim=True, personal_map="auto")
     b = time.time()
     bl.run()
     c = time.time()

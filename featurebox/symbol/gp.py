@@ -23,12 +23,13 @@ from numpy import random
 from operator import attrgetter
 from featurebox.symbol.dim import Dim, dnan
 import numpy as np
+
+
 # from featurebox.tools.tool import logg
 # from featurebox.tools.tool import logg
 ######################################
 # Generate                         #
 ######################################
-
 
 
 def checkss(func):
@@ -47,7 +48,7 @@ def checkss(func):
     return wrapper
 
 
-def generate(pset, min_, max_, condition, per=False, *kwargs):
+def generate(pset, min_, max_, condition, personal_map=False, *kwargs):
     """
 
     Parameters
@@ -63,7 +64,7 @@ def generate(pset, min_, max_, condition, per=False, *kwargs):
         depth in the tree.
     kwargs: None
         placeholder for future
-    per:bool
+    personal_map:bool
 
     Returns
     -------
@@ -78,7 +79,7 @@ def generate(pset, min_, max_, condition, per=False, *kwargs):
         depth, type_ = stack.pop()
         if condition(height, depth):
             try:
-                if per:
+                if personal_map:
                     p_t = pset.premap.get_ind_value(expr, pset)
                 else:
                     p_t = pset.prob_ter_con_list
@@ -120,14 +121,14 @@ def generate(pset, min_, max_, condition, per=False, *kwargs):
     return re
 
 
-def genGrow(pset, min_, max_, per=False, ):
+def genGrow(pset, min_, max_, personal_map=False, ):
     """Generate an expression where each leaf might have a different depth
     between *min* and *max*.
 
     :param pset: Primitive set from which primitives are selected.
     :param min_: Minimum height of the produced trees.
     :param max_: Maximum Height of the produced trees.
-    :param per: bool
+    :param personal_map: bool
     :returns: A grown tree with leaves at possibly different depths.
 
     """
@@ -138,7 +139,7 @@ def genGrow(pset, min_, max_, per=False, ):
         """
         return depth == height or (depth >= min_ and random.random() < pset.terminalRatio)
 
-    return generate(pset, min_, max_, condition, per=per)
+    return generate(pset, min_, max_, condition, personal_map=personal_map)
 
 
 def compile_(expr, pset):
@@ -215,14 +216,14 @@ def depart(individual):
         return inds
 
 
-def genFull(pset, min_, max_, per=False):
+def genFull(pset, min_, max_, personal_map=False):
     """Generate an expression where each leaf has the same depth
     between *min* and *max*.
 
     :param pset: Primitive set from which primitives are selected.
     :param min_: Minimum height of the produced trees.
     :param max_: Maximum Height of the produced trees.
-    :param per:
+    :param personal_map:
 
     :returns: A full tree with all leaves at the same depth.
     """
@@ -231,7 +232,7 @@ def genFull(pset, min_, max_, per=False):
         """Expression generation stops when the depth is equal to height."""
         return depth == height
 
-    return generate(pset, min_, max_, condition, per=per)
+    return generate(pset, min_, max_, condition, personal_map=personal_map)
 
 
 ######################################
@@ -448,7 +449,7 @@ def mutShrink(individual, pset=None):
 
 # @logg
 # @checkss
-def mutNodeReplacementVerbose(individual, pset):
+def mutNodeReplacementVerbose(individual, pset, personal_map=False):
     """
     # choice terminals_and_constants verbose
     Replaces a randomly chosen primitive from *individual* by a randomly
@@ -457,6 +458,7 @@ def mutNodeReplacementVerbose(individual, pset):
 
     :param individual: The normal or typed tree to be mutated.
     :param pset: SymbolSet
+    :param personal_map: bool
     :returns: A tuple of one tree.
     """
 
@@ -481,9 +483,11 @@ def mutNodeReplacementVerbose(individual, pset):
     else:
 
         if node.arity == 0:  # Terminal
-
-            p_t = pset.premap.get_one_node_value(individual, pset, node=node, site=index)
-            if p_t is None:
+            if personal_map:
+                p_t = pset.premap.get_one_node_value(individual, pset, node=node, site=index)
+                if p_t is None:
+                    p_t = pset.prob_ter_con_list
+            else:
                 p_t = pset.prob_ter_con_list
             term = pset.terminals_and_constants[random.choice(len(pset.terminals_and_constants), p=p_t)]
             individual[index] = term
@@ -502,7 +506,7 @@ def mutNodeReplacementVerbose(individual, pset):
 
 # @logg
 # @checkss
-def mutDifferentReplacementVerbose(individual, pset):
+def mutDifferentReplacementVerbose(individual, pset, personal_map=False):
     """
     # choice terminals_and_constants verbose
     Replaces a randomly chosen primitive from *individual* by a randomly
@@ -512,6 +516,8 @@ def mutDifferentReplacementVerbose(individual, pset):
 
     :param individual: The normal or typed tree to be mutated.
     :param pset: SymbolSet
+    :param personal_map: bool
+
     :returns: A tuple of one tree.
     """
     if len(individual) < 4:
@@ -538,10 +544,11 @@ def mutDifferentReplacementVerbose(individual, pset):
             if indi:
                 indexs.append(random.choice(indi))
 
-        p_nks_new = pset.premap.get_nodes_value(ind=individual, pset=pset, node=None, site=indexs)
-        if p_nks_new is not None:
-            nks = list(pset.prob_ter_con.keys())
-            p_nks = p_nks_new
+        if personal_map:
+            p_nks_new = pset.premap.get_nodes_value(ind=individual, pset=pset, node=None, site=indexs)
+            if p_nks_new is not None:
+                nks = list(pset.prob_ter_con.keys())
+                p_nks = p_nks_new
 
         if len(indexs) <= len(nks):
             term = random.choice(nks, len(indexs), replace=False, p=p_nks)
@@ -660,12 +667,14 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
 
 def Statis_func(stats=None):
     if stats is None:
-        stats = {"fitness": ("max",), "dim_is_traget": ("sum",)}
+        stats = {"fitness_dim_is_target_max": ("max",), "dim_is_traget": ("sum",)}
 
     func = {"max": np.max, "mean": np.mean, "min": np.mean, "std": np.std, "sum": np.sum}
     att = {"fitness": lambda ind: ind.fitness.values[0],
-           "fitness_dim_is_True": lambda ind: ind.fitness.values[0] if ind.y_dim is not dnan else np.nan,
-           "fitness__dim_is_target": lambda ind: ind.fitness.values[0] if ind.dim_score else np.nan,
+           "fitness_dim_is_True_max": lambda ind: ind.fitness.values[0] if ind.y_dim is not dnan else -np.inf,
+           "fitness_dim_is_target_max": lambda ind: ind.fitness.values[0] if ind.dim_score else -np.inf,
+           "fitness_dim_is_True_min": lambda ind: ind.fitness.values[0] if ind.y_dim is not dnan else np.inf,
+           "fitness_dim_is_target_min": lambda ind: ind.fitness.values[0] if ind.dim_score else np.inf,
            "dim_is_True": lambda ind: 1 if ind.y_dim is not dnan else 0,
            "dim_is_traget": lambda ind: 1 if ind.dim_score else 0}
 

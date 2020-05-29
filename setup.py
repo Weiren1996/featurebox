@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='featurebox',
-    version='0.0.83',
+    version='0.0.831',
     keywords=['features', "combination", "selection"],
     description='this is an box contains tools for machine learning.'
                 'Some of code are non-originality, just copy for use. All the referenced code are marked,'

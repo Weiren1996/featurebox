@@ -679,11 +679,36 @@ class SymbolSet(object):
         # re-generate each time.
         return self
 
-    def personal_preference(self, pers):
-        """  personal_preference:list of list
-        [[1,3,0.8],[2.3.0.5]]"""
+    def set_personal_maps(self, pers):
+        """
+        personal preference add to permap. more control can be found by pset.premap.***
+        just set couples of points and don't chang others
+
+        Parameters
+        ----------
+        pers : list of list
+            Examples:
+            [[index1,index2,prob][...]]
+            the prob is [0,1),
+        """
         for i in pers:
-            self.premap.down_others(*i)
+            self.premap.set_sigle_point(*i)
+
+    def bonding_personal_maps(self, pers):
+        """
+        personal preference add to permap. more control can be found by pset.premap.***
+        bond the points with ratio. the others would be penalty.
+        for example set the [1,2,0.9],
+        the others bond such as (1,2),(1,3),(1,4)...(2,3),(2,4)...would be with small prob.
+        Parameters
+        ----------
+        pers : list of list
+            Examples:
+            [[index1,index2,prob][...]]
+            the prob is [0,1), 1 means the force binding.
+        """
+        for i in pers:
+            self.premap.down_other_point(*i)
 
     @property
     def terminalRatio(self):
@@ -947,17 +972,17 @@ class SymbolTree(_ExprTree):
     @classmethod
     def generate(cls, pset, min_, max_, condition, per=False, *kwargs):
         """details in generate function"""
-        return cls(generate(pset, min_, max_, condition, per=per, *kwargs))
+        return cls(generate(pset, min_, max_, condition, automap=per, *kwargs))
 
     @classmethod
     def genGrow(cls, pset, min_, max_, per=False, ):
         """details in genGrow function"""
-        return cls(genGrow(pset, min_, max_, per=per))
+        return cls(genGrow(pset, min_, max_, automap=per))
 
     @classmethod
     def genFull(cls, pset, min_, max_, per=False, ):
         """details in genGrow function"""
-        return cls(genFull(pset, min_, max_, per=per, ))
+        return cls(genFull(pset, min_, max_, automap=per, ))
 
 
 class ShortStr:

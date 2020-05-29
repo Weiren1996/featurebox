@@ -268,6 +268,8 @@ def calcualte_dim(expr01, terminals, dim_list, y_dim, dim_maps=None):
         dim_maps = dim_map()
     func0 = sympy.utilities.lambdify(terminals, expr01, modules=[dim_maps])
     dim_ = func0(*dim_list)
+    if isinstance(dim_, float):
+        dim_ = dless
     if dim_ in y_dim:
         dim_score = 1
     else:
