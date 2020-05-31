@@ -600,7 +600,7 @@ def generate_(pset, min_=None, max_=None):
 
     """
     if max_ is None:
-        max_ = len(pset.terminals)
+        max_ = len(pset.terminals_and_constant)
     if min_ is None:
         min_ = max_
 
@@ -610,7 +610,7 @@ def generate_(pset, min_=None, max_=None):
     max_varibale_set_long = max_
     varibale_set_long = random.randint(min_, max_varibale_set_long)
     '''random'''
-    trem_set = random.sample(pset.terminals, varibale_set_long) * 20
+    trem_set = random.sample(pset.terminals_and_constant, varibale_set_long) * 20
     '''sequence'''
     # trem_set = pset.terminals[:varibale_set_long] * 20
 
@@ -641,7 +641,7 @@ def generate_(pset, min_=None, max_=None):
 
     if definate_variable:
         for i in definate_variable:
-            individual2[i[0]] = pset.terminals[random.choice(i[1])]
+            individual2[i[0]] = pset.terminals_and_constant[random.choice(i[1])]
 
     individual_all = protect_individual + individual1 + individual2
     if linkage:
@@ -791,7 +791,8 @@ def calculateExpr(expr01, pset, x, y, score_method=r2_score, add_coeff=True,
 
     """
     if not terminals:
-        terminals = pset.terminals[object] if isinstance(pset.terminals, defaultdict) else pset.terminals
+        terminals = pset.terminals_and_constant[object] if isinstance(pset.terminals_and_constant,
+                                                                      defaultdict) else pset.terminals_and_constant
         terminals = [_.value for _ in terminals]
     if filter_warning:
         warnings.filterwarnings("ignore")
@@ -958,7 +959,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     if halloffame is not None:
         halloffame.update(population)
     random.seed(random_seed)
-    record = stats.compile(population) if stats else {}
+    record = stats.compile_(population) if stats else {}
     logbook.record(gen=0, nevals=len(invalid_ind), **record)
     if verbose:
         print(logbook.stream)
@@ -1005,7 +1006,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         population[:] = offspring
 
         # Append the current generation statistics to the logbook
-        record = stats.compile(population) if stats else {}
+        record = stats.compile_(population) if stats else {}
         logbook.record(gen=gen, nevals=len(invalid_ind), **record)
         if verbose:
             print(logbook.stream)
@@ -1068,7 +1069,7 @@ def multiEaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     if halloffame is not None:
         halloffame.update(population)
     random.seed(random_seed)
-    record = stats.compile(population) if stats else {}
+    record = stats.compile_(population) if stats else {}
     logbook.record(gen=0, nevals=len(invalid_ind), **record)
     if verbose:
         print(logbook.stream)
@@ -1118,7 +1119,7 @@ def multiEaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         # Replace the current population by the offspring
         population[:] = offspring
         # Append the current generation statistics to the logbook
-        record = stats.compile(population) if stats else {}
+        record = stats.compile_(population) if stats else {}
         logbook.record(gen=gen, nevals=len(invalid_ind), **record)
         if verbose:
             print(logbook.stream)
@@ -1244,10 +1245,10 @@ def generate(pset, min_, max_, condition, type_=None):
         depth, type_ = stack.pop()
         if condition(height, depth):
             try:
-                term = random.choice(pset.terminals[type_])
+                term = random.choice(pset.terminals_and_constant[type_])
             except IndexError:
                 _, _, traceback = sys.exc_info()
-                raise IndexError("The gp.generate function tried to add " \
+                raise IndexError("The symbol.generate function tried to add " \
                                  "a terminal of type '%s', but there is " \
                                  "none available." % (type_,)).with_traceback(traceback)
             if isclass(term):
@@ -1258,7 +1259,7 @@ def generate(pset, min_, max_, condition, type_=None):
                 prim = random.choice(pset.primitives[type_])
             except IndexError:
                 _, _, traceback = sys.exc_info()
-                raise IndexError("The gp.generate function tried to add " \
+                raise IndexError("The symbol.generate function tried to add " \
                                  "a primitive of type '%s', but there is " \
                                  "none available." % (type_,)).with_traceback(traceback)
             expr.append(prim)
@@ -1352,8 +1353,8 @@ def genGrow(pset, min_, max_, type_=None):
 
 def genHalfAndHalf(pset, min_, max_, type_=None):
     """Generate an expression with a PrimitiveSet *pset*.
-    Half the time, the expression is generated with :func:`~deap.gp.genGrow`,
-    the other half, the expression is generated with :func:`~deap.gp.genFull`.
+    Half the time, the expression is generated with :func:`~deap.symbol.genGrow`,
+    the other half, the expression is generated with :func:`~deap.symbol.genFull`.
 
     :param pset: Primitive set from which primitives are selected.
     :param min_: Minimum height of the produced trees.
@@ -1382,7 +1383,7 @@ def mutNodeReplacement(individual, pset):
     node = individual[index]
 
     if node.arity == 0:  # Terminal
-        term = random.choice(pset.terminals[node.ret])
+        term = random.choice(pset.terminals_and_constant[node.ret])
         if isclass(term):
             term = term()
         individual[index] = term

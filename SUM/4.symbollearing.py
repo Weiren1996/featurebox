@@ -91,7 +91,7 @@ from featurebox.tools.tool import name_to_name
 #     result = mainPart(X, y, pset, pop_n=500, random_seed=1, cxpb=0.8, mutpb=0.6, ngen=20, tournsize=3, max_value=10,
 #                       double=False, score=[r2_score, custom_loss_func], target_dim=target_dim)
 
-#5
+# 5
 if __name__ == '__main__':
     import pandas as pd
 

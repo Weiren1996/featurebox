@@ -21,6 +21,23 @@
     <inspection_tool class="PyMethodOverridingInspection" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="PyMissingConstructorInspection" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="PyMissingTypeHintsInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="2">
+            <item index="0" class="java.lang.String" itemvalue="pymatgen" />
+            <item index="1" class="java.lang.String" itemvalue="deap" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8Inspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="E731" />
+        </list>
+      </option>
+    </inspection_tool>
     <inspection_tool class="PyPep8NamingInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="ignoredErrors">
         <list>
@@ -51,6 +68,18 @@
           <option value="tuple.spines" />
           <option value="tuple.text" />
           <option value="tuple.*" />
+          <option value="list.pop" />
+          <option value="typing.Iterable.append" />
+          <option value="object.astype" />
+          <option value="list.extend" />
+          <option value="typing.Iterable.__add__" />
+          <option value="featurebox.symbol.base.CalculatePrecisionSet.*" />
+          <option value="featurebox.tools.packbox.Toolbox.*" />
+          <option value="str.*" />
+          <option value="featurebox.symbol.flow.BaseLoop.*" />
+          <option value="featurebox.symbol.flow.MutimutateLoop.gen_mu" />
+          <option value="featurebox.symbol.flow.MutilMutateLoop.gen_mu" />
+          <option value="featurebox.symbol.flow.PreferenceMap.*" />
         </list>
       </option>
     </inspection_tool>

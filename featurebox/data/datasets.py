@@ -310,7 +310,7 @@ if __name__ == "__main__":
     sample = 5000
 
     camdata = CAMData(15, 15, random_state=1, question="reg", inter=False, re_range=(-0.5, 1))
-    data = camdata.gen_data(featurize_x=True)
+    data = camdata.gen_data(featurize_x=False)
     x = data.x
     y = data.y
     x = x.astype(np.float32)

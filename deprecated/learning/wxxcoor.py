@@ -14,7 +14,7 @@ from featurebox.tools.tool import name_to_name
 data = pd.read_excel(r'C:\Users\Administrator\Desktop\wxx\41.xlsx')
 cov = data.corr()
 cov = cov.fillna(0)
-cov.iloc[2,2]=1
+cov.iloc[2, 2] = 1
 # cov = pd.DataFrame(corr.cov_shrink)
 # cov = cov.set_axis(X_frame_abbr, axis='index', inplace=False)
 # cov = cov.set_axis(X_frame_abbr, axis='columns', inplace=False)
@@ -23,10 +23,9 @@ fig.add_subplot(111)
 
 cmap = plt.get_cmap("gnuplot")  # args
 
-
-sns.heatmap(cov, linewidths=0.3, xticklabels=True, yticklabels=True, square=True,fmt=".1g",vmin=-1, vmax=1,cmap=cmap,cbar=False,linecolor="lightgrey",
-             annot=True, annot_kws={'size': 5})
-
+sns.heatmap(cov, linewidths=0.3, xticklabels=True, yticklabels=True, square=True, fmt=".1g", vmin=-1, vmax=1, cmap=cmap,
+            cbar=False, linecolor="lightgrey",
+            annot=True, annot_kws={'size': 5})
 
 ax = plt.axes()
 # cbar.set_ylabel(np.linspace(-1, 1, 10))

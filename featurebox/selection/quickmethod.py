@@ -315,9 +315,9 @@ def dict_me(me="clf"):
 
 def method_pack(method_all, me="reg", gd=True):
     if not method_all:
-        method_all = ['KNR-set', 'SVR-set', "KRR-set","GPR-set",
-                      "RFR-em","AdaBR-em","DTR-em",
-                      "LASSO-L1","BRR-L1","SGDR-L1","PAR-L1"]
+        method_all = ['KNR-set', 'SVR-set', "KRR-set", "GPR-set",
+                      "RFR-em", "AdaBR-em", "DTR-em",
+                      "LASSO-L1", "BRR-L1", "SGDR-L1", "PAR-L1"]
     dict_method = dict_me(me=me)
 
     print(dict_method.keys())
@@ -340,7 +340,7 @@ def method_pack(method_all, me="reg", gd=True):
                 scoring2 = 'balanced_accuracy'
             if me == "reg":
                 scoring2 = 'r2'
-            gd2=partial(cross_val_score,estimator=me2,cv=cv2,scoring=scoring2)
+            gd2 = partial(cross_val_score, estimator=me2, cv=cv2, scoring=scoring2)
             # gd2 = cross_val_score(me2, cv=cv2, scoring=scoring2)
             estimator.append(gd2)
         return estimator
@@ -379,7 +379,6 @@ def pack_score(y_test_true_all, y_test_predict_all, scoring):
         score = np.sqrt(score)
     score_mean = np.mean(score)
     return score_mean
-
 
 # def my_score(gd_method, train_X, test_X, train_Y, test_Y):
 #     # train_X, test_X = my_pca(train_X, test_X, 0.9)

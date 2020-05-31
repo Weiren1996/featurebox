@@ -154,6 +154,7 @@ def calculateExpr(expr01, x, y, terminals, scoring=None, add_coeff=True,
     -------
 
     """
+
     def split_x(x):
         if x.ndim == 1:
             return [x]
@@ -292,12 +293,11 @@ def calculatePrecision(individual, pset, x, y, scoring=None, add_coeff=True, fil
         dim = dnan
         withdim = 0
 
-    elif isinstance(dim,Dim) and not dim.anyisnan:
+    elif isinstance(dim, Dim) and not dim.anyisnan:
         withdim = 1
     else:
         dim = dnan
         withdim = 0
-
 
     return score, expr, dim, withdim
 
@@ -347,6 +347,7 @@ def varAnd(population, toolbox, cxpb, mutpb):
             offspring[i], = toolbox.mutate(offspring[i])
             del offspring[i].fitness.values
     return offspring
+
 
 # def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
 #              halloffame=None, verbose=__debug__, pset=None, store=True):
@@ -499,7 +500,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         for ind, fit, in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit[0],
             ind.expr = fit[1]
-            ind.dim = fit[2]
+            ind.y_dim = fit[2]
             ind.withdim = fit[3]
         random.setstate(rst)
 
@@ -524,13 +525,13 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
                                                    "score": i.fitness.values[0],
                                                    "expr": str(subp(i.expr)),
                                                    "with_dim": 1 if i.withdim else 0,
-                                                   "dim_is_target_dim": 1 if i.dim in target_dim else 0,
+                                                   "dim_is_target_dim": 1 if i.y_dim in target_dim else 0,
                                                    "gen_dim": "{}{}".format(gen, 1 if i.withdim else 0),
                                                    "gen_target_dim": "{}{}".format(gen,
-                                                                                   1 if i.dim in target_dim else 0),
+                                                                                   1 if i.y_dim in target_dim else 0),
                                                    "socre_dim": i.fitness.values[0] if i.withdim else 0,
                                                    "socre_target_dim": i.fitness.values[
-                                                       0] if i.dim in target_dim else 0,
+                                                       0] if i.y_dim in target_dim else 0,
                                                    } for n, i in enumerate(population) if i is not None}
             data_all.update(data)
         random.setstate(rst)
@@ -548,7 +549,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         rst = random.getstate()
         """Dynamic output"""
 
-        record = stats.compile(population) if stats else {}
+        record = stats.compile_(population) if stats else {}
         logbook.record(gen=gen, pop=len(population), **record)
 
         if verbose:
@@ -556,7 +557,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         random.setstate(rst)
 
         """crossover, mutate"""
-        offspring = toolbox.select_gs(population, len_pop-elite_size)
+        offspring = toolbox.select_gs(population, len_pop - elite_size)
         # Vary the pool of individuals
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
 
@@ -650,21 +651,21 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False):
     if dim_type is None:
         add_ind = [ind for ind in chosen if ind.withdim == 1]
     elif dim_type is 'integer':
-        add_ind = [ind for ind in chosen if ind.dim.isinteger]
+        add_ind = [ind for ind in chosen if ind.y_dim.isinteger]
     elif dim_type is 'ignore':
         add_ind = chosen
     elif isinstance(dim_type, list):
-        add_ind = [ind for ind in chosen if ind.dim in dim_type]
+        add_ind = [ind for ind in chosen if ind.y_dim in dim_type]
     elif isinstance(dim_type, Dim):
         if fuzzy:
-            add_ind = [ind for ind in chosen if ind.dim.is_same_base(dim_type)]
+            add_ind = [ind for ind in chosen if ind.y_dim.is_same_base(dim_type)]
         else:
-            add_ind = [ind for ind in chosen if ind.dim == dim_type]
+            add_ind = [ind for ind in chosen if ind.y_dim == dim_type]
     else:
         raise TypeError("dim_type should be None, 'integer', special Dim or list of Dim")
     if K_best is None:
         try:
-            K_best = round(len(add_ind)/10)
+            K_best = round(len(add_ind) / 10)
         except:
             K_best = 0
     if len(add_ind) >= round(K_best):

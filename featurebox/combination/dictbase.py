@@ -507,7 +507,7 @@ def generate_index(pset, min_=None, max_=None):
 
     """
     if max_ is None:
-        max_ = len(pset.terminals)
+        max_ = len(pset.terminals_and_constant)
     _ = min_
     min_ = max_
 
@@ -517,7 +517,7 @@ def generate_index(pset, min_=None, max_=None):
     max_varibale_set_long = max_
     varibale_set_long = random.randint(min_, max_varibale_set_long)
     '''random'''
-    trem_set = random.sample(pset.terminals, varibale_set_long) * 20
+    trem_set = random.sample(pset.terminals_and_constant, varibale_set_long) * 20
     '''sequence'''
     # trem_set = pset.terminals[:varibale_set_long] * 20
 
@@ -548,7 +548,7 @@ def generate_index(pset, min_=None, max_=None):
 
     if definate_variable:
         for i in definate_variable:
-            individual2[i[0]] = pset.terminals[random.choice(i[1])]
+            individual2[i[0]] = pset.terminals_and_constant[random.choice(i[1])]
 
     individual_all = protect_individual + individual1 + individual2
     if linkage:

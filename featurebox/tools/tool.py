@@ -14,7 +14,7 @@ import inspect
 import numbers
 import random
 import time
-from collections import Iterable
+from collections.abc import Iterable
 from functools import partial, wraps
 
 import numpy as np
@@ -76,14 +76,15 @@ def check_random_state(seed):
                      ' instance' % seed)
 
 
-def parallelize(n_jobs, func, iterable, respective=False, tq=True, **kwargs):
+def parallelize(n_jobs, func, iterable, respective=False, tq=True, batch_size='auto', **kwargs):
     """
-    Parallize the function for iterable.
+    parallelize the function for iterable.
 
     make sure in if __name__ == "__main__":
 
     Parameters
     ----------
+    batch_size
     respective:bool
         Import the parameters respectively or as a whole
     tq:bool
@@ -109,7 +110,7 @@ def parallelize(n_jobs, func, iterable, respective=False, tq=True, **kwargs):
     if effective_n_jobs(n_jobs) == 1:
         parallel, func = list, func
     else:
-        parallel = Parallel(n_jobs=n_jobs)
+        parallel = Parallel(n_jobs=n_jobs, batch_size=batch_size)
         func = delayed(func)
     if tq:
         if respective:
@@ -118,9 +119,9 @@ def parallelize(n_jobs, func, iterable, respective=False, tq=True, **kwargs):
             return parallel(func(iter_i) for iter_i in tqdm(iterable))
     else:
         if respective:
-            return parallel(func(*iter_i) for iter_i in tqdm(iterable))
+            return parallel(func(*iter_i) for iter_i in iterable)
         else:
-            return parallel(func(iter_i) for iter_i in tqdm(iterable))
+            return parallel(func(iter_i) for iter_i in iterable)
 
 
 def logg(func, printing=True, back=False):
@@ -144,19 +145,22 @@ def logg(func, printing=True, back=False):
     @wraps(func)
     def wrapper(*args, **kwargs):
         if inspect.isclass(func):
-            result = func(*args, **kwargs)
             name = "instance of %s" % func.__name__
-            arg_dict = result.__dict__
+            arg_dict = ""
+            if printing:
+                print(name, arg_dict)
+            result = func(*args, **kwargs)
         elif inspect.isfunction(func):
             arg_dict = inspect.getcallargs(func, *args, **kwargs)
             name = func.__name__
+            if printing:
+                print(name, arg_dict)
             result = func(*args, **kwargs)
         else:
             arg_dict = ""
             name = ""
             result = func(*args, **kwargs)
-        if printing:
-            print(name, arg_dict)
+            pass
         if back:
             return (name, arg_dict), result
         else:

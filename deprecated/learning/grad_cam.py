@@ -151,7 +151,7 @@ class FeatureExtractor():
             x = module(x)  # 累计计算新图片，每一层顺序叠加
             if name in self.target_layers:
                 x.register_hook(self.save_gradient)  # 保留 target层的梯度
-                outputs += [x]#添加
+                outputs += [x]  # 添加
         return outputs, x  # 获取多少层输出列表output，以及及最后输出x
 
 
@@ -166,7 +166,7 @@ class ModelOutputs():
         self.feature_extractor = FeatureExtractor(self.model.features, target_layers)
 
     def get_gradients(self):
-        return self.feature_extractor.gradients #梯度列表
+        return self.feature_extractor.gradients  # 梯度列表
 
     def __call__(self, x):
         target_activations, output = self.feature_extractor(x)  # 分类层之前的目标层
@@ -197,7 +197,7 @@ class GradCam:
         if index == None:
             index = np.argmax(output.cpu().data.numpy())  # 最终目标
 
-        #看index影响的部分，其他置0
+        # 看index影响的部分，其他置0
         one_hot = np.zeros((1, output.size()[-1]), dtype=np.float32)
         one_hot[0][index] = 1
         one_hot = torch.from_numpy(one_hot).requires_grad_(True)
@@ -313,7 +313,6 @@ def show_cam_on_image(img, mask):
     imshow(cam)
 
 
-
 def preprocess_image(img):
     means = [0.485, 0.456, 0.406]
     stds = [0.229, 0.224, 0.225]
@@ -361,7 +360,6 @@ if __name__ == '__main__':
     # import gc
     # gc.collect()
 
-
     gb_model = GuidedBackpropReLUModel(model=models.vgg19(pretrained=True), use_cuda=False)
     #
     gb = gb_model(input0, index=target_index)
@@ -375,12 +373,8 @@ if __name__ == '__main__':
     # #
     cam_gb = np.multiply(cam_mask, gb)
 
-
-    imsave('cam_gb.jpg',cam_gb)
-
+    imsave('cam_gb.jpg', cam_gb)
 
     # del gb_model
     # import gc
     # gc.collect()
-
-

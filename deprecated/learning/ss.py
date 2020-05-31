@@ -9,7 +9,7 @@ from sklearn.linear_model import Lasso, LassoCV, LogisticRegression
 from sklearn.model_selection import GridSearchCV, cross_val_score
 from sklearn.pipeline import Pipeline
 
-#管道
+# 管道
 # pca = PCA(n_components=10)
 # SKB = SelectKBest(f_regression, k=5)
 # clf = svm.SVC(kernel='linear')
@@ -27,11 +27,10 @@ from sklearn.svm import LinearSVC
 from tqdm import tqdm
 
 
-def exhausted(x,n_select=(2,3,4)):
-
+def exhausted(x, n_select=(2, 3, 4)):
     n_feature = x.shape[-1]
     n_feature_list = list(range(n_feature))
-    slice_all=[]
+    slice_all = []
 
     for i in n_select:
         slice_all.extend(list(combinations(n_feature_list, i)))
@@ -39,9 +38,9 @@ def exhausted(x,n_select=(2,3,4)):
     return slice_all
 
 
-def score_exhausted(X,y,n_select=(2, 3, 4),store=True,model=None,gd=False,para_grid=None):
+def score_exhausted(X, y, n_select=(2, 3, 4), store=True, model=None, gd=False, para_grid=None):
     a = exhausted(X, n_select=n_select)
-    dict_re={}
+    dict_re = {}
 
     if model is None:
         las = LogisticRegression(solver='lbfgs')
@@ -49,25 +48,26 @@ def score_exhausted(X,y,n_select=(2, 3, 4),store=True,model=None,gd=False,para_g
         las = model
 
     for j, i in enumerate(tqdm(a)):
-        x=X[:,i]
+        x = X[:, i]
         if gd is True:
             assert para_grid
             gd = GridSearchCV(las, param_grid=para_grid, cv=5)
             gd.fit(x, y)
             score = gd.best_score_
         else:
-            score = cross_val_score(las,x,y,scoring='accuracy',cv=5).mean()
+            score = cross_val_score(las, x, y, scoring='accuracy', cv=5).mean()
 
-        dict_re["%s"%j] = [i,score]
+        dict_re["%s" % j] = [i, score]
     if store:
         import pandas as pd
         d = pd.DataFrame(dict_re).T
         d.to_csv("dict_re.csv")
     return dict_re
 
+
 # import warnings
 # warnings.filterwarnings("ignore")
 
 
 X, y = make_classification(n_informative=5, n_redundant=0, random_state=42)
-dict_re = score_exhausted(X,y,n_select=(2, 3),store=True, model=LinearSVC(),gd=True,para_grid={"C":[1,10,20]})
+dict_re = score_exhausted(X, y, n_select=(2, 3), store=True, model=LinearSVC(), gd=True, para_grid={"C": [1, 10, 20]})

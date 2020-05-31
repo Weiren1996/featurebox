@@ -98,10 +98,10 @@ if __name__ == "__main__":
     X_frame_abbr = name_to_name(name_init, abbr_init, search=select, search_which=1, return_which=2,
                                 two_layer=False)
 
-    select = ['cell volume', 'electron density',] + [j + "_%i" % i for j in select[2:] for i in range(2)]
+    select = ['cell volume', 'electron density', ] + [j + "_%i" % i for j in select[2:] for i in range(2)]
 
     corr = Corr(threshold=0.90, muti_grade=2, muti_index=[2, len(X)])
-    corr.fit(X_frame[select].values,method="mean", pre_cal="mic",alpha=0.55, c=15)
+    corr.fit(X_frame[select].values, method="mean", pre_cal="mic", alpha=0.55, c=15)
     # cof_mic = corr.count_cof()
     cof_mic = corr.cov_shrink
     cov = pd.DataFrame(corr.cov_shrink)

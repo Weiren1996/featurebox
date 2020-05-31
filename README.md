@@ -40,8 +40,23 @@ pip install deap
 ```
 Reference:https://github.com/DEAP/deap
 
+3. **minepy** recommend:
+```bash
+pip install minepy
+```
+Note:
+
+If VC++ needed for **windows**, please download from
+https://www.lfd.uci.edu/~gohlke/pythonlibs/ and install locally.
+
+Reference:https://minepy.readthedocs.io/en/latest/index.html
+
+
 Install
 ----------------------
 ```bash
 pip install featurebox
 ```
+License
+----------------------
+GUN

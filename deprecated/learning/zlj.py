@@ -8,6 +8,7 @@ from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
 from sklearn import svm
 import warnings
+
 warnings.filterwarnings("ignore")
 
 # 数据导入
@@ -65,6 +66,7 @@ y_ = ba.estimator_.predict(x[:, ba.support_])
 
 all_import["y_predict"] = y_
 
+
 # 画图
 
 def scatter(y_true, y_predict, strx='y_true', stry='y_predict'):
@@ -81,7 +83,7 @@ scatter(ytest, y_pre_test, strx='y_test(GWh)', stry='y_predict(Gwh)')
 scatter(ytrain, y_pre_train, strx='y_train(GWh)', stry='y_predict(GWh)')
 
 
-def scatter2(x, y_true, y_predict, strx='y_true', stry1='y_true(GWh)', stry2='y_predict',stry="y"):
+def scatter2(x, y_true, y_predict, strx='y_true', stry1='y_true(GWh)', stry2='y_predict', stry="y"):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     l1 = ax.scatter(x, y_true, marker='o', s=50, alpha=0.7, c='orange', linewidths=None, edgecolors='blue')
@@ -97,11 +99,10 @@ def scatter2(x, y_true, y_predict, strx='y_true', stry1='y_true(GWh)', stry2='y_
 
 
 a = np.arange(1, 185)
-scatter2(np.arange(1, 185), y[::-1], y_[::-1], strx='month',stry="y(Gwh)", stry1='y_true(GWh)', stry2='y_predict(GWh)')
-
+scatter2(np.arange(1, 185), y[::-1], y_[::-1], strx='month', stry="y(Gwh)", stry1='y_true(GWh)', stry2='y_predict(GWh)')
 
 # #导出
 
-store.to_pkl_sk(ba.estimator_,"model")
-store.to_csv(all_import,"predict")
+store.to_pkl_sk(ba.estimator_, "model")
+store.to_csv(all_import, "predict")
 print(all_import.iloc[:, 1:-1].columns.values[ba.support_])

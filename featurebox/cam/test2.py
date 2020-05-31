@@ -150,6 +150,6 @@ if __name__ == "__main__":
     xp = showsite(t_x, feature, 7)
     imshow(xp)
 
-    cam=cam.squeeze(0).numpy().transpose(1, 2, 0)
+    cam = cam.squeeze(0).numpy().transpose(1, 2, 0)
     cam = np.repeat(cam, 3, axis=2)
     imshow(cam)
