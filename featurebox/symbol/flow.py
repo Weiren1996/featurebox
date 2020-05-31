@@ -343,21 +343,21 @@ if __name__ == "__main__":
     y, y_dim = Dim.convert_xi(y, y_u)
     c, c_dim = Dim.convert_x(c, c_u)
 
-    z = time.time()
-
-    # symbolset
-    pset0 = SymbolSet()
-    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2], [4, 5]])
-    pset0.add_constants(c, dim=c_dim, prob=None)
-    pset0.add_operations(power_categories=(2, 3, 0.5),
-                         categories=("Add", "Mul", "Neg", "Abs"),
-                         self_categories=None)
-    a = time.time()
-    bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=3, n_jobs=6, mate_prob=0.8,
-                         mutate_prob=0.5,
-                         tq=False,
-                         re_Tree=0, store=True, random_state=4, add_coef=True, cal_dim=True, personal_map="auto")
-    b = time.time()
-    bl.run()
-    c = time.time()
-    print(c - b, b - a, a - z)
+    # z = time.time()
+    #
+    # # symbolset
+    # pset0 = SymbolSet()
+    # pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2], [4, 5]])
+    # pset0.add_constants(c, dim=c_dim, prob=None)
+    # pset0.add_operations(power_categories=(2, 3, 0.5),
+    #                      categories=("Add", "Mul", "Neg", "Abs"),
+    #                      self_categories=None)
+    # a = time.time()
+    # bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=3, n_jobs=6, mate_prob=0.8,
+    #                      mutate_prob=0.5,
+    #                      tq=False,
+    #                      re_Tree=0, store=True, random_state=4, add_coef=True, cal_dim=True, personal_map="auto")
+    # b = time.time()
+    # bl.run()
+    # c = time.time()
+    # print(c - b, b - a, a - z)
