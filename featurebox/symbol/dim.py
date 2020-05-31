@@ -273,75 +273,63 @@ class Dim(numeric.ndarray):
             return dnan  #
 
     @staticmethod
-    def _get_conversion_matrix_for_expr(expr, target_units, dimsys_default=None):
+    def _get_conversion_matrix_for_expr(expr, target_units, unit_system):
         from sympy import Matrix
-        if not dimsys_default:
-            from sympy.physics.units.dimensions import dimsys_default
 
-        expr_dim = Dimension(Quantity.get_dimensional_expr(expr))
-        dim_dependencies = dimsys_default.get_dimensional_dependencies(expr_dim, mark_dimensionless=True)
-        target_dims = [Dimension(Quantity.get_dimensional_expr(x)) for x in target_units]
+        dimension_system = unit_system.get_dimension_system()
 
-        canon_dim_units = {i for x in target_dims for i in
-                           dimsys_default.get_dimensional_dependencies(x, mark_dimensionless=True)}
+        expr_dim = Dimension(unit_system.get_dimensional_expr(expr))
+        dim_dependencies = dimension_system.get_dimensional_dependencies(expr_dim, mark_dimensionless=True)
+        target_dims = [Dimension(unit_system.get_dimensional_expr(x)) for x in target_units]
+        canon_dim_units = [i for x in target_dims for i in
+                           dimension_system.get_dimensional_dependencies(x, mark_dimensionless=True)]
         canon_expr_units = {i for i in dim_dependencies}
 
-        if not canon_expr_units.issubset(canon_dim_units):
-            return None
+        if not canon_expr_units.issubset(set(canon_dim_units)):
+            raise TypeError("There is an invalid character in '%s'" % expr,
+                            "the expr must be sympy.physics.unit or number")
 
-        canon_dim_units = sorted(canon_dim_units)
+        seen = set([])
+        canon_dim_units = [i for i in canon_dim_units if not (i in seen or seen.add(i))]
 
         camat = Matrix(
-            [[dimsys_default.get_dimensional_dependencies(i, mark_dimensionless=True).get(j, 0) for i in target_dims]
+            [[dimension_system.get_dimensional_dependencies(i, mark_dimensionless=True).get(j, 0) for i in target_dims]
              for j in canon_dim_units])
         exprmat = Matrix([dim_dependencies.get(k, 0) for k in canon_dim_units])
 
         res_exponents = camat.solve_least_squares(exprmat, method=None)
+
         return res_exponents, canon_dim_units
 
     @classmethod
-    def convert_to(cls, expr, target_units, unit_system):
+    def convert_to(cls, expr, target_units=None, unit_system="SI"):
 
-        from sympy.physics.units.systems.mks import MKS, _mks_dim
-        from sympy.physics.units.systems.mksa import MKSA, _mksa_dim
-        from sympy.physics.units.systems.natural import _natural_dim, natural
-        from sympy.physics.units.systems.si import SI, _si_dim
-
-        if unit_system == "SI":
-            unit_system, dimsys = SI, _si_dim
-        elif unit_system == "MKSA":
-            unit_system, dimsys = MKSA, _mksa_dim
-        elif unit_system == "MKS":
-            unit_system, dimsys = MKS, _mks_dim
-        elif unit_system == "natural":
-            unit_system, dimsys = natural, _natural_dim
-        else:
-            raise NameError('only,"SI","MKSA","MKS","natural" is definition')
-
+        from sympy.physics.units import UnitSystem
+        unit_system = UnitSystem.get_unit_system(unit_system)
         if not target_units:
             target_units = unit_system._base_units
+
         if not isinstance(target_units, (Iterable, Tuple)):
             target_units = [target_units]
 
         if isinstance(expr, Add):
-            return Add.fromiter(cls.convert_to(i, target_units) for i in expr.args)
+            raise TypeError("can not be add")
 
         expr = sympify(expr)
 
         if not isinstance(expr, Quantity) and expr.has(Quantity):
-            expr = expr.replace(lambda x: isinstance(x, Quantity), lambda x: x.convert_to(target_units))
+            expr = expr.replace(lambda x: isinstance(x, Quantity), lambda x: x.convert_to(target_units, unit_system))
 
-        def get_total_scale_factor(expr):
-            if isinstance(expr, Mul):
-                return reduce(lambda x, y: x * y, [get_total_scale_factor(i) for i in expr.args])
-            elif isinstance(expr, Pow):
-                return get_total_scale_factor(expr.base) ** expr.exp
-            elif isinstance(expr, Quantity):
-                return expr.scale_factor
-            return expr
+        def get_total_scale_factor(expr0):
+            if isinstance(expr0, Mul):
+                return reduce(lambda x, y: x * y, [get_total_scale_factor(i) for i in expr0.args])
+            elif isinstance(expr0, Pow):
+                return get_total_scale_factor(expr0.base) ** expr0.exp
+            elif isinstance(expr0, Quantity):
+                return unit_system.get_quantity_scale_factor(expr0)
+            return expr0
 
-        depmat, canon_dim_units = cls._get_conversion_matrix_for_expr(expr, target_units, dimsys)
-
+        depmat, canon_dim_units = cls._get_conversion_matrix_for_expr(expr, target_units, unit_system)
         if depmat is None:
             raise TypeError("There is an invalid character in '%s'" % expr,
                             "the expr must be sympy.physics.unit or number")
@@ -446,24 +434,11 @@ class Dim(numeric.ndarray):
         scale: float
         expr: Expr
         """
-        from sympy.physics.units.systems.mks import MKS, _mks_dim
-        from sympy.physics.units.systems.mksa import MKSA, _mksa_dim
-        from sympy.physics.units.systems.natural import _natural_dim, natural
-        from sympy.physics.units.systems.si import SI, _si_dim
-
-        if unit_system == "SI":
-            unit_system, dimsys = SI, _si_dim
-        elif unit_system == "MKSA":
-            unit_system, dimsys = MKSA, _mksa_dim
-        elif unit_system == "MKS":
-            unit_system, dimsys = MKS, _mks_dim
-        elif unit_system == "natural":
-            unit_system, dimsys = natural, _natural_dim
-        else:
-            raise NameError('only,"SI","MKSA","MKS","natural" is definition')
-
+        from sympy.physics.units import UnitSystem
+        unit_system = UnitSystem.get_unit_system(unit_system)
         if not target_units:
             target_units = unit_system._base_units
+
         if not isinstance(target_units, (Iterable, Tuple)):
             target_units = [target_units]
 
