@@ -108,7 +108,7 @@ class BaseLoop(Toolbox):
             values = {"max": np.max, "mean": np.mean, "min": np.mean, "std": np.std, "sum": np.sum}
             keys = {"fitness": lambda ind: ind.fitness.values[0],
                    "fitness_dim_is_True": lambda ind: ind.fitness.values[0] if ind.y_dim is not dnan else np.nan,
-                   "fitness__dim_is_target": lambda ind: ind.fitness.values[0] if ind.dim_score else np.nan,
+                   "fitness_dim_is_target": lambda ind: ind.fitness.values[0] if ind.dim_score else np.nan,
                    "dim_is_True": lambda ind: 1 if ind.y_dim is not dnan else 0,
                    "dim_is_traget": lambda ind: 1 if ind.dim_score else 0}
             if stats is None:
