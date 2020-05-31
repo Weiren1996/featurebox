@@ -80,15 +80,14 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
 
 
 def generate_xi():
-    return np.random.randint(0,2)
+    return np.random.randint(0, 2)
 
 
 def generate(space):
     return [generate_xi() for i in range(space)]
 
 
-
-def GA(x,y,fit_func, pop_n=1000, hof_n=1, cxpb=0.6, mutpb=0.3, ngen=40, max_or_min="max", mut_indpb=0.05):
+def GA(x, y, fit_func, pop_n=1000, hof_n=1, cxpb=0.6, mutpb=0.3, ngen=40, max_or_min="max", mut_indpb=0.05):
     x_space = x.shape[1]
     if max_or_min == "max":
         creator.create("FitnessMax", base.Fitness, weights=(1.0,))
@@ -105,9 +104,9 @@ def GA(x,y,fit_func, pop_n=1000, hof_n=1, cxpb=0.6, mutpb=0.3, ngen=40, max_or_m
                      toolbox.generate_x)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-    toolbox.register("evaluate", fit_func,x=x,y=y)
+    toolbox.register("evaluate", fit_func, x=x, y=y)
     toolbox.register("mate", tools.cxTwoPoint)
-    toolbox.register("mutate", mutShuffleIndexes,indpb=mut_indpb)
+    toolbox.register("mutate", mutShuffleIndexes, indpb=mut_indpb)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
     stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -130,17 +129,19 @@ if __name__ == "__main__":
     y = data.target
     svr = SVR(gamma="scale")
 
-    def fitn(ind,x,y):
-        index = np.where(np.array(ind )== 1)[0]
+
+    def fitn(ind, x, y):
+        index = np.where(np.array(ind) == 1)[0]
         x = x[:, index]
-        if x.shape[1]>1:
+        if x.shape[1] > 1:
 
             svr = SVR(gamma="scale")
-            svr.fit(x,y)
-            sc = svr.score(x,y)
+            svr.fit(x, y)
+            sc = svr.score(x, y)
 
             return sc,
         else:
             return 0,
 
-    best = GA(x,y, fitn, pop_n=500, hof_n=1, cxpb=0.8, mutpb=0.4, ngen=10, max_or_min="max", mut_indpb=0.1)
+
+    best = GA(x, y, fitn, pop_n=500, hof_n=1, cxpb=0.8, mutpb=0.4, ngen=10, max_or_min="max", mut_indpb=0.1)

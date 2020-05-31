@@ -154,6 +154,7 @@ def calculateExpr(expr01, x, y, terminals, scoring=None, add_coeff=True,
     -------
 
     """
+
     def split_x(x):
         if x.ndim == 1:
             return [x]
@@ -287,12 +288,11 @@ def calculatePrecision(individual, pset, x, y, scoring=None, add_coeff=True, fil
         dim = dnan
         withdim = 0
 
-    elif isinstance(dim,Dim) and not dim.anyisnan:
+    elif isinstance(dim, Dim) and not dim.anyisnan:
         withdim = 1
     else:
         dim = dnan
         withdim = 0
-
 
     return score, expr, dim, withdim
 
@@ -342,6 +342,7 @@ def varAnd(population, toolbox, cxpb, mutpb):
             offspring[i], = toolbox.mutate(offspring[i])
             del offspring[i].fitness.values
     return offspring
+
 
 # def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
 #              halloffame=None, verbose=__debug__, pset=None, store=True):
@@ -551,7 +552,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         random.setstate(rst)
 
         """crossover, mutate"""
-        offspring = toolbox.select_gs(population, len_pop-elite_size)
+        offspring = toolbox.select_gs(population, len_pop - elite_size)
         # Vary the pool of individuals
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
 
@@ -659,7 +660,7 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False):
         raise TypeError("dim_type should be None, 'integer', special Dim or list of Dim")
     if K_best is None:
         try:
-            K_best = round(len(add_ind)/10)
+            K_best = round(len(add_ind) / 10)
         except:
             K_best = 0
     if len(add_ind) >= round(K_best):

@@ -1,6 +1,5 @@
-
 from statistics import mode, mean
-import torch.nn. functional as F
+import torch.nn.functional as F
 import torch
 
 from featurebox.cam.fig import normalize, visualize
@@ -192,7 +191,7 @@ class GradCRM(CAM):
         return cam, idx
 
     def __call__(self, x, idx):
-        return self.forward(x,idx)
+        return self.forward(x, idx)
 
     def getGradCAM(self, values, score, idx):
         '''
@@ -250,8 +249,8 @@ class GradCRMpp(CAM):
 
         return cam, idx
 
-    def __call__(self, x,idx):
-        return self.forward(x,idx)
+    def __call__(self, x, idx):
+        return self.forward(x, idx)
 
     def getGradCAMpp(self, values, score, idx):
         '''
@@ -455,7 +454,6 @@ class SmoothGradCAMpp(CAM):
 
     def __call__(self, x):
         return self.forward(x)
-
 
 # if __name__=="__main__":
 #

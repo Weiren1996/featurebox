@@ -112,7 +112,7 @@ if __name__ == "__main__":
     t_y = t_y.to(torch.float32)
 
     # ToDo parameter
-    cov = [8, 16,32]
+    cov = [8, 16, 32]
     dense1 = int(cov[-1] * (size / (2 ** len(cov))) ** 2)
     model = vgg_self(cov, batch_norm=True, dense1=dense1, dense2=128, dense3=64, out=41)
 

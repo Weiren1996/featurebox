@@ -530,4 +530,3 @@ if __name__ == "__main__":
     def func(k):
         ss = k[1] * k[0]
         return ss
-

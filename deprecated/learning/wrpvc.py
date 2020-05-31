@@ -20,7 +20,6 @@ y = data["t"].values
 x_p_name = ['t_t', 'v', 'b', 'hat', 'd']
 x = data[x_p_name].values
 
-
 # # # 预处理
 minmax = MinMaxScaler()
 x = minmax.fit_transform(x)
@@ -35,10 +34,10 @@ methods = method_pack(method_all=method_all,
 pre_y = []
 ests = []
 for name, methodi in zip(method_all, methods):
-    if name in ['SVR-set',  "LASSO-L1", "BRR-L1"]:
+    if name in ['SVR-set', "LASSO-L1", "BRR-L1"]:
         cv = LeaveOneOut()
     else:
-        cv=5
+        cv = 5
     methodi.cv = cv
     methodi.scoring = "neg_root_mean_squared_error"
     gd = methodi.fit(X=x, y=y)

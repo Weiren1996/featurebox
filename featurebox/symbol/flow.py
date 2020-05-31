@@ -74,8 +74,8 @@ class BaseLoop(Toolbox):
         scoring: list of Callbale, default is [sklearn.metrics.r2_score,]
             See Also sklearn.metrics
         score_pen: tuple of  1, -1 or float but 0.
-            >0 : best is positive, worse -np.inf
-            <0 : best is negative, worse np.inf
+            >0 : max problem, best is positive, worse -np.inf
+            <0 : min problem, best is negative, worse np.inf
             Notes:
             if multiply score method, the scores must be turn to same dimension in preprocessing
             or weight by score_pen. Because the all the selection are stand on the mean(w_i*score_i)

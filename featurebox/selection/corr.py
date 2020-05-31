@@ -39,7 +39,7 @@ class Corr(MutiBase):
         self.shrink_list = []
 
     @staticmethod
-    def MIC_matirx(dataframe,alpha=0.6, c=15):
+    def MIC_matirx(dataframe, alpha=0.6, c=15):
 
         from minepy import MINE
         mine = MINE(alpha=alpha, c=c)
@@ -55,10 +55,10 @@ class Corr(MutiBase):
         RT = result
         return RT
 
-    def fit(self, data, pre_cal=None, method="mean",alpha=0.6, c=15):
+    def fit(self, data, pre_cal=None, method="mean", alpha=0.6, c=15):
         if pre_cal is None:
 
-            cov = np.corrcoef(data, rowvar=False,)
+            cov = np.corrcoef(data, rowvar=False, )
         elif pre_cal is "mic":
             cov = self.MIC_matirx(data, alpha=alpha, c=c)
 
@@ -207,7 +207,6 @@ if __name__ == "__main__":
     co = Corr(threshold=0.7)
     c = co.count_cof(np.corrcoef(x, rowvar=False))[1]
 
-
     # pandas as pd
     # import matplotlib.pyplot as plt
     # import numpy as np
@@ -247,4 +246,3 @@ if __name__ == "__main__":
     # data_wine_mic = MIC_matirx(
     #     np.array([[1, 2, 3, 4, 5, 1, 5, 2, 1, 4], [2, 3, 4, 1, 2, 1, 3, 1, 6, 1], [6, 4, 5, 3, 4, 1, 4, 1, 6, 2]]).T,
     #     mine)
-

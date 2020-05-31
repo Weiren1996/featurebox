@@ -40,7 +40,7 @@ if __name__ == "__main__":
               'charge nuclear effective(slater)', 'valence electron number', 'electronegativity(martynov&batsanov)',
               'volume atomic(villars,daams)']
 
-    select = ['cell volume', 'electron density',] + [j + "_%i" % i for j in select[2:] for i in range(2)]
+    select = ['cell volume', 'electron density', ] + [j + "_%i" % i for j in select[2:] for i in range(2)]
     data225_import = data_import.iloc[np.where(data_import['group_number'] == 225)[0]]
 
     X_frame = data225_import[select]

@@ -58,6 +58,7 @@ if __name__ == "__main__":
                      ])
         return dims
 
+
     name_and_abbr = get_abbr()
     dims = get_dim()
 
@@ -141,14 +142,15 @@ if __name__ == "__main__":
 
     """sub density to e density"""
     select2 = ['electron number_0', 'electron number_1', 'cell volume']
-    x_rame = (all_import_title['electron number_0'] + all_import_title['electron number_1']) / all_import_title['cell volume']
+    x_rame = (all_import_title['electron number_0'] + all_import_title['electron number_1']) / all_import_title[
+        'cell volume']
     all_import_title['cell density'] = x_rame
     all_import_title.rename(columns={'cell density': "electron density"}, inplace=True)
 
     name = ["electron density" if i == "cell density" else i for i in name_and_abbr[0]]
     abbr = [r"$\rho_e$" if i == r"$\rho_c$" else i for i in name_and_abbr[1]]
     name_and_abbr = [name, abbr]
-    dims[-3]=np.array([0, -3, 0, 0, 0, 0, 0])
+    dims[-3] = np.array([0, -3, 0, 0, 0, 0, 0])
 
     store.to_csv(all_import_title, "all_import_title")
     all_import = all_import_title.drop(

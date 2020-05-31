@@ -81,7 +81,7 @@ class Store(object):
             self._file_list.remove(self._filename)
         self._file_list.append(self._filename)
 
-    def to_csv(self, data, file_new_name=None, model="w",reverse=True):
+    def to_csv(self, data, file_new_name=None, model="w", reverse=True):
 
         self._check_name("csv", file_new_name, model=model)
         if isinstance(data, (dict, list)):

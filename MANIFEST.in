@@ -4,3 +4,4 @@ include LICENSE
 recursive-include SUM *
 include featurebox/data/*.xlsx
 include img.jpg
+include symbol.pdf

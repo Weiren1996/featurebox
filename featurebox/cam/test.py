@@ -6,7 +6,7 @@ from featurebox.cam.fig import normalize, trans_to_numpy, visualize
 from featurebox.data.datasets import CAMData
 import numpy as np
 import torch
-from  skimage import io
+from skimage import io
 from matplotlib.pyplot import imshow
 from torchvision import models, transforms
 import os
@@ -52,7 +52,7 @@ class VGG(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
     sample = 100
     torch.set_default_tensor_type(torch.FloatTensor)
@@ -62,18 +62,17 @@ if __name__=="__main__":
     y = data.y
     x = x.astype(np.float32)
     y = y.astype(np.float32)
-    x = x[np.newaxis,:,:,:]
+    x = x[np.newaxis, :, :, :]
     x = np.repeat(x, 3, axis=0)
 
-    x = x.transpose((3,0,1,2))
+    x = x.transpose((3, 0, 1, 2))
 
     t_x = torch.from_numpy(x)
     t_y = torch.from_numpy(y)
     x1 = trans_to_numpy(t_x[3])
     # image = io.imshow(x1)
 
-
-    #Max池化层,conv2d3kernel  输出通道,
+    # Max池化层,conv2d3kernel  输出通道,
     cfgs = {
         'A': [64, 'M', 128, 256],
     }
@@ -86,12 +85,11 @@ if __name__=="__main__":
         return model
 
 
-    model=vgg_self(cfg="A", batch_norm=False)
+    model = vgg_self(cfg="A", batch_norm=False)
     target_layer = model.features[-1]
     opitmizer = torch.optim.SGD(model.parameters(), lr=0.03)
     loss_fun = nn.MSELoss()
     for i in range(10):
-
         predict = model(t_x)
         # print(predict)
         loss = loss_fun(predict, t_y)
@@ -113,7 +111,7 @@ if __name__=="__main__":
     # wrapped_model = SmoothGradCAMpp(model, target_layer, n_samples=5, stdev_spread=0.15)
     # In [8]:
     tensor = t_x[5].unsqueeze(0)
-    cam, idx = wrapped_model(tensor,idx=5)
+    cam, idx = wrapped_model(tensor, idx=5)
 
     # # visualize only cam
     imshow(cam.squeeze().numpy(), alpha=0.5, cmap='jet')
