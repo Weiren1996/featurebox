@@ -221,7 +221,12 @@ def calculateExpr(expr01, x, y, terminals, scoring=None, add_coeff=True,
             pass
 
         func0 = sympy.utilities.lambdify(terminals, expr01)
-        re = func0(*split_x(x))
+        try :
+            re = func0(*split_x(x))
+        except:
+            print(expr01)
+        sp = split_x(x)
+        re = func0(*sp)
         re = re.ravel()
         assert y.shape == re.shape
         # assert_all_finite(re)

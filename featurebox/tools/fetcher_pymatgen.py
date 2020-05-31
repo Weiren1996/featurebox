@@ -44,14 +44,14 @@ def data_fetcher(api_key, mp_ids, elasticity=True):
         'formation_energy_per_atom',
         'final_energy_per_atom',
         'unit_cell_formula',
-        'spacegroup'
+        'spacegroup',
         'nelements'
     ]
     if elasticity:
         mp_props.append("elasticity")
 
     entries = []
-    mpid_groups = [g for g in grouper(mp_ids, 10)]
+    mpid_groups = [g for g in grouper(mp_ids, 20)]
 
     with MPRester(api_key) as mpr:
         for group in tqdm(mpid_groups):
@@ -69,6 +69,7 @@ def data_fetcher(api_key, mp_ids, elasticity=True):
     df = df.rename(columns={'unit_cell_formula': 'composition'})
     # df = df['volume_per'] = df['volume']/df['nelements']
     df = df.reindex(columns=sorted(df.columns))
+    df = df.T
 
     return df
 
@@ -109,10 +110,10 @@ def get_ids(api_key="Di2IZMunaeR8vr9w", name_list=None):
     m = MPRester(api_key)
     ids = m.query(criteria={
         # 'pretty_formula': {"$in": name_list},
-        'nelements': {"$lt": 3},
+        'nelements': {"$lt": 5,"$gt": 3},
         # 'spacegroup.number': {"$in": [225]},
-        # 'nsites': {"$lt": 5},
-        # 'formation_energy_per_atom': {"$lt": 0},
+        'nsites': {"$lt": 20},
+        'formation_energy_per_atom': {"$lt": 0},
         # "elements": {"$in": ["Al", "Co", "Cr", "Cu", "Fe", 'Ni'], "$all": "O"},
         # "elements": {"$in": list(combinations(["Al", "Co", "Cr", "Cu", "Fe", 'Ni'], 5))}
     }, properties=["material_id"])
@@ -132,7 +133,7 @@ if __name__ == "__main__":
          'BP', 'GaP', 'InP', 'GaSb', 'InSb', 'CuCl', 'HgS', 'CuI', 'MnTe', 'AgI', 'ZnS', 'ZnSe', 'ZnO', 'AlN', 'GaN',
          'MgTe', 'BeO', 'BN', 'InN', 'SiC', 'MnS'])
     idss = get_ids(api_key="Di2IZMunaeR8vr9w", name_list=list1)
-    idss1 = [i['material_id'] for i in idss][:30]
-    dff = data_fetcher("Di2IZMunaeR8vr9w", idss1, elasticity=True)
+    idss1 = [i['material_id'] for i in idss]
+    dff = data_fetcher("Di2IZMunaeR8vr9w", idss1, elasticity=False)
     st = Store(r"C:\Users\Administrator\Desktop")
     st.to_csv(dff, "id_structure")

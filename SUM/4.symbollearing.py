@@ -128,10 +128,10 @@ if __name__ == '__main__':
 
     target_dim = [Dim([1, 2, -2, 0, 0, 0, 0])]
     dim_list = [dim1, dim2, dim3, dim4]
-
+    #GP
     # pset = ExpressionSetFill(x_name=select, power_categories=[2, 3], categories=("Add", "Mul", "exp"),
     #                          partial_categories=None, self_categories=None, dim=dim_list)
-
+    #GEP
     pset = FixedSetFill(x_name=select_abbr, power_categories=[1 / 3, 1 / 2, 2, 3],
                         categories=('Add', 'Sub', 'Mul', 'Div', "Rec", 'exp', "log", "Self", "Abs", "Neg", "Rem"),
                         partial_categories=None, self_categories=None, dim=dim_list, max_=4,
