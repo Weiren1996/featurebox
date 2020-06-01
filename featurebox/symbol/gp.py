@@ -111,9 +111,12 @@ def generate(pset, min_, max_, condition, personal_map=False, *kwargs):
 
     dispose = list(random.choice(pset.dispose, len(expr), p=pset.prob_dispose_list))
 
-    for i in pset.dispose:
-        if i.name == "MAdd":
-            dispose[0] = i
+    add_ = [i for i in pset.dispose if i.name == "MAdd"]
+    mul_ = [i for i in pset.dispose if i.name == "MMul"]
+    add_.extend(mul_)
+
+    dispose[0] = random.choice(add_, p=[0.8, 0.2])
+
     re = []
     for i, j in zip(dispose, expr):
         re.extend((i, j))

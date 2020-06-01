@@ -16,7 +16,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
 
     name='featurebox',
-    version='0.0.8327',
+    version='0.0.8329',
     keywords=['features', "combination", "selection"],
     description='this is an box contains tools for machine learning.'
                 'Some of code are non-originality, just copy for use. All the referenced code are marked,'
@@ -44,7 +44,8 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
 
-    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests", "tests", 'deprecated', "SUM"], ),
+    packages=find_packages(
+        exclude=["*.tests", "*.tests.*", "tests.*", "tests", "tests", 'deprecated', "SUM", "Instance"], ),
     long_description=long_description,
     long_description_content_type='text/markdown'
 )

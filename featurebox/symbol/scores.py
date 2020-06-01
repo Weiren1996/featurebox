@@ -165,7 +165,7 @@ def calculate_y(expr01, x, y, terminals, add_coef=True,
         assert y.shape == re.shape
         pre_y = check_array(re, ensure_2d=False)
 
-    except (DataConversionWarning, AssertionError, ValueError, AttributeError):
+    except (DataConversionWarning, AssertionError, ValueError, AttributeError, KeyError):
         pre_y = None
 
     return pre_y, expr01

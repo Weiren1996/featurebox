@@ -336,38 +336,42 @@ class MutilMutateLoop(BaseLoop):
         return varAndfus(population, toolbox, cxpb, mutpb, fus)
 
 
-if __name__ == "__main__":
-    # data
-    data = load_boston()
-    x = data["data"]
-    y = data["target"]
-    c = [6, 3, 4]
-    # unit
-    from sympy.physics.units import kg
-
-    x_u = [kg] * 13
-    y_u = kg
-    c_u = [dless, dless, dless]
-
-    x, x_dim = Dim.convert_x(x, x_u, target_units=None, unit_system="SI")
-    y, y_dim = Dim.convert_xi(y, y_u)
-    c, c_dim = Dim.convert_x(c, c_u)
-
-    z = time.time()
-
-    # symbolset
-    pset0 = SymbolSet()
-    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2], [4, 5]])
-    pset0.add_constants(c, dim=c_dim, prob=None)
-    pset0.add_operations(power_categories=(2, 3, 0.5),
-                         categories=("Add", "Mul", "Neg", "Abs"),
-                         self_categories=None)
-    a = time.time()
-    bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=3, n_jobs=6, mate_prob=0.8,
-                         mutate_prob=0.5,
-                         tq=False,
-                         re_Tree=0, store=True, random_state=4, add_coef=True, cal_dim=True, personal_map="auto")
-    b = time.time()
-    bl.run()
-    c = time.time()
-    print(c - b, b - a, a - z)
+# if __name__ == "__main__":
+#     # data
+#     data = load_boston()
+#     x = data["data"]
+#     y = data["target"]
+#     c = [6, 3, 4]
+#     # unit
+#     from sympy.physics.units import kg
+#
+#     x_u = [kg] * 13
+#     y_u = kg
+#     c_u = [dless, dless, dless]
+#
+#     x, x_dim = Dim.convert_x(x, x_u, target_units=None, unit_system="SI")
+#     y, y_dim = Dim.convert_xi(y, y_u)
+#     c, c_dim = Dim.convert_x(c, c_u)
+#
+#     z = time.time()
+#
+#     # symbolset
+#     pset0 = SymbolSet()
+#     pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+#     pset0.add_constants(c, dim=c_dim, prob=None)
+#     pset0.add_operations(power_categories=(2, 3, 0.5),
+#                          categories=("Add", "Mul", "Sub", "Div", "exp"),
+#                          self_categories=None)
+#
+#     # a = time.time()
+#     bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=3,
+#                          n_jobs=6, mate_prob=0.8, max_value=5,
+#                          mutate_prob=0.5, tq=True,
+#                          re_Tree=0, store=True, random_state=4,
+#                          add_coef=True, cal_dim=True, personal_map="auto")
+#     # b = time.time()
+#     bl.run()
+#     # c = time.time()
+#     # print(c - b, b - a, a - z)
+#
+#     population = [bl.PTree(bl.genGrow()) for _ in range(bl.pop)]
