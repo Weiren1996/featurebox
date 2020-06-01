@@ -66,6 +66,12 @@ def dim_map():
         else:
             return dless
 
+    def my_conv(dim):
+        if isinstance(dim, Dim):
+            return dim
+        else:
+            return dless
+
     def my_flat(dim):
         if isinstance(dim, Dim):
             if dim.ndim == 1:
@@ -101,7 +107,7 @@ def dim_map():
 
     my_funcs = {"Abs": my_abs, "exp": my_exp, "log": my_log, 'cos': my_cos, 'sin': my_sin,
                 'sqrt': my_sqrt, "MAdd": my_flat, "MMul": my_comp, "MSub": my_diff,
-                "MDiv": my_quot, "Self": my_self}
+                "MDiv": my_quot, "Self": my_self, "Conv": my_conv}
     return my_funcs
 
 

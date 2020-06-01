@@ -502,23 +502,27 @@ class SymbolSet(object):
             return pp
 
         if not categories:
-            categories = ["Self", "MAdd", "MSub", "MMul", "MDiv"]
+            categories = ["Self", "MAdd", "MSub", "MMul", "MDiv", "Conv"]
         if isinstance(categories, str):
             categories = [categories, ]
 
         for i in categories:
 
             if categories_prob is "balance":
-                prob1 = 1 / len([_ for _ in categories_prob if _ not in ("Self", 'Flat', "MSub", "MMul", "MDiv")])
+                prob1 = 1 / len(
+                    [_ for _ in categories_prob if _ not in ("Self", 'Flat', "MSub", "MMul", "MDiv", "Conv")])
             elif isinstance(categories_prob, float):
                 prob1 = categories_prob
             else:
                 raise TypeError("categories_prob accept int from (0,1] or 'balance'.")
 
             if i is "Self":
-                p = change(i, 0.8)
+                p = change(i, 0.75)
                 self._add_dispose(func_map_dispose()[i], arity=1, name=i, prob=p)
             elif i in ("MAdd", "MSub", "MMul", "MDiv"):
+                p = change(i, 0.05)
+                self._add_dispose(func_map_dispose()[i], arity=1, name=i, prob=p)
+            elif i in ("Conv"):
                 p = change(i, 0.05)
                 self._add_dispose(func_map_dispose()[i], arity=1, name=i, prob=p)
             else:

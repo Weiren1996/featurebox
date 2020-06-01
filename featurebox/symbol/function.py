@@ -54,7 +54,7 @@ def func_map():
 def func_map_dispose():
     """user's str to sympy.expr function"""
     return {"MAdd": Function("MAdd"), "MMul": Function("MMul"), "MSub": Function("MSub"),
-            "MDiv": Function("MDiv"), "Self": lambda x_: x_}
+            "MDiv": Function("MDiv"), "Self": lambda x_: x_, "Conv": Function("Conv")}
 
 
 def np_map():
@@ -102,4 +102,17 @@ def np_map():
         else:
             return x
 
-    return {"MAdd": Flat, "MMul": Comp, "MSub": Diff, "MDiv": Quot, "Self": lambda x_: x_}
+    def Conv(x):
+        if isinstance(x, np.ndarray):
+            if x.ndim == 2:
+                if x.shape[0] == 2:
+                    return np.array((x[1], x[0]))
+                else:
+                    return x
+            else:
+                return x
+        else:
+            return x
+
+    return {"MAdd": Flat, "MMul": Comp, "MSub": Diff, "MDiv": Quot, "Conv": Conv,
+            "Self": lambda x_: x_}
