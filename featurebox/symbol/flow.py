@@ -365,7 +365,7 @@ if __name__ == "__main__":
 
     # a = time.time()
     bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=3,
-                         n_jobs=6, mate_prob=0.8, max_value=5,
+                         n_jobs=1, mate_prob=0.8, max_value=5,
                          mutate_prob=0.5, tq=True,
                          re_Tree=0, store=True, random_state=4,
                          add_coef=True, cal_dim=True, personal_map="auto")
@@ -374,4 +374,4 @@ if __name__ == "__main__":
     # c = time.time()
     # print(c - b, b - a, a - z)
 #
-    # population = [bl.PTree(bl.genGrow()) for _ in range(bl.pop)]
+    population = [bl.PTree(bl.genGrow()) for _ in range(bl.pop)]

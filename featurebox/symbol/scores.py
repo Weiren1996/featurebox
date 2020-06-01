@@ -20,7 +20,7 @@ from sklearn.exceptions import DataConversionWarning
 from sklearn.metrics import r2_score
 from sklearn.utils import check_array
 
-from featurebox.symbol.dim import dim_map, dless
+from featurebox.symbol.dim import dim_map, dless, dnan
 from featurebox.symbol.function import np_map
 from featurebox.symbol.gp import compile_context
 
@@ -267,7 +267,10 @@ def calcualte_dim(expr01, terminals, dim_list, y_dim, dim_maps=None):
     if not dim_maps:
         dim_maps = dim_map()
     func0 = sympy.utilities.lambdify(terminals, expr01, modules=[dim_maps])
-    dim_ = func0(*dim_list)
+    try:
+        dim_ = func0(*dim_list)
+    except ValueError:
+        dim_ = dnan
     if isinstance(dim_, float):
         dim_ = dless
     if dim_ in y_dim:
