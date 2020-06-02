@@ -391,6 +391,7 @@ def mutDifferentReplacement(individual, pset):
     cou_mutil = {i: j for i, j in cou.items() if j >= 2}
     ks = list(cou_mutil.keys())
     nks = list(set(pset_ters) - (set(ks)))
+    nks.sort()  # very import for random
 
     p_nks = np.array([pset.prob_ter_con[i] for i in nks])
     p_nks /= np.sum(p_nks)
@@ -528,14 +529,13 @@ def mutDifferentReplacementVerbose(individual, pset, personal_map=False):
     """
     if len(individual) < 4:
         return individual,
-
     ters = [repr(i) for i in individual.terminals()]
     pset_ters = [repr(i) for i in pset.terminals_and_constants]
-
     cou = Counter(ters)
     cou_mutil = {i: j for i, j in cou.items() if j >= 2}
     ks = list(cou_mutil.keys())
     nks = list(set(pset_ters) - (set(ks)))
+    nks.sort()  # very import for random
 
     p_nks = np.array([pset.prob_ter_con[i] for i in nks])
     p_nks /= np.sum(p_nks)
@@ -624,6 +624,27 @@ def selTournament(individuals, k, tournsize, fit_attr="fitness"):
     return chosen
 
 
+def score_dim(dim_, dim_type, fuzzy=False):
+    if dim_type is None:
+        return 1
+    elif isinstance(dim_type, str):
+        if dim_type == 'integer':
+            return 1 if dim_.isinteger() else 0
+        elif dim_type == 'coef':
+            return 1 if dim_.anyisnan() else 0
+        else:
+            raise TypeError("dim_type should be None,'coef', 'integer', special Dim or list of Dim")
+    elif isinstance(dim_type, list):
+        return 1 if dim_ in dim_type else 0
+    elif isinstance(dim_type, Dim):
+        if fuzzy:
+            return 1 if dim_.is_same_base(dim_type) else 0
+        else:
+            return 1 if dim_ == dim_type else 0
+    else:
+        raise TypeError("dim_type should be None,'coef','integer', special Dim or list of Dim")
+
+
 def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
     """
     Select the individual with dim limitation.
@@ -650,24 +671,12 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
     chosen = sorted(pop, key=operator.attrgetter(fit_attr))
     chosen.reverse()
 
-    if dim_type is None:
-        add_ind = chosen
-    elif dim_type is 'integer':
-        add_ind = [ind for ind in chosen if ind.y_dim.isinteger]
-    elif dim_type is 'coef':
-        add_ind = [ind for ind in chosen if not ind.y_dim.anyisnan()]
-    elif isinstance(dim_type, list):
-        add_ind = [ind for ind in chosen if ind.y_dim in dim_type]
-    elif isinstance(dim_type, Dim):
-        if fuzzy:
-            add_ind = [ind for ind in chosen if ind.y_dim.is_same_base(dim_type)]
-        else:
-            add_ind = [ind for ind in chosen if ind.y_dim == dim_type]
-    else:
-        raise TypeError("dim_type should be None, 'integer', special Dim or list of Dim")
+    choice_index = [score_dim(ind.y_dim, dim_type, fuzzy) for ind in chosen]
+    add_ind = [chosen[i] for i in choice_index]
+
     if K_best is None:
         if len(add_ind) >= 5:
-            K_best = round(len(add_ind) / 10)
+            K_best = round(len(pop) / 10)
         else:
             K_best = 0
     if len(add_ind) >= round(K_best):
@@ -678,28 +687,38 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
 
 def Statis_func(stats=None):
     if stats is None:
-        stats = {"fitness_dim_is_target_max": ("max",), "dim_is_traget": ("sum",)}
+        stats = {"fitness_dim_max": ("max",), "dim_is_target": ("sum",)}
 
     func = {"max": np.max, "mean": np.mean, "min": np.mean, "std": np.std, "sum": np.sum}
-    att = {"fitness": lambda ind: ind.fitness.values[0],
-           "fitness_dim_is_True_max": lambda ind: ind.fitness.values[0] if ind.y_dim is not dnan else -np.inf,
-           "fitness_dim_is_target_max": lambda ind: ind.fitness.values[0] if ind.dim_score else -np.inf,
-           "fitness_dim_is_True_min": lambda ind: ind.fitness.values[0] if ind.y_dim is not dnan else np.inf,
-           "fitness_dim_is_target_min": lambda ind: ind.fitness.values[0] if ind.dim_score else np.inf,
-           "dim_is_True": lambda ind: 1 if ind.y_dim is not dnan else 0,
-           "dim_is_traget": lambda ind: 1 if ind.dim_score else 0}
+    att = {
+
+        "fitness": lambda ind: ind.fitness.values[0],
+        "fitness_dim_max": lambda ind: ind.fitness.values[0] if ind.dim_score else -np.inf,
+        "fitness_dim_min": lambda ind: ind.fitness.values[0] if ind.dim_score else np.inf,
+        "dim_is_target": lambda ind: 1 if ind.dim_score else 0,
+        # special
+        "coef": lambda ind: score_dim(ind.y_dim, "coef", fuzzy=False),
+        "integer": lambda ind: score_dim(ind.y_dim, "integer", fuzzy=False),
+
+        # mutil-target
+        "weight_fitness": lambda ind: ind.fitness.wvalues,
+        "weight_fitness_dim": lambda ind: ind.fitness.wvalues if ind.dim_score else -np.inf,
+        # weight have mul the "-"
+    }
 
     sa_all = {}
 
     for a, f in stats.items():
         if a in att:
             a_s = att[a]
-        else:
+        elif isinstance(callable, a):
             a_s = a
             a = str(a).split(" ")[1]
-
+        else:
+            raise TypeError("the key must be in definition or a function")
         sa = Statistics(a_s)
-
+        if isinstance(f, str):
+            f = [f, ]
         for i, fi in enumerate(f):
             assert fi in func
             ff = func[fi]
@@ -809,6 +828,7 @@ def varAnd(population, toolbox, cxpb, mutpb):
 
 def varAndfus(population, toolbox, cxpb, mutpb, fus):
     offspring = copy.deepcopy(population)
+
     # Apply crossover and mutation on the offspring
     for i in range(1, len(offspring), 2):
         if random.random() < cxpb:
@@ -821,6 +841,7 @@ def varAndfus(population, toolbox, cxpb, mutpb, fus):
     for j in fus:
         for i in range(len(offspring)):
             if random.random() < mutpb:
+                # print(random.random(), i)
                 offspring[i], = j(individual=offspring[i])
                 del offspring[i].fitness.values
 

@@ -22,7 +22,7 @@ from sklearn.utils import check_array
 
 from featurebox.symbol.dim import dim_map, dless, dnan
 from featurebox.symbol.function import np_map
-from featurebox.symbol.gp import compile_context
+from featurebox.symbol.gp import compile_context, score_dim
 
 
 # from featurebox.tools.tool import time_this_function
@@ -264,7 +264,7 @@ def calculate_score(expr01, x, y, terminals, scoring=None, score_pen=(1,), add_c
     return sc_all, expr01, pre_y
 
 
-def calcualte_dim(expr01, terminals, dim_list, y_dim, dim_maps=None):
+def calcualte_dim(expr01, terminals, dim_list, dim_maps=None):
     """
 
     Parameters
@@ -277,8 +277,6 @@ def calcualte_dim(expr01, terminals, dim_list, y_dim, dim_maps=None):
         dims of features and constants
     dim_maps: Callable
         user dim_maps
-    y_dim:list of Dim
-        target dim
 
     Returns
     -------
@@ -297,14 +295,42 @@ def calcualte_dim(expr01, terminals, dim_list, y_dim, dim_maps=None):
         dim_ = dnan
     if isinstance(dim_, float):
         dim_ = dless
-    if dim_ in y_dim:
-        dim_score = 1
-    else:
-        dim_score = 0
+
+    return dim_
+
+
+def calcualte_dim_score(expr01, terminals, dim_list, dim_type, fuzzy, dim_maps=None):
+    """
+
+    Parameters
+    ----------
+    expr01: Expr
+        sympy expression.
+    terminals: list of sympy.Symbol
+        features and constants
+    dim_list: list of Dim
+        dims of features and constants
+    dim_maps: Callable
+        user dim_maps
+    dim_type:list of Dim
+        target dim
+    fuzzy:
+        fuzzy dim or not
+
+    Returns
+    -------
+    Dim:
+        dimension
+    dim_score
+        is target dim or not
+    """
+    dim_ = calcualte_dim(expr01, terminals, dim_list, dim_maps=dim_maps)
+
+    dim_score = score_dim(dim_, dim_type, fuzzy)
     return dim_, dim_score
 
 
-def calculate_collect(ind, context, x, y, terminals_and_constants_repr, dim_ter_con_list, y_dim, scoring=None,
+def calculate_collect(ind, context, x, y, terminals_and_constants_repr, dim_ter_con_list, dim_type, fuzzy, scoring=None,
                       score_pen=(1,),
                       add_coef=True, filter_warning=True, inter_add=True, inner_add=False, np_maps=None,
                       dim_maps=None, cal_dim=True):
@@ -318,7 +344,8 @@ def calculate_collect(ind, context, x, y, terminals_and_constants_repr, dim_ter_
                                            np_maps=np_maps)
 
     if cal_dim:
-        dim, dim_score = calcualte_dim(expr01, terminals_and_constants_repr, dim_ter_con_list, y_dim, dim_maps=dim_maps)
+        dim, dim_score = calcualte_dim_score(expr01, terminals_and_constants_repr, dim_ter_con_list, dim_type, fuzzy,
+                                             dim_maps=dim_maps)
     else:
         dim, dim_score = dless, 1
 

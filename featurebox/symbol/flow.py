@@ -23,7 +23,7 @@ from featurebox.symbol.base import SymbolTree
 from featurebox.symbol.dim import dless, Dim
 from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, selKbestDim, \
     selTournament, Statis_func, mutUniform, mutShrink, varAndfus, \
-    mutDifferentReplacementVerbose, mutNodeReplacementVerbose
+    mutDifferentReplacementVerbose, mutNodeReplacementVerbose, mutDifferentReplacement, selBest
 from featurebox.tools import newclass
 from featurebox.tools.exports import Store
 from featurebox.tools.packbox import Toolbox
@@ -112,18 +112,22 @@ class BaseLoop(Toolbox):
                 = {"max": np.max, "mean": np.mean, "min": np.mean, "std": np.std, "sum": np.sum}
             keys
                 = {\n
-                   "fitness": lambda ind: ind.fitness.values[0], \n
-                   "fitness_dim_is_True": lambda ind: ind.fitness.values[0] if ind.y_dim is not dnan else np.nan,\n
-                   "fitness_dim_is_target": lambda ind: ind.fitness.values[0] if ind.dim_score else np.nan,\n
-                   "dim_is_True": lambda ind: 1 if ind.y_dim is not dnan else 0,\n
-                   "dim_is_traget": lambda ind: 1 if ind.dim_score else 0}
-            if stats is None:\n
-                stats = {"fitness": ("max",), "dim_is_traget": ("sum",)}
-            if self-defination, the key is func to get attribute of each ind./n
+                   "fitness": just see fitness[0], \n
+                   "fitness_dim_max": max problem, see fitness with demand dim,\n
+                   "fitness_dim_min": min problem, see fitness with demand dim,\n
+                   "dim_is_target": demand dim,\n
+                   "coef":  dim is true, coef have dim, \n
+                   "integer":  dim is integer, \n
+                   ...
+                   }
+            if stats is None, default is :\n
+                stats = {"fitness_dim_max": ("max",), "dim_is_target": ("sum",)}   for cal_dim=True
+                stats = {"fitness": ("max",)}                                      for cal_dim=False
+            if self-definition, the key is func to get attribute of each ind./n
             Examples:
                 def func(ind):\n
-                    return ind.height
-                stats = {func: ("mean",), "dim_is_traget": ("sum",)}
+                    return ind.fitness[0]
+                stats = {func: ("mean",), "dim_is_target": ("sum",)}
         verbose:bool
             print verbose logbook or not
         tq:bool
@@ -155,7 +159,9 @@ class BaseLoop(Toolbox):
         self.cpset = CalculatePrecisionSet(pset, scoring=scoring, score_pen=score_pen,
                                            filter_warning=filter_warning, cal_dim=cal_dim,
                                            add_coef=add_coef, inter_add=inter_add, inner_add=inner_add,
-                                           n_jobs=n_jobs, batch_size=batch_size, tq=tq)
+                                           n_jobs=n_jobs, batch_size=batch_size, tq=tq,
+                                           fuzzy=fuzzy, dim_type=dim_type,
+                                           )
 
         Fitness_ = newclass.create("Fitness_", Fitness, weights=score_pen)
         self.PTree = newclass.create("PTrees", SymbolTree, fitness=Fitness_)
@@ -164,11 +170,12 @@ class BaseLoop(Toolbox):
         self.register("gen_mu", genGrow, min_=2, max_=3, personal_map=self.personal_map)
         # def selection
 
+        self.register("selBest", selBest)
         self.register("select", selTournament, tournsize=3)
 
-        dim_type = self.cpset.y_dim if not dim_type else dim_type
-        self.register("selKbestDim", selKbestDim, dim_type=dim_type, fuzzy=fuzzy)
-        # selBest
+        self.register("selKbestDim", selKbestDim,
+                      dim_type=self.cpset.dim_type, fuzzy=self.cpset.fuzzy)
+
         self.register("mate", cxOnePoint)
         # def mutate
 
@@ -176,6 +183,13 @@ class BaseLoop(Toolbox):
 
         self.decorate("mate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
         self.decorate("mutate", staticLimit(key=operator.attrgetter("height"), max_value=max_value))
+
+        if stats is None:
+            if cal_dim:
+                stats = {"fitness_dim_max": ("max",), "dim_is_target": ("sum",)}
+            else:
+                stats = {"fitness": ("max",), }
+
         self.stats = Statis_func(stats=stats)
         logbook = Logbook()
         logbook.header = ['gen'] + (self.stats.fields if self.stats else [])
@@ -216,13 +230,14 @@ class BaseLoop(Toolbox):
                 print("store data to ", os.getcwd(), file_new_name)
 
     def maintain_halls(self, population):
+
         if self.re_hall is not None:
             maxsize = max(self.hall.maxsize, self.re_hall.maxsize)
 
             if self.cal_dim:
                 inds_dim = self.selKbestDim(population, maxsize)
             else:
-                inds_dim = self.select(population, maxsize)
+                inds_dim = self.selBest(population, maxsize)
 
             self.hall.update(inds_dim)
             self.re_hall.update(inds_dim)
@@ -232,7 +247,7 @@ class BaseLoop(Toolbox):
             if self.cal_dim:
                 inds_dim = self.selKbestDim(population, self.hall.maxsize)
             else:
-                inds_dim = self.select(population, self.hall.maxsize)
+                inds_dim = self.selBest(population, self.hall.maxsize)
 
             self.hall.update(inds_dim)
 
@@ -265,7 +280,7 @@ class BaseLoop(Toolbox):
         # 1.generate###################################################################
         population = [self.PTree(self.genGrow()) for _ in range(self.pop)]
 
-        for gen_i in range(self.gen):
+        for gen_i in range(1, self.gen + 1):
 
             # 2.evaluate###############################################################
             invalid_ind = [ind for ind in population if not ind.fitness.valid]
@@ -287,7 +302,7 @@ class BaseLoop(Toolbox):
             if self.store:
                 datas = [{"gen": gen_i, "name": str(gen_i), "value": str(gen_i.fitness.values),
                           "dimension": str(gen_i.y_dim),
-                          "target_dim": str(gen_i.dim_score)} for gen_i in population]
+                          "dim_score": str(gen_i.dim_score)} for gen_i in population]
                 self.data_all.extend(datas)
 
             # 3.3.log-hall###############################
@@ -302,14 +317,17 @@ class BaseLoop(Toolbox):
             if self.re_Tree:
                 self.re_add()
 
-            self.re_fresh_by_name(self)
+            self.re_fresh_by_name()
             # 5.next generation#######################################################
             # selection and mutate,mate
             population = self.select(population, len(population) - len(inds_dim))
+
             offspring = self.varAnd(population, self, self.mate_prob, self.mutate_prob)
             offspring.extend(inds_dim)
             population = offspring
+
         # 6.store#####################################################################
+
         if self.store:
             self.to_csv(self.data_all)
         self.hall.items = [self.cpset.calculate_detail(indi) for indi in self.hall.items]
@@ -336,11 +354,13 @@ class MutilMutateLoop(BaseLoop):
         att_name = []
         for i in result:
             att_name.extend(i)
-
-        self.re_fresh_by_name(self, att_name)
+        self.re_fresh_by_name(att_name)
 
         fus = [getattr(self, i) for i in att_name]
-        return varAndfus(population, toolbox, cxpb, mutpb, fus)
+
+        off = varAndfus(population, toolbox, cxpb, mutpb, fus)
+
+        return off
 
 
 if __name__ == "__main__":
@@ -364,21 +384,19 @@ if __name__ == "__main__":
 
     # symbolset
     pset0 = SymbolSet()
-    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=None)
     pset0.add_constants(c, dim=c_dim, prob=None)
     pset0.add_operations(power_categories=(2, 3, 0.5),
                          categories=("Add", "Mul", "Sub", "Div", "exp"),
                          self_categories=None)
 
     # a = time.time()
-    bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=3,
-                         n_jobs=1, mate_prob=0.8, max_value=5,
-                         mutate_prob=0.5, tq=True,
-                         re_Tree=0, store=True, random_state=4,
-                         add_coef=True, cal_dim=True, personal_map="auto")
+    bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=None,
+                         n_jobs=6, mate_prob=0.8, max_value=5,
+                         mutate_prob=0.5, tq=True, dim_type=dless,
+                         re_Tree=1, store=False, random_state=0, stats={"weight_fitness": ["max"]},
+                         add_coef=True, cal_dim=True, personal_map=True)
     # b = time.time()
-    # bl.run()
+    bl.run()
     # c = time.time()
     # print(c - b, b - a, a - z)
-#
-    population = [bl.PTree(bl.genGrow()) for _ in range(bl.pop)]

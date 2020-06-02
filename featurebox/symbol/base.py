@@ -21,7 +21,7 @@ from featurebox.symbol.dim import dless, dim_map, dnan, Dim
 from featurebox.symbol.function import func_map_dispose, func_map, np_map
 from featurebox.symbol.gp import generate, genGrow, genFull, depart, compile_context
 from featurebox.symbol.preference import PreMap
-from featurebox.symbol.scores import calcualte_dim, calculate_score, calculate_collect
+from featurebox.symbol.scores import calcualte_dim_score, calculate_score, calculate_collect
 from featurebox.tools.tool import parallelize
 
 
@@ -363,8 +363,8 @@ class SymbolSet(object):
         self.constant_count += 1
 
     def add_operations(self, power_categories=None,
-                       categories=None, 
-                       self_categories=None, power_categories_prob="balance", 
+                       categories=None,
+                       self_categories=None, power_categories_prob="balance",
                        categories_prob="balance", special_prob=None):
         """
         Add operations with probability.
@@ -1028,6 +1028,7 @@ class CalculatePrecisionSet(SymbolSet):
         return hash(self.hasher(self))
 
     def __new__(cls, pset, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True,
+                dim_type=None, fuzzy=False,
                 add_coef=True, inter_add=True, inner_add=False, n_jobs=1, batch_size=20, tq=True):
 
         cpset = super().__new__(cls)
@@ -1036,11 +1037,16 @@ class CalculatePrecisionSet(SymbolSet):
         return cpset
 
     def __init__(self, pset, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True,
+                 dim_type=None, fuzzy=False,
                  add_coef=True, inter_add=True, inner_add=False, n_jobs=1, batch_size=20, tq=True):
         """
 
         Parameters
         ----------
+        fuzzy : bool
+            fuzzy or not
+        dim_type : object
+            if None, use the y_dim
         pset:SymbolSet
             SymbolSet
         scoring: Callbale, default is sklearn.metrics.r2_score
@@ -1081,6 +1087,8 @@ class CalculatePrecisionSet(SymbolSet):
         self.n_jobs = n_jobs
         self.batch_size = batch_size
         self.tq = tq
+        self.fuzzy = fuzzy
+        self.dim_type = dim_type if dim_type is not None else self.y_dim
 
     def calculate_detail(self, ind):
         """
@@ -1137,8 +1145,8 @@ class CalculatePrecisionSet(SymbolSet):
                                                scoring=self.scoring, score_pen=self.score_pen,
                                                filter_warning=self.filter_warning, np_maps=self.np_map)
         if self.cal_dim:
-            dim, dim_score = calcualte_dim(expr, self.terminals_and_constants_repr,
-                                           self.dim_ter_con_list, self.y_dim, self.dim_map)
+            dim, dim_score = calcualte_dim_score(expr, self.terminals_and_constants_repr,
+                                                 self.dim_ter_con_list, self.dim_type, self.fuzzy, self.dim_map)
         else:
             dim, dim_score = dless, 1
 
@@ -1163,7 +1171,7 @@ class CalculatePrecisionSet(SymbolSet):
         inds = [i.capsule() for i in inds]
         calls = functools.partial(calculate_collect, context=self.context, x=self.data_x, y=self.y,
                                   terminals_and_constants_repr=self.terminals_and_constants_repr,
-                                  dim_ter_con_list=self.dim_ter_con_list, y_dim=self.y_dim,
+                                  dim_ter_con_list=self.dim_ter_con_list, dim_type=self.dim_type, fuzzy=self.fuzzy,
                                   scoring=self.scoring, score_pen=self.score_pen,
                                   add_coef=self.add_coef, inter_add=self.inter_add,
                                   inner_add=self.inner_add, np_maps=self.np_map,

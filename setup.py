@@ -16,7 +16,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
 
     name='featurebox',
-    version='0.0.8332',
+    version='0.0.8.34',
     keywords=['features', "combination", "selection"],
     description='this is an box contains tools for machine learning.'
                 'Some of code are non-originality, just copy for use. All the referenced code are marked,'
