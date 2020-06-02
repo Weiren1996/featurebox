@@ -112,9 +112,9 @@ def dim_map():
 
 
 class Dim(numeric.ndarray):
-    """Redefine the Dimension of sympy, the default dimension SI system with 7 number,
-    1.can be constructed by list of number.
-    1.can be translated from a sympy.physics.unit.
+    """Redefine the Dimension of sympy, the default dimension SI system with 7 number.\n
+    1.can be constructed by list of number.\n
+    2.can be translated from a sympy.physics.unit. \n
         # >>>from sympy.physics.units import N
         # >>>scale,dim = Dim.convert_to_Dim(N)
         #inverse back
@@ -136,11 +136,11 @@ class Dim(numeric.ndarray):
 
     def __init__(self, _):
         """
-        # self.unit = [str(i) for i in SI._base_units]
-        # self.unit_map = {'meter': "m", 'kilogram': "kg", 'second': "s",
-        #                  'ampere': "A", 'mole': "mol", 'candela': "cd", 'kelvin': "K"}
-        # self.dim = ['length', 'mass', 'time', 'current', 'amount_of_substance',
-        #             'luminous_intensity', 'temperature']
+        self.unit = [str(i) for i in SI._base_units]\n
+        self.unit_map = {'meter': "m", 'kilogram': "kg", 'second': "s",
+        'ampere': "A", 'mole': "mol", 'candela': "cd", 'kelvin': "K"}\n
+        self.dim = ['length', 'mass', 'time', 'current', 'amount_of_substance',
+        'luminous_intensity', 'temperature']
         """
 
     def __eq__(self, other):
@@ -358,10 +358,12 @@ class Dim(numeric.ndarray):
         Parameters
         ----------
         u: sympy.physics.unit or Expr of sympy.physics.unit
+            unit.
         target_units: None or list of sympy.physics.unit
             if None, the target_units is 7 SI units
         unit_system: str
             default is unit_system="SI"
+            
         Returns
         -------
         Expr
@@ -377,9 +379,12 @@ class Dim(numeric.ndarray):
         """
         Quick method. translate xi and ui to standard system.
         Parameters
+        
         ----------
         xi: np.ndarray
+            xi
         ui: sympy.physics.unit or Expr of sympy.physics.unit
+            unit
         target_units: None or list of sympy.physics.unit
             if None, the target_units is 7 SI units
         unit_system: str
@@ -387,8 +392,11 @@ class Dim(numeric.ndarray):
 
         Returns
         -------
-        xi: np.ndarray
-        expr: Expr
+        xi: 
+            np.ndarray
+        
+        expr: 
+            Expr
         """
         expr_scale_factor, d = cls.convert_to_Dim(ui, target_units=target_units, unit_system=unit_system)
         return expr_scale_factor * xi, d
@@ -397,10 +405,13 @@ class Dim(numeric.ndarray):
     def convert_x(cls, x, u, target_units=None, unit_system="SI"):
         """
          Quick method. translate x and u to standard system.
+         
          Parameters
          ----------
          x: np.ndarray or list of ndarray
+             x
          u: list of sympy.physics.unit or Expr of sympy.physics.unit
+             units
          target_units: None or list of sympy.physics.unit
              if None, the target_units is 7 SI units
          unit_system: str
@@ -408,8 +419,12 @@ class Dim(numeric.ndarray):
 
          Returns
          -------
-         x: np.ndarray
-         expr: Expr
+         x: 
+             np.ndarray
+         
+         expr: 
+             Expr
+         
          """
         if isinstance(x, list):
             pass
@@ -427,9 +442,12 @@ class Dim(numeric.ndarray):
         """
         Quick method. Translate ui to other unit.
         Parameters
+        
         ----------
         dim: Dim
+            dim
         scale: float
+            scale generated before.
         target_units: None or list of sympy.physics.unit
             if None, the target_units is 7 SI units
         unit_system: str
@@ -437,8 +455,11 @@ class Dim(numeric.ndarray):
 
         Returns
         -------
-        scale: float
-        expr: Expr
+        scale: 
+            float
+        
+        expr: 
+            Expr
         """
         from sympy.physics.units import UnitSystem
         unit_system = UnitSystem.get_unit_system(unit_system)
@@ -468,9 +489,12 @@ class Dim(numeric.ndarray):
         """
         Quick method. Translate xi, dim to other unit.
         Parameters
+        
         ----------
         xi:np.ndarray
+            xi
         dim: Dim
+            dim
         scale: float
             if xi is have been scaled, the scale is 1.
         target_units: None or list of sympy.physics.unit
@@ -480,8 +504,10 @@ class Dim(numeric.ndarray):
 
         Returns
         -------
-        scale: float
-        expr: Expr
+        scale: 
+            float
+        expr: 
+            Expr
         """
         expr_scale_factor, d = cls.inverse_convert(dim, scale=scale, target_units=target_units, unit_system=unit_system)
         return expr_scale_factor * xi, d
@@ -490,10 +516,13 @@ class Dim(numeric.ndarray):
 def check_dimension(x, y=None):
     """
     check the consistency of dimension.
+    
     Parameters
     ----------
     x: list of Dim
+        dim of x
     y:Dim
+        dim of y
 
     Returns
     -------

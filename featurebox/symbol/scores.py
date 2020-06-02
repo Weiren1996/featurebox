@@ -30,11 +30,17 @@ from featurebox.symbol.gp import compile_context
 
 def addCoefficient(expr01, inter_add=True, inner_add=False):
     """
+    try add coefficient to sympy expression.
+    
     Parameters
     ----------
     expr01: Expr
+        sympy expressions
     inter_add: bool
+        bool
     inner_add: bool
+        bool
+        
     Returns
     -------
     expr
@@ -89,25 +95,32 @@ def addCoefficient(expr01, inter_add=True, inner_add=False):
 def calculate_y(expr01, x, y, terminals, add_coef=True,
                 filter_warning=True, inter_add=True, inner_add=False, np_maps=None):
     """
-
+    calculate predict y by sympy expression.
     Parameters
     ----------
     expr01: Expr
+        sympy expressions
     x: list of np.ndarray
         list of xi
-    y: y
+    y: np.ndarray
+        y value
     terminals: list of sympy.Symbol
         features and constants
     add_coef: bool
+        bool
     filter_warning: bool
+        bool
     inter_add: bool
+        bool
     inner_add: bool
+        bool
     np_maps: Callable
         user np.ndarray function
 
     Returns
     -------
-    pre_y: np.array or None
+    pre_y: 
+        np.array or None
     expr01: Expr
         New expr.
     """
@@ -190,9 +203,11 @@ def calculate_score(expr01, x, y, terminals, scoring=None, score_pen=(1,), add_c
     Parameters
     ----------
     expr01: Expr
+        sympy expression.
     x: list of np.ndarray
         list of xi
-    y: y
+    y: np.ndarray
+        y value
     terminals: list of sympy.Symbol
         features and constants
     scoring: list of Callbale, default is [sklearn.metrics.r2_score,]
@@ -202,18 +217,24 @@ def calculate_score(expr01, x, y, terminals, scoring=None, score_pen=(1,), add_c
         -1 : best is negative, worse np.inf
         0 : best is positive , worse 0
     add_coef: bool
+        bool
     filter_warning: bool
+        bool
     inter_add: bool
+        bool
     inner_add: bool
+        bool
     np_maps: Callable
         user np.ndarray function
 
     Returns
     -------
     score:float
+        score
     expr01: Expr
         New expr.
-    pre_y: np.array or None
+    pre_y: np.ndarray or float
+        np.array or None
     """
     if filter_warning:
         warnings.filterwarnings("ignore")
@@ -249,6 +270,7 @@ def calcualte_dim(expr01, terminals, dim_list, y_dim, dim_maps=None):
     Parameters
     ----------
     expr01: Expr
+        sympy expression.
     terminals: list of sympy.Symbol
         features and constants
     dim_list: list of Dim
@@ -260,8 +282,10 @@ def calcualte_dim(expr01, terminals, dim_list, y_dim, dim_maps=None):
 
     Returns
     -------
-    Dim
+    Dim:
+        dimension
     dim_score
+        is target dim or not
     """
     terminals = [str(i) for i in terminals]
     if not dim_maps:

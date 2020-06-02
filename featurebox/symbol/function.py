@@ -11,7 +11,7 @@ Notes: the translation process
     the three function should be the same key.
     1.
     func_map(): repr of SymbolTree to sympy.Function
-    func_map_dispose(): repr of SymbolTree to sympy.Function
+    func_map_dispose(): repr of SymbolTree to sympy.Function.
     2.
     np_map(): repr of sympy.Function to numpy function
     3.

@@ -54,6 +54,7 @@ def generate(pset, min_, max_, condition, personal_map=False, *kwargs):
     Parameters
     ----------
     pset: SymbolSet
+        pset
     min_: int
         Minimum height of the produced trees.
     max_: int
@@ -65,6 +66,7 @@ def generate(pset, min_, max_, condition, personal_map=False, *kwargs):
     kwargs: None
         placeholder for future
     personal_map:bool
+        premap
 
     Returns
     -------
@@ -131,7 +133,8 @@ def genGrow(pset, min_, max_, personal_map=False, ):
     :param pset: Primitive set from which primitives are selected.
     :param min_: Minimum height of the produced trees.
     :param max_: Maximum Height of the produced trees.
-    :param personal_map: bool
+    :param personal_map: bool.
+    
     :returns: A grown tree with leaves at possibly different depths.
 
     """
@@ -623,8 +626,9 @@ def selTournament(individuals, k, tournsize, fit_attr="fitness"):
 
 def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
     """
-    select the individual with dim limitation.
+    Select the individual with dim limitation.
     Parameters
+    
     ----------
     pop: SymbolTree
         A list of individuals to select from.
@@ -635,6 +639,10 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
         the dim or the dim with same base. such as m,m^2,m^3
     fit_attr:str
         The attribute of individuals to use as selection criterion
+        
+    .. note::
+        default attr is "fitness"
+        
     Returns
     -------
     A list of selected individuals.

@@ -6,10 +6,7 @@
 # @software: PyCharm
 # @file: preference.py
 # @time: 2020/5/26 19:50
-"""
-Notes:
 
-"""
 from itertools import combinations
 from numpy import random
 import numpy as np
@@ -36,10 +33,11 @@ class PreMap(numeric.ndarray):
         Parameters
         ----------
         shape:int
+            shape of premap
 
         Returns
         -------
-
+        PreMap
         """
         shape = (shape, shape)
         ret = numeric.ndarray.__new__(cls, shape, dtype=np.float16)
@@ -53,13 +51,15 @@ class PreMap(numeric.ndarray):
         _ = _
 
     def down_other_point(self, *sv):
+
         """
-        use for binding.
-        rate the others and add the subbed value to the [index1,index2]
+        Use for binding.rate the others and add the subbed value to the [index1,index2]
         the rate are [0,1)
+            
         Parameters
         ----------
         sv:[index1,index2,rate]
+            site to set value
 
         """
         e = self.copy()
@@ -90,11 +90,14 @@ class PreMap(numeric.ndarray):
 
     def set_sigle_point(self, *sv):
         """
-        rate the others and add the subbed value to the [index1,index2]
+        Rate the others and add the subbed value to the [index1,index2]
         the rate are [0,1)
+            
         Parameters
         ----------
         sv:[index1,index2,rate]
+            site to set value
+
 
         """
         a = sv[0]
@@ -107,13 +110,12 @@ class PreMap(numeric.ndarray):
 
     def set_ratio(self, *sv):
         """
-        rate the [index1,index2] self and add the subbed value to the others
+        Rate the [index1,index2] self and add the subbed value to the others
         Parameters
+        
         ----------
         sv:[index1,index2,rate]
-        [0,n)
-        [0,1) down,
-        [1,n) up
+            rate in [0,n), if [0,1) down, if [1,n) up
         """
 
         a = sv[0]
@@ -139,13 +141,14 @@ class PreMap(numeric.ndarray):
 
     def set_ratio_point(self, *sv):
         """
-        rate the [index1,index2] self and add the subbed value to the others
+        Rate the [index1,index2] self and add the subbed value to the others
         Parameters
+        
         ----------
         sv:[index1,index2,rate]
-        [0,n)
-        [0,1) down,
-        [1,n) up
+            [0,n)
+            [0,1) down,
+            [1,n) up
         """
 
         a = sv[0]
@@ -190,12 +193,16 @@ class PreMap(numeric.ndarray):
 
         Parameters
         ----------
-        ind:SymbolTree
-        pset:SymbolSet
-        ratio:float [0,1]
+        ind: SymbolTree
+            individual
+        pset: SymbolSet
+            SymbolSet
+        ratio: float [0,1]
+            change ratio
+            
         Returns
         -------
-
+        self
         """
         ratio = ratio / self.shape[0]
         ters = pset.terminals_and_constants
@@ -217,9 +224,10 @@ class PreMap(numeric.ndarray):
             get the value of average of indexes affect
         weight:tuple,ndarray
             the same size with self.shape[0]
+            
         Returns
         -------
-
+        probability list
         """
         if isinstance(indexes, int):
             indexes = (indexes,)
@@ -241,7 +249,10 @@ class PreMap(numeric.ndarray):
         ----------
         ind: SymbolTree
         pset:SymbolSet
-
+        
+        Returns
+        ----------
+        probability list
         """
         ters = pset.terminals_and_constants
         pri = [prii for prii in ind if prii.arity == 0]
@@ -255,6 +266,7 @@ class PreMap(numeric.ndarray):
     def get_one_node_value(self, ind=None, pset=None, node=None, site=None, ):
         """
         get affect value except site node.
+        
         Parameters
         ----------
         ind: SymbolTree
@@ -264,7 +276,7 @@ class PreMap(numeric.ndarray):
 
         Returns
         -------
-
+        probability list
         """
         if not node:
             node = ind[site]
@@ -295,6 +307,7 @@ class PreMap(numeric.ndarray):
     def get_nodes_value(self, ind=None, pset=None, node=None, site=None, ):
         """
         get affect value except sites nodes.
+        
         Parameters
         ----------
         ind: SymbolTree
@@ -304,7 +317,7 @@ class PreMap(numeric.ndarray):
 
         Returns
         -------
-
+        probability list
         """
         if isinstance(site, int):
             site = (site,)
@@ -343,68 +356,67 @@ class PreMap(numeric.ndarray):
             prob = None
         return prob
 
-
-if __name__ == "__main__":
-    # import copy
-    # from featurebox.symbol.gp import mutNodeReplacementVerbose, mutDifferentReplacementVerbose
-    # from numpy import random
-    # from sklearn.datasets import load_boston
-    #
-    # from featurebox.symbol.base import SymbolSet
-    # from featurebox.symbol.base import SymbolTree
-    # from featurebox.symbol.dim import dless, Dim
-    #
-    # random.seed(3)
-    # # data
-    # data = load_boston()
-    # x = data["data"]
-    # y = data["target"]
-    # c = [6, 3, 4]
-    # # unit
-    # from sympy.physics.units import kg
-    #
-    # x_u = [kg] * 13
-    # y_u = kg
-    # c_u = [dless, dless, dless]
-    #
-    # x, x_dim = Dim.convert_x(x, x_u, target_units=None, unit_system="SI")
-    # y, y_dim = Dim.convert_xi(y, y_u)
-    # c, c_dim = Dim.convert_x(c, c_u)
-    #
-    # # symbolset
-    # pset0 = SymbolSet()
-    # pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2], [4, 5]])
-    # pset0.add_constants(c, dim=c_dim, prob=None)
-    # pset0.add_operations(power_categories=(2, 3, 0.5),
-    #                      categories=("Add", "Mul", "Neg", "Abs"),
-    #                      self_categories=None)
-    # pset0.personal_maps([[0,1,0.9]])
-    # pset0.personal_maps([[0,5,0.7]])
-    # pp = np.array(pset0.premap)
-    # for i in range(100):
-    #     a = SymbolTree.genGrow(pset0, 2, 4, per=True)
-    #     mutNodeReplacementVerbose(a, pset=pset0)
-    #     mutDifferentReplacementVerbose(a, pset=pset0)
-    # print(np.sum(pset0.premap))
-    # pset0.personal_preference([[3, 4, 0.8]])
-    # print(np.sum(pset0.premap))
-    # pset0.add_tree_to_features(a)
-    # print(np.sum(pset0.premap))
-    # pset0.premap.noise()
-    # print(np.sum(pset0.premap))
-    # values = pset0.premap.get_indexes_value(4)
-    # values2 = pset0.premap.get_ind_value(a, pset0)
-    premap = PreMap.from_shape(10)
-    premap.down_other_point(*[0, 1, 1])
-    premap.down_other_point(*[0, 2, 0.50])
-    premap.down_other_point(*[0, 3, 0.33])
-    premap.down_other_point(*[0, 4, 0.25])
-    # premap.down_other_point(*[0, 3, 0.5])
-    # premap.set_ratio(*[0, 1, 1])
-    # premap.set_ratio(*[0, 3, 0.5])
-    # premap.set_ratio(*[0, 5, 0.5])
-    # premap.down_others(*[0, 2, 0.25])
-    pp = np.array(premap)
-
-    sums1 = np.sum(premap, axis=0)
-    sums2 = np.sum(premap, axis=1)
+# if __name__ == "__main__":
+#    # import copy
+#    # from featurebox.symbol.gp import mutNodeReplacementVerbose, mutDifferentReplacementVerbose
+#    # from numpy import random
+#    # from sklearn.datasets import load_boston
+#    #
+#    # from featurebox.symbol.base import SymbolSet
+#    # from featurebox.symbol.base import SymbolTree
+#    # from featurebox.symbol.dim import dless, Dim
+#    #
+#    # random.seed(3)
+#    # # data
+#    # data = load_boston()
+#    # x = data["data"]
+#    # y = data["target"]
+#    # c = [6, 3, 4]
+#    # # unit
+#    # from sympy.physics.units import kg
+#    #
+#    # x_u = [kg] * 13
+#    # y_u = kg
+#    # c_u = [dless, dless, dless]
+#    #
+#    # x, x_dim = Dim.convert_x(x, x_u, target_units=None, unit_system="SI")
+#    # y, y_dim = Dim.convert_xi(y, y_u)
+#    # c, c_dim = Dim.convert_x(c, c_u)
+#    #
+#    # # symbolset
+#    # pset0 = SymbolSet()
+#    # pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2], [4, 5]])
+#    # pset0.add_constants(c, dim=c_dim, prob=None)
+#    # pset0.add_operations(power_categories=(2, 3, 0.5),
+#    #                      categories=("Add", "Mul", "Neg", "Abs"),
+#    #                      self_categories=None)
+#    # pset0.personal_maps([[0,1,0.9]])
+#    # pset0.personal_maps([[0,5,0.7]])
+#    # pp = np.array(pset0.premap)
+#    # for i in range(100):
+#    #     a = SymbolTree.genGrow(pset0, 2, 4, per=True)
+#    #     mutNodeReplacementVerbose(a, pset=pset0)
+#    #     mutDifferentReplacementVerbose(a, pset=pset0)
+#    # print(np.sum(pset0.premap))
+#    # pset0.personal_preference([[3, 4, 0.8]])
+#    # print(np.sum(pset0.premap))
+#    # pset0.add_tree_to_features(a)
+#    # print(np.sum(pset0.premap))
+#    # pset0.premap.noise()
+#    # print(np.sum(pset0.premap))
+#    # values = pset0.premap.get_indexes_value(4)
+#    # values2 = pset0.premap.get_ind_value(a, pset0)
+#    premap = PreMap.from_shape(10)
+#    premap.down_other_point(*[0, 1, 1])
+#    premap.down_other_point(*[0, 2, 0.50])
+#    premap.down_other_point(*[0, 3, 0.33])
+#    premap.down_other_point(*[0, 4, 0.25])
+#    # premap.down_other_point(*[0, 3, 0.5])
+#    # premap.set_ratio(*[0, 1, 1])
+#    # premap.set_ratio(*[0, 3, 0.5])
+#    # premap.set_ratio(*[0, 5, 0.5])
+#    # premap.down_others(*[0, 2, 0.25])
+#    pp = np.array(premap)
+#
+#    sums1 = np.sum(premap, axis=0)
+#    sums2 = np.sum(premap, axis=1)

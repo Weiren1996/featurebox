@@ -61,7 +61,7 @@ class BaseLoop(Toolbox):
             max size of expression
         hall:int,>=1
             number of HallOfFame(elite) to maintain
-        re_hall:None, int>=2
+        re_hall:None or int>=2
             Notes: only vaild when hall
             number of HallOfFame to add to next generation.
         re_Tree: int
@@ -81,10 +81,13 @@ class BaseLoop(Toolbox):
             or weight by score_pen. Because the all the selection are stand on the mean(w_i*score_i)
             Examples: [r2_score] is [1],
         filter_warning:bool
+            filter warning or not
         add_coef:bool
             add coef in expression or not.
         inter_add：bool
+            add intercept constant or not
         inner_add:bool
+            dd inner coeffcients or not
         n_jobs:int
             default 1, advise 6
         batch_size:int
@@ -94,28 +97,31 @@ class BaseLoop(Toolbox):
         cal_dim:bool
             excape the dim calculation
         dim_type:Dim or None or list of Dim
-            "coef":af(x)+b. a,b have dimension,f(x) is not dnan.
-            "integer":af(x)+b. f(x) is interger dimension.
-            [Dim1,Dim2]: f(x) in list.
-            Dim: f(x) ~= Dim. (see fuzzy)
-            Dim: f(x) == Dim.
+            "coef": af(x)+b. a,b have dimension,f(x) is not dnan. \n
+            "integer": af(x)+b. f(x) is interger dimension. \n
+            [Dim1,Dim2]: f(x) in list. \n
+            Dim: f(x) ~= Dim. (see fuzzy) \n
+            Dim: f(x) == Dim. \n
             None: f(x) == pset.y_dim
         fuzzy:bool
             choose the dim with same base with dim_type,such as m,m^2,m^3.
         stats:dict
-            details of logbook to show.
-            Map:
-            values = {"max": np.max, "mean": np.mean, "min": np.mean, "std": np.std, "sum": np.sum}
-            keys = {"fitness": lambda ind: ind.fitness.values[0],
-                   "fitness_dim_is_True": lambda ind: ind.fitness.values[0] if ind.y_dim is not dnan else np.nan,
-                   "fitness_dim_is_target": lambda ind: ind.fitness.values[0] if ind.dim_score else np.nan,
-                   "dim_is_True": lambda ind: 1 if ind.y_dim is not dnan else 0,
+            details of logbook to show. \n
+            Map:\n
+            values 
+                = {"max": np.max, "mean": np.mean, "min": np.mean, "std": np.std, "sum": np.sum}
+            keys
+                = {\n
+                   "fitness": lambda ind: ind.fitness.values[0], \n
+                   "fitness_dim_is_True": lambda ind: ind.fitness.values[0] if ind.y_dim is not dnan else np.nan,\n
+                   "fitness_dim_is_target": lambda ind: ind.fitness.values[0] if ind.dim_score else np.nan,\n
+                   "dim_is_True": lambda ind: 1 if ind.y_dim is not dnan else 0,\n
                    "dim_is_traget": lambda ind: 1 if ind.dim_score else 0}
-            if stats is None:
+            if stats is None:\n
                 stats = {"fitness": ("max",), "dim_is_traget": ("sum",)}
-            if self-defination, the key is func to get attribute of each ind.
+            if self-defination, the key is func to get attribute of each ind./n
             Examples:
-                def func(ind):
+                def func(ind):\n
                     return ind.height
                 stats = {func: ("mean",), "dim_is_traget": ("sum",)}
         verbose:bool
@@ -123,6 +129,7 @@ class BaseLoop(Toolbox):
         tq:bool
             print progress bar or not
         store:bool or path
+            bool or path
         """
 
         if cal_dim:

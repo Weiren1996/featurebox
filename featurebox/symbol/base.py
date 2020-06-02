@@ -26,7 +26,7 @@ from featurebox.tools.tool import parallelize
 
 
 class SymbolTerminal:
-    """General feature type.
+    """General feature type.\n
     The name for show (str) and calculation (repr) are set to different string for
     avoiding repeated calculations.
     """
@@ -38,15 +38,18 @@ class SymbolTerminal:
         Parameters
         ----------
         values: number or np.ndarray
-            xi values, the shape can be (n,) or (n_x,n)
+            xi value, the shape can be (n,) or (n_x,n),
+            n is number of samples, n_x is numbers of feature.
         name: sympy.Symbol
-            represent name
+            Represent name. Default "xi"
         dim: featurebox.symbol.dim.Dim or None
+            None
         prob: float or None
-        init_name: str or None
-            just for show, rather than calculate.
-            Examples:
-            init_name="[x1,x2]" , if is compact features, need[]
+            None
+        init_name: str or None 
+            Just for show, rather than calculate.\n
+            Examples:\n
+            init_name="[x1,x2]" , if is compact features, need[]\n
             init_name="(x1*x4-x3)", if is expr, need ()
         """
         if prob is None:
@@ -110,8 +113,7 @@ class SymbolPrimitive:
         Parameters
         ----------
         func: Callable
-            Function. Better for sympy.Function Type.
-
+            function. Better for sympy.Function Type.\n
             For Maintainer:
             If self function and can not be simplified to sympy.Function or elementary function,
             the function for function.np_map() and dim.dim_map() should be defined.
@@ -151,7 +153,7 @@ class SymbolPrimitive:
 
 class SymbolSet(object):
     """
-    Definite the operations, features,and fixed constants.
+    Definite the operations, features, and fixed constants.
     """
 
     def __init__(self, name="PSet"):
@@ -292,7 +294,7 @@ class SymbolSet(object):
         prob: float
             default 1
         init_name: str
-            true name can be found of input. just for show, rather than calculate.
+            True name can be found of input. Just for show, rather than calculate.
             Examples:
             init_name="[x1,x2]" , if is compact features, need[]
             init_name="(x1*x4-x3)", if is expr, need ()
@@ -360,10 +362,12 @@ class SymbolSet(object):
         self.ter_con_dict[name] = prim
         self.constant_count += 1
 
-    def add_operations(self, power_categories=None, categories=("Add", "Mul", "Self", "exp"),
-                       self_categories=None, power_categories_prob="balance",
+    def add_operations(self, power_categories=None,
+                       categories=None, 
+                       self_categories=None, power_categories_prob="balance", 
                        categories_prob="balance", special_prob=None):
         """
+        Add operations with probability.
 
         Parameters
         ----------
@@ -375,36 +379,32 @@ class SymbolSet(object):
 
                     {"sin": sympy.sin, 'cos': sympy.cos, 'exp': sympy.exp, 'log': sympy.ln,
 
-                    'Abs': sympy.Abs, "Neg": functools.partial(sympy.Mul, -1.0),
-                    "Rec": functools.partial(sympy.Pow, e=-1.0),
+                    {'Abs': sympy.Abs, "Neg": functools.partial(sympy.Mul, -1.0),
+                    "Rec": functools.partial(sympy.Pow, e=-1.0)}
 
-                    Others:
-                    'Zeroo': zeroo
-                     f(x)=0,if x true
-                    "Oneo": oneo,
-                     f(x)=1,if x true
-                    "Remo": remo,
-                     f(x)=1-x,if x true
-                    "Self": se
-                     f(x)=x,if x true
-                     "Relu":
-                     f(x)=x,if x>0
-                     f(x)=0,if x<=0
-                     }
+                    Others:  \n
+                    "Zeroo": f(x)=0,if x true \n
+                    "Oneo":  f(x)=1,if x true \n
+                    "Remo":  f(x)=1-x,if x true \n
+                    "Self":  f(x)=x,if x true \n
+                    "Relu":  f(x)=x,if x>0, f(x)=0,if x<=0 \n
+                     
         self_categories: list of list
-            Examples:
-                def rem(a):
+            Examples: \n
+                def rem(a): \n
                     return 1-a
-                def rem_dim(d):
+                def rem_dim(d):\n
                     return d
-                self_categories =  [['rem',rem, rem_dim, 1, 0.99]]
-                                =  [['rem',rem, rem_dim, arity, prob]]
-                                when rem_dim == None, (can beused when dont calculate dim),
-                                would apply default func, with return dim self
+                self_categories \n
+                =  [['rem',rem, rem_dim, 1, 0.99]] \n
+                =  [['rem',rem, rem_dim, arity, prob]] \n
+            when rem_dim == None, (can beused when dont calculate dim),
+            would apply default func, with return dim self
+            
         power_categories_prob:" balance" or float (0,1]
-            probability of power categories,"balance" is 1/n_power_cat
+            probability of power categories, "balance" is 1/n_power_cat
         categories_prob: "balance" or float (0,1]
-          probabilityty of categories, except (+,-*,/), "balance" is 1/n_categories.
+            probabilityty of categories, except (+,-*,/), "balance" is 1/n_categories.
             Notes: the  (+,-*,/) are set as 1 to be a standard.
         special_prob: None or dict
             Examples: {"Mul":0.6,"Add":0.4,"exp":0.1}
@@ -412,6 +412,8 @@ class SymbolSet(object):
         -------
         SymbolSet
         """
+        if categories is None:
+            categories = ("Add", "Mul", "Self", "exp")
 
         def change(n, p):
             if isinstance(self_categories, dict):
@@ -470,29 +472,30 @@ class SymbolSet(object):
         categories_prob: "balance" or float (0,1]
             probility of categories, except ("Self","MAdd", "MSub", "MMul", "MDiv"),
             "balance" is 1/n_categories.
-             "MSub", "MMul", "MDiv" only work on the size of group is 2, else work like "Self".
+            "MSub", "MMul", "MDiv" only work on the size of group is 2, else work like "Self".
             Notes: the  ("Self","MAdd","MSub", "MMul", "MDiv") are set as 1 and 0.1 to be a standard.
         self_categories: list of list
-            Examples:
-                def rem(ast):
+            Examples:\n
+                def rem(ast):\n
                     return ast[0]+ast[1]+ast[2]
-                def rem_dim(d):
+                def rem_dim(d):\n
                     return d
-                self_categories = [['rem',rem, rem_dim, 1, 0.99]]
-                                = [['rem',rem, rem_dim, arity, 0.99]]
-                                when rem_dim == None, (can beused when dont calculate dim),
-                                would apply default func, with return dim self
-                Note:
-                the arity for accumulative_operation must be 1.
-                if calculate of func rem relies on the size of ast,
-                1.the size of each feature group is the same, such as n_gs.
-                2.the size of ast must be the same as the size of feature group n_gs.
+                self_categories
+                = [['rem',rem, rem_dim, 1, 0.99]]
+                = [['rem',rem, rem_dim, arity, 0.99]]\n
+            when rem_dim == None, (can beused when dont calculate dim),
+            would apply default func, with return dim self.\n
+            Note:
+            the arity for accumulative_operation must be 1.
+            if calculate of func rem relies on the size of ast,
+            the size of each feature group is the same, such as n_gs.
+            the size of ast must be the same as the size of feature group n_gs.
         special_prob: None or dict
             Examples: {"MAdd":0.5,"Self":0.5}
 
         Returns
         -------
-        self
+        SymbolSet
         """
 
         def change(n, pp):
@@ -541,14 +544,18 @@ class SymbolSet(object):
 
     def add_tree_to_features(self, Tree, prob=0.3):
         """
+        Add the individual as a new feature to initial features.
 
         Parameters
         ----------
         Tree: SymbolTree
+            individual or expression
         prob: int
+            probability of this individual
+
         Returns
         -------
-        self
+        SymbolSet
         """
         try:
             check_array(Tree.pre_y, ensure_2d=False)
@@ -572,17 +579,20 @@ class SymbolSet(object):
                      feature_name=None, ):
 
         """
+        Add features with dimension and probability.
 
         Parameters
         ----------
         X: np.ndarray
             2D data
         y: np.ndarray
+            1D data
         feature_name: None, list of str
             the same size wih x.shape[1]
-        x_dim: 1,list of Dim
-            the same size wih x.shape[1]
+        x_dim: 1, list of Dim
+            the same size wih x.shape[1], default 1 is dless for all x
         y_dim: 1,Dim
+            dim of y
         prob: None,list of float
             the same size wih x.shape[1]
         group: list of list
@@ -650,13 +660,15 @@ class SymbolSet(object):
 
     def add_constants(self, c, dim=1, prob=None):
         """
+        Add features with dimension and probability.
 
         Parameters
         ----------
-        c: float, list of float
-        dim: 1,list of Dim
+        dim: 1, list of Dim
             the same size wih c
-        prob: None,list of float
+        c: float
+            list of float
+        prob: None, list of float
             the same size wih c
 
         Returns
@@ -685,31 +697,32 @@ class SymbolSet(object):
 
     def set_personal_maps(self, pers):
         """
-        personal preference add to permap. more control can be found by pset.premap.***
-        just set couples of points and don't chang others
+        Personal preference add to permap. more control can be found by pset.premap.***\n
+        Just set couples of points and don't chang others.
 
         Parameters
         ----------
         pers : list of list
             Examples:
-            [[index1,index2,prob][...]]
-            the prob is [0,1),
+                [[index1,index2,prob]]
+                the prob in [0,1).
         """
         for i in pers:
             self.premap.set_sigle_point(*i)
 
     def bonding_personal_maps(self, pers):
         """
-        personal preference add to permap. more control can be found by pset.premap.***
-        bond the points with ratio. the others would be penalty.
-        for example set the [1,2,0.9],
+        Personal preference add to permap. more control can be found by pset.premap.***\n
+        Bond the points with ratio. the others would be penalty.\n
+        For example set the [1,2,0.9],
         the others bond such as (1,2),(1,3),(1,4)...(2,3),(2,4)...would be with small prob.
+        
         Parameters
         ----------
         pers : list of list
             Examples:
-            [[index1,index2,prob][...]]
-            the prob is [0,1), 1 means the force binding.
+                [[index1,index2,prob][...]]
+                the prob is [0,1), 1 means the force binding.
         """
         for i in pers:
             self.premap.down_other_point(*i)
@@ -949,10 +962,12 @@ class SymbolTree(_ExprTree):
     def sub(self, pset):
         """
         substitute the representing name with featue_name.
+        
         Parameters
         ----------
         pset: SymbolSet
-
+            SymbolSet
+            
         Returns
         -------
         """
@@ -1027,24 +1042,31 @@ class CalculatePrecisionSet(SymbolSet):
         Parameters
         ----------
         pset:SymbolSet
+            SymbolSet
         scoring: Callbale, default is sklearn.metrics.r2_score
             See Also sklearn.metrics
         score_pen: tuple, default is sklearn.metrics.r2_score
             See Also sklearn.metrics
         filter_warning:bool
+            bool
         score_pen: tuple of 1 or -1
-            1 : best is positive, worse -np.inf
-            -1 : best is negative, worse np.inf
-            0 : best is positive , worse 0
-        cal_dim: calculate dim or not, if not return dimless
+            1 : best is positive, worse -np.inf \n
+            -1 : best is negative, worse np.inf \n
+            0 : best is positive , worse 0 \n
+        cal_dim: bool
+            calculate dim or not, if not return dimless
         add_coef: bool
+            bool
         inter_add: bool
+            bool
         inner_add: bool
+            bool
         n_jobs:int
             running core
         batch_size:int
             batch size, advice batch_size*n_jobs = inds/n
         tq:bool
+            bool
 
         """
         _ = pset
@@ -1133,6 +1155,7 @@ class CalculatePrecisionSet(SymbolSet):
         Parameters
         ----------
         inds:SymbolTree
+        
         Returns
         -------
         list of (score,dim,dim_score)
