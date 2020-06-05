@@ -572,7 +572,7 @@ class SymbolSet(object):
             Tree.p_name = name
             self._add_terminal(value, name, dim=dim, prob=prob, init_name=init_name)
 
-        self.premap = self.premap.add_new()
+            self.premap = self.premap.add_new()
         return self
 
     def add_features(self, X, y, x_dim=1, y_dim=1, prob=None, group=None,

@@ -496,7 +496,9 @@ def mutNodeReplacementVerbose(individual, pset, personal_map=False):
                     p_t = pset.prob_ter_con_list
             else:
                 p_t = pset.prob_ter_con_list
+
             term = pset.terminals_and_constants[random.choice(len(pset.terminals_and_constants), p=p_t)]
+
             individual[index] = term
         else:  # Primitive
             prims = [p for p in pset.primitives if p.arity == node.arity]
@@ -641,11 +643,12 @@ def score_dim(dim_, dim_type, fuzzy=False):
             return 1 if dim_.is_same_base(dim_type) else 0
         else:
             return 1 if dim_ == dim_type else 0
+
     else:
         raise TypeError("dim_type should be None,'coef','integer', special Dim or list of Dim")
 
 
-def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
+def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness", force_number=False):
     """
     Select the individual with dim limitation.
     Parameters
@@ -660,7 +663,8 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
         the dim or the dim with same base. such as m,m^2,m^3
     fit_attr:str
         The attribute of individuals to use as selection criterion
-        
+    force_number:
+        return the number the same with K
     .. note::
         default attr is "fitness"
         
@@ -672,7 +676,7 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
     chosen.reverse()
 
     choice_index = [score_dim(ind.y_dim, dim_type, fuzzy) for ind in chosen]
-    add_ind = [chosen[i] for i in choice_index]
+    add_ind = [chosen[i] for i, j in enumerate(choice_index) if j == 1]
 
     if K_best is None:
         if len(add_ind) >= 5:
@@ -682,7 +686,16 @@ def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness"):
     if len(add_ind) >= round(K_best):
         return add_ind[:round(K_best)]
     else:
-        return add_ind
+        if not force_number or len(add_ind) == 0:
+            return add_ind
+        else:
+            ti = K_best // len(add_ind)
+            yu = K_best % len(add_ind)
+            add_new = []
+            for i in range(ti):
+                add_new.extend(add_ind)
+            add_new.extend(add_ind[:yu])
+            return add_new
 
 
 def Statis_func(stats=None):

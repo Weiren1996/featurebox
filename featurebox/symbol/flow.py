@@ -30,7 +30,7 @@ from featurebox.tools.packbox import Toolbox
 
 
 class BaseLoop(Toolbox):
-    """base loop"""
+    """Base loop"""
 
     def __init__(self, pset, pop=500, gen=20, mutate_prob=0.1, mate_prob=0.5,
                  hall=1, re_hall=None, re_Tree=None, initial_max=3, max_value=10,
@@ -335,7 +335,9 @@ class BaseLoop(Toolbox):
 
 
 class MutilMutateLoop(BaseLoop):
-    """add multiply mutate methods to loop"""
+    """
+    multiply mutate method.
+    """
 
     def __init__(self, *args, **kwargs):
         super(MutilMutateLoop, self).__init__(*args, **kwargs)
@@ -354,6 +356,7 @@ class MutilMutateLoop(BaseLoop):
         att_name = []
         for i in result:
             att_name.extend(i)
+
         self.re_fresh_by_name(att_name)
 
         fus = [getattr(self, i) for i in att_name]
@@ -361,6 +364,17 @@ class MutilMutateLoop(BaseLoop):
         off = varAndfus(population, toolbox, cxpb, mutpb, fus)
 
         return off
+
+
+class DimForceLoop(MutilMutateLoop):
+    """force select the individual with target dim for next generation"""
+
+    def __init__(self, *args, **kwargs):
+        super(DimForceLoop, self).__init__(*args, **kwargs)
+        assert self.cal_dim == True, ("For DimForceLoop type, the 'cal_dim' must be True")
+
+        self.register("select", selKbestDim,
+                      dim_type=self.cpset.dim_type, fuzzy=self.cpset.fuzzy, force_number=True)
 
 
 if __name__ == "__main__":
@@ -391,11 +405,12 @@ if __name__ == "__main__":
                          self_categories=None)
 
     # a = time.time()
-    bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=None,
-                         n_jobs=6, mate_prob=0.8, max_value=5,
-                         mutate_prob=0.5, tq=True, dim_type=dless,
-                         re_Tree=1, store=False, random_state=0, stats={"weight_fitness": ["max"]},
-                         add_coef=True, cal_dim=True, personal_map=True)
+    bl = DimForceLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=2,
+                      n_jobs=6, mate_prob=0.8, max_value=5,
+                      mutate_prob=0.5, tq=True, dim_type=dless,
+                      re_Tree=1, store=False, random_state=1,
+                      stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"]},
+                      add_coef=True, cal_dim=True, personal_map=False)
     # b = time.time()
     bl.run()
     # c = time.time()
