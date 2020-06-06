@@ -2,4 +2,3 @@ include README.md
 include requirements.txt
 include LICENSE
 include featurebox/data/*.xlsx
-include Instance

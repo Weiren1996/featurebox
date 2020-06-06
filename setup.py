@@ -45,7 +45,7 @@ setup(
     ],
 
     packages=find_packages(
-        exclude=["*.tests", "*.tests.*", "tests.*", "tests", "tests", 'deprecated', "SUM"], ),
+        exclude=["*.tests", "*.tests.*", "tests.*", "tests", "tests", 'deprecated', "SUM", "Instances"], ),
     long_description=long_description,
     long_description_content_type='text/markdown'
 )
