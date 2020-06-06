@@ -408,7 +408,7 @@ class Dim(numeric.ndarray):
          
          Parameters
          ----------
-         x: np.ndarray or list of ndarray
+         x: np.ndarray or list of ndarray,list of float,list of int
              x
          u: list of sympy.physics.unit or Expr of sympy.physics.unit
              units

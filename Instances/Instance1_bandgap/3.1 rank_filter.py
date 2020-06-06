@@ -92,7 +92,7 @@ if __name__ == "__main__":
     parto = []
     table = []
 
-    for i in range(2):
+    for i in range(100):
         print(i)
         X = X_frame.values
         y = y_frame.values

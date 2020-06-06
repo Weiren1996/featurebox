@@ -389,7 +389,7 @@ class SymbolSet(object):
                     "Self":  f(x)=x,if x true \n
                     "Relu":  f(x)=x,if x>0, f(x)=0,if x<=0 \n
                      
-        self_categories: list of list
+        self_categories: None or list of list
             Examples: \n
                 def rem(a): \n
                     return 1-a
@@ -595,7 +595,7 @@ class SymbolSet(object):
             dim of y
         prob: None,list of float
             the same size wih x.shape[1]
-        group: list of list
+        group: None or list of list
             features group
 
         Returns

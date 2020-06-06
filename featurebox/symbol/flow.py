@@ -205,7 +205,7 @@ class BaseLoop(Toolbox):
             if re_hall is 1 or re_hall is 0:
                 print("re_hall should more than 1")
                 re_hall = 2
-            assert re_hall >= hall, ("re_hall should more than hall")
+            assert re_hall >= hall, "re_hall should more than hall"
             self.re_hall = HallOfFame(re_hall)
 
     def varAnd(self, *arg, **kwargs):
@@ -371,7 +371,7 @@ class DimForceLoop(MutilMutateLoop):
 
     def __init__(self, *args, **kwargs):
         super(DimForceLoop, self).__init__(*args, **kwargs)
-        assert self.cal_dim == True, ("For DimForceLoop type, the 'cal_dim' must be True")
+        assert self.cal_dim == True, "For DimForceLoop type, the 'cal_dim' must be True"
 
         self.register("select", selKbestDim,
                       dim_type=self.cpset.dim_type, fuzzy=self.cpset.fuzzy, force_number=True)
