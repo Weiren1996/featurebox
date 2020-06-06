@@ -99,5 +99,6 @@
         </list>
       </option>
     </inspection_tool>
+    <inspection_tool class="UnusedDefine" enabled="true" level="WARNING" enabled_by_default="true" />
   </profile>
 </component>

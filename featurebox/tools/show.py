@@ -262,7 +262,7 @@ def corr_plot(x_cof, x_name=None, left_down=None, right_top=None, threshold_left
         picture title
     label_axis:"left","right","off"
         label_axis
-    front_raito:int
+    front_raito:float
         front scare for show
     """
     x_cof = np.round(x_cof, 2)
