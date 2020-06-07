@@ -77,7 +77,7 @@ if __name__ == "__main__":
     # store.to_txt(list_abbr, "list_abbr")
 
     # 2
-    select = ['cell volume', 'electron density', 'lattice constants a', 'lattice constants c', 'covalent radii',
+    select = ['cell volume', 'cell density', 'lattice constants a', 'lattice constants c', 'covalent radii',
               'ionic radii(shannon)',
               'core electron distance(schubert)', 'fusion enthalpy', 'cohesive energy(Brewer)', 'total energy',
               'effective nuclear charge(slater)', 'valence electron number', 'electronegativity(martynov&batsanov)',

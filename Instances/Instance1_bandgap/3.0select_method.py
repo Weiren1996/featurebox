@@ -41,13 +41,13 @@ if __name__ == "__main__":
     data_import = all_import
     data225_import = data_import
 
-    select = ['cell volume', 'electron density', 'lattice constants a', 'lattice constants c', 'covalent radii',
+    select = ['cell volume', 'cell density', 'lattice constants a', 'lattice constants c', 'covalent radii',
               'ionic radii(shannon)',
               'core electron distance(schubert)', 'fusion enthalpy', 'cohesive energy(Brewer)', 'total energy',
               'effective nuclear charge(slater)', 'valence electron number', 'electronegativity(martynov&batsanov)',
               'atomic volume(villars,daams)']  # human select
 
-    select = ['cell volume', 'electron density', ] + [j + "_%i" % i for j in select[2:] for i in range(2)]
+    select = ['cell volume', 'cell density', ] + [j + "_%i" % i for j in select[2:] for i in range(2)]
 
     X_frame = data225_import[select]
     y_frame = data225_import['exp_gap']
@@ -55,17 +55,19 @@ if __name__ == "__main__":
     X = X_frame.values
     y = y_frame.values
 
+    # scal = preprocessing.MinMaxScaler()
+    # X = scal.fit_transform(X)
     X, y = utils.shuffle(X, y, random_state=5)
 
     ###############
     method_name = 'GPR-set'
-    method_name = 'SVR-set'
-    method_name = 'KNR-set'
-    method_name = 'KRR-set'
-    method_name = 'BRR-L1'
-    method_name = 'PAR-L1'
-    method_name = 'SGDR-L1'
-    method_name = 'LASSO-L1'
+    # method_name = 'SVR-set'
+    # method_name = 'KNR-set'
+    # method_name = 'KRR-set'
+    # method_name = 'BRR-L1'
+    # method_name = 'PAR-L1'
+    # method_name = 'SGDR-L1'
+    # method_name = 'LASSO-L1'
     # method_name = 'AdaBR-em'
     # method_name = 'GBR-em'
     # method_name = 'DTR-em'
@@ -77,7 +79,7 @@ if __name__ == "__main__":
     n_select = (2, 3)
     # n_select = (2, 3, 4, 5)
     clf = Exhaustion(estimator, n_select=n_select, muti_grade=2, muti_index=[2, X.shape[1]], must_index=None,
-                     n_jobs=1, refit=True).fit(X, y)
+                     n_jobs=6, refit=True).fit(X, y)
 
     name_ = name_to_name(X_frame.columns.values, search=[i[0] for i in clf.score_ex[:10]], search_which=0,
                          return_which=(1,), two_layer=True)

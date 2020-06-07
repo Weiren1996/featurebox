@@ -20,7 +20,7 @@ from sklearn.exceptions import DataConversionWarning
 from sklearn.metrics import r2_score
 from sklearn.utils import check_array
 
-from featurebox.symbol.dim import dim_map, dless, dnan
+from featurebox.symbol.dim import dim_map, dless, dnan, Dim
 from featurebox.symbol.function import np_map
 from featurebox.symbol.gp import compile_context, score_dim
 
@@ -138,7 +138,7 @@ def calculate_y(expr01, x, y, terminals, add_coef=True,
         try:
 
             func0 = sympy.utilities.lambdify(terminals + a_list, expr01,
-                                             modules=[np_maps, "numpy"])
+                                             modules=[np_maps, "numpy","math"])
 
             def func(x_, p):
                 """"""
@@ -158,7 +158,7 @@ def calculate_y(expr01, x, y, terminals, add_coef=True,
                                             jac='3-point', loss='linear')
             cof = result.x
 
-        except (ValueError, KeyError, NameError, TypeError):
+        except (ValueError, KeyError, NameError, TypeError,ZeroDivisionError):
             expr01 = expr00
 
         else:
@@ -178,7 +178,7 @@ def calculate_y(expr01, x, y, terminals, add_coef=True,
         assert y.shape == re.shape
         pre_y = check_array(re, ensure_2d=False)
 
-    except (DataConversionWarning, AssertionError, ValueError, AttributeError, KeyError):
+    except (DataConversionWarning, AssertionError, ValueError, AttributeError, KeyError,ZeroDivisionError):
         pre_y = None
 
     return pre_y, expr01
@@ -291,10 +291,12 @@ def calcualte_dim(expr01, terminals, dim_list, dim_maps=None):
     func0 = sympy.utilities.lambdify(terminals, expr01, modules=[dim_maps])
     try:
         dim_ = func0(*dim_list)
-    except ValueError:
+    except (ValueError,TypeError,ZeroDivisionError):
         dim_ = dnan
-    if isinstance(dim_, float):
+    if isinstance(dim_, (float,int)):
         dim_ = dless
+    if not isinstance(dim_,Dim):
+        dim_ = dnan
 
     return dim_
 

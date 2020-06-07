@@ -42,7 +42,7 @@ def dim_map():
                 dc = dim[0].copy()
                 return dc.__pow__(n)
         else:
-            return dless
+            return dim
 
     def my_quot(dim):
         if isinstance(dim, Dim):
@@ -53,7 +53,7 @@ def dim_map():
             else:
                 return dim
         else:
-            return dless
+            return dim
 
     def my_diff(dim):
         if isinstance(dim, Dim):
@@ -64,13 +64,13 @@ def dim_map():
             else:
                 return dim
         else:
-            return dless
+            return dim
 
     def my_conv(dim):
         if isinstance(dim, Dim):
             return dim
         else:
-            return dless
+            return dim
 
     def my_flat(dim):
         if isinstance(dim, Dim):
@@ -79,13 +79,13 @@ def dim_map():
             else:
                 return dim[0].copy()
         else:
-            return dless
+            return dim
 
     def my_abs(dim):
         if isinstance(dim, Dim):
             return dim
         else:
-            return dless
+            return dim
 
     def my_sqrt(dim):
 
@@ -101,7 +101,7 @@ def dim_map():
             else:
                 return dnan.get_n(dim)
         else:
-            return dless
+            return dim
 
     my_log = my_cos = my_sin = my_exp
 
@@ -158,12 +158,7 @@ class Dim(numeric.ndarray):
     def __add__(self, other):
 
         if isinstance(other, Dim) and self != other:
-            if other == dless:
-                return self.get_n(other)
-            elif self == dless:
-                return other.get_n(self)
-            else:
-                return dnan.get_n(self.get_n(other))  # ?
+            return dnan.get_n(self.get_n(other))  # ?
         elif isinstance(other, Dim) and self == other:
             return self.get_n(other)
 
@@ -222,19 +217,19 @@ class Dim(numeric.ndarray):
 
     # @property
     def allisnan(self):
-        return all(np.isnan(self))
+        return np.all(np.isnan(self))
 
     # @property
     def anyisnan(self):
-        return any(np.isnan(self))
+        return np.any(np.isnan(self))
 
     # @property
     def isfloat(self):
-        return any(np.modf(self)[0])
+        return np.any(np.modf(self)[0])
 
     # @property
     def isinteger(self):
-        return not any(np.modf(self)[0])
+        return not np.any(np.modf(self)[0])
 
     def is_same_base(self, others):
         se = self.copy()
@@ -399,7 +394,10 @@ class Dim(numeric.ndarray):
             Expr
         """
         expr_scale_factor, d = cls.convert_to_Dim(ui, target_units=target_units, unit_system=unit_system)
-        return expr_scale_factor * xi, d
+        xi = expr_scale_factor * xi
+        if isinstance(xi, np.ndarray):
+            xi = xi.astype(np.float32)
+        return xi, d
 
     @classmethod
     def convert_x(cls, x, u, target_units=None, unit_system="SI"):
@@ -510,6 +508,9 @@ class Dim(numeric.ndarray):
             Expr
         """
         expr_scale_factor, d = cls.inverse_convert(dim, scale=scale, target_units=target_units, unit_system=unit_system)
+        xi = expr_scale_factor * xi
+        if isinstance(xi, np.ndarray):
+            xi = xi.astype(np.float32)
         return expr_scale_factor * xi, d
 
 

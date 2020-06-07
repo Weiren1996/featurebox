@@ -210,7 +210,7 @@ class GS(object):
 
     """
 
-    def __init__(self, estimator, slices, estimator_i=0, n_jobs=2):
+    def __init__(self, estimator, slices, estimator_i=0, n_jobs=2, batch_size=1):
         """
 
         Parameters
@@ -238,6 +238,7 @@ class GS(object):
             cv_all.append(get_scorer(i.cv))
         self.predict_y = []  # changed with estimator_i
         self.n_jobs = n_jobs
+        self.batch_size = batch_size
         scorer = scorer_all[0]
         scorer_func = scorer._score_func
         self.metrics_method = scorer_func
@@ -293,6 +294,7 @@ class GS(object):
 
         self.estimator_i = estimator_i if isinstance(estimator_i, int) else self.estimator_i
         n_jobs = self.n_jobs
+        batch_size = self.batch_size
         slices = slices if slices else self.slices
 
         ret = self.check_prop("cv_predict_all", estimator_i=self.estimator_i, slices=slices)
@@ -301,7 +303,7 @@ class GS(object):
             pass
         else:
             cal_score = partial(self.predict)
-            ret = parallelize(n_jobs=n_jobs, func=cal_score, iterable=slices)
+            ret = parallelize(n_jobs=n_jobs, func=cal_score, iterable=slices, batch_size= batch_size)
 
             self.add_prop("cv_predict_all", estimator_i=self.estimator_i, slices=slices, values=ret)
 
@@ -346,6 +348,7 @@ class GS(object):
 
         self.estimator_i = estimator_i if isinstance(estimator_i, int) else self.estimator_i
         n_jobs = self.n_jobs
+        batch_size = self.batch_size
         slices = slices if slices else self.slices
 
         ret = self.check_prop("cv_score_all", estimator_i=self.estimator_i, slices=slices)
@@ -354,7 +357,7 @@ class GS(object):
             pass
         else:
             cal_score = partial(self.cv_score)
-            ret = parallelize(n_jobs=n_jobs, func=cal_score, iterable=slices)
+            ret = parallelize(n_jobs=n_jobs, func=cal_score, iterable=slices, batch_size=batch_size)
 
             self.add_prop("cv_score_all", estimator_i=self.estimator_i, slices=slices, values=ret)
 
@@ -382,6 +385,7 @@ class GS(object):
 
         self.estimator_i = estimator_i if isinstance(estimator_i, int) else self.estimator_i
         n_jobs = self.n_jobs
+        batch_size = self.batch_size
         slices = slices if slices else self.slices
 
         ret = self.check_prop("cal_y_distance_all", estimator_i=self.estimator_i, slices=slices)
@@ -390,7 +394,7 @@ class GS(object):
             pass
         else:
             cal_score = partial(self.cal_y_distance)
-            ret = parallelize(n_jobs=n_jobs, func=cal_score, iterable=slices)
+            ret = parallelize(n_jobs=n_jobs, func=cal_score, iterable=slices, batch_size=batch_size)
 
             self.add_prop("cal_y_distance_all", estimator_i=self.estimator_i, slices=slices, values=ret)
 
@@ -417,6 +421,7 @@ class GS(object):
         """ calculate the distance matrix of slices """
         self.estimator_i = estimator_i if isinstance(estimator_i, int) else self.estimator_i
         n_jobs = self.n_jobs
+        batch_size = self.batch_size
         slices = slices if slices else self.slices
 
         ret = self.check_prop("cal_binary_distance_all", estimator_i=self.estimator_i, slices=slices)
@@ -426,7 +431,8 @@ class GS(object):
         else:
             cal_binary_distance = partial(self.cal_binary_distance)
             slices_cuple = list(itertools.product(slices, repeat=2))
-            ret = parallelize(n_jobs=n_jobs, func=cal_binary_distance, iterable=slices_cuple, respective=True)
+            ret = parallelize(n_jobs=n_jobs, func=cal_binary_distance, iterable=slices_cuple, respective=True,
+                              batch_size=batch_size)
             ret = np.reshape(ret, (len(slices), len(slices)), order='F')
 
             self.add_prop("cal_binary_distance_all", estimator_i=self.estimator_i, slices=slices, values=ret)
@@ -594,7 +600,7 @@ class UGS(GS):
 
     """
 
-    def __init__(self, estimator, slices, estimator_n=None, n_jobs=2, estimator_i=0):
+    def __init__(self, estimator, slices, estimator_n=None, n_jobs=2, estimator_i=0 ,batch_size=1):
         """
 
         Parameters
@@ -608,14 +614,13 @@ class UGS(GS):
         estimator_n: list
             default indexes of estimator
         """
-        super().__init__(estimator, slices, estimator_i)
+        super().__init__(estimator, slices, estimator_i,n_jobs=n_jobs,batch_size=batch_size)
         if estimator_n is None:
             self.estimator_n = list(range(len(estimator)))
         else:
             self.estimator_n = estimator_n
         assert len(self.estimator) >= 2
         assert len(self.estimator_n) >= 2
-        self.n_jobs = n_jobs
 
     def cal_t_group(self, eps=None, printing=False, pre_group=None):
         """

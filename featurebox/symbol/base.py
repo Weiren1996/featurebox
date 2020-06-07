@@ -595,7 +595,7 @@ class SymbolSet(object):
             dim of y
         prob: None,list of float
             the same size wih x.shape[1]
-        group: None or list of list
+        group: None or list of list, int
             features group
 
         Returns
@@ -618,7 +618,8 @@ class SymbolSet(object):
 
         if prob is None:
             prob = [1 for _ in range(n)]
-
+        elif isinstance(prob, (float, int)):
+            prob = [prob for _ in range(n)]
         if feature_name:
             assert n == len(x_dim) == len(feature_name) == len(prob)
         else:
@@ -626,6 +627,10 @@ class SymbolSet(object):
 
         if not group:
             group = [[]]
+        if isinstance(group, int):
+            assert n > group > 1, "the len of group should in (2,x.shape[1]]"
+            indexes = [_ for _ in range(n)]
+            group = [indexes[i:i + group] for i in range(0, len(indexes), group)]
 
         for i, gi in enumerate(group):
             len_gi = len(gi)
@@ -685,6 +690,8 @@ class SymbolSet(object):
 
         if prob is None:
             prob = [0.1 for _ in range(n)]
+        elif isinstance(prob, (float, int)):
+            prob = [prob for _ in range(n)]
 
         assert len(c) == len(dim) == len(prob)
 

@@ -43,13 +43,13 @@ if __name__ == "__main__":
     data_import = all_import
     data225_import = data_import
 
-    select = ['cell volume', 'electron density', 'lattice constants a', 'lattice constants c', 'covalent radii',
+    select = ['cell volume', 'cell density', 'lattice constants a', 'lattice constants c', 'covalent radii',
               'ionic radii(shannon)',
               'core electron distance(schubert)', 'fusion enthalpy', 'cohesive energy(Brewer)', 'total energy',
               'effective nuclear charge(slater)', 'valence electron number', 'electronegativity(martynov&batsanov)',
               'atomic volume(villars,daams)']  # human select
 
-    select = ['cell volume', 'electron density', ] + [j + "_%i" % i for j in select[2:] for i in range(2)]
+    select = ['cell volume', 'cell density', ] + [j + "_%i" % i for j in select[2:] for i in range(2)]
 
     X_frame = data225_import[select]
     y_frame = data225_import['exp_gap']
@@ -75,9 +75,20 @@ if __name__ == "__main__":
     index_slice = [tuple(index[0]) for _ in index_all for index in _[:round(len(_) / 3)]]
     # we choice top 30% for simpilfy calculation.
     index_slice = list(set(index_slice))
+    index_slice.sort()
 
-    # index_slice = [index_slice[i] for i in [100, 8, 6, 152, 81, 106, 129, 19, 73, 170]]
-    # # best 10 for set index, which may be difference for linux.
+    # index_slice = [index_slice[i] for i in [
+    # 127,
+    # 151,
+    # 135,
+    # 126,
+    # 121,
+    # 116,
+    # 168,
+    # 119,
+    # 122,
+    # 123]]
+    # # best 10 for set index for linux system.
 
     """get x_name and abbr"""
     index_all_name = name_to_name(X_frame.columns.values, search=[i for i in index_slice],
@@ -92,7 +103,7 @@ if __name__ == "__main__":
     parto = []
     table = []
 
-    for i in range(100):
+    for i in range(2):
         print(i)
         X = X_frame.values
         y = y_frame.values
@@ -102,7 +113,7 @@ if __name__ == "__main__":
         X, y = utils.shuffle(X, y, random_state=i)
 
         """run"""
-        self = SUM(estimator_all, index_slice, estimator_n=[0, 1, 2, 3, 4, 5, 6, 7], n_jobs=1)
+        self = SUM(estimator_all, index_slice, estimator_n=[0, 1, 2, 3, 4, 5, 6, 7], n_jobs=12, batch_size=1)
         self.fit(X, y)
         mp = self.pareto_method()
         partotimei = list(list(zip(*mp))[0])
@@ -130,6 +141,8 @@ if __name__ == "__main__":
     result['index_all_abbr'] = index_all_abbr
     result['index_all_name'] = index_all_name
     result['index_all'] = index_slice
-
+    #
     result = result.sort_values(by="all_mean", ascending=False)
     store.to_csv(result, "feature_subset_rank")
+
+    # for i in range():

@@ -206,7 +206,7 @@ def dict_method_reg():
                                 random_state=None, verbose=0, warm_start=False)
     cv7 = 5
     scoring7 = 'r2'
-    param_grid7 = [{'max_depth': [3, 4, 5, 6], 'min_samples_split': [2, 3]}]
+    param_grid7 = [{'max_depth': [3, 4, 5],}]
     dict_method.update({"RFR-em": [me7, cv7, scoring7, param_grid7]})
 
     """7GBR"""

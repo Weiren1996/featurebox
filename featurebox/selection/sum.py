@@ -72,7 +72,7 @@ class SUM(UGS):
 
     """
 
-    def __init__(self, estimator, slices, estimator_n=None, n_jobs=2):
+    def __init__(self, estimator, slices, estimator_n=None, n_jobs=2, batch_size=1):
         """
 
         Parameters
@@ -86,7 +86,7 @@ class SUM(UGS):
         estimator_n: list
             default indexes of estimator
         """
-        super().__init__(estimator, slices, estimator_n=estimator_n, n_jobs=n_jobs)
+        super().__init__(estimator, slices, estimator_n=estimator_n, n_jobs=n_jobs, batch_size=batch_size)
 
     @staticmethod
     def cal_r(kk):
