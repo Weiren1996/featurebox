@@ -42,19 +42,31 @@ def func_map():
     def remo(ax):
         return 1 - ax
 
-    functions2 = {"Add": sympy.Add, 'Sub': Sub, 'Mul': sympy.Mul, 'Div': Div}
     functions1 = {"sin": sympy.sin, 'cos': sympy.cos, 'exp': sympy.exp, 'log': sympy.ln,
                   'Abs': sympy.Abs, "Neg": functools.partial(sympy.Mul, -1.0),
                   "Rec": functools.partial(sympy.Pow, e=-1.0),
                   'Zeroo': zeroo, "Oneo": oneo, "Remo": remo}
+    functions2 = {"Add": sympy.Add, 'Sub': Sub, 'Mul': sympy.Mul, 'Div': Div}
 
     return functions1, functions2
 
 
 def func_map_dispose():
     """user's str to sympy.expr function"""
-    return {"MAdd": Function("MAdd"), "MMul": Function("MMul"), "MSub": Function("MSub"),
-            "MDiv": Function("MDiv"), "Self": lambda x_: x_, "Conv": Function("Conv")}
+    Flat = Function("MAdd")
+    Comp = Function("MMul")
+    Diff = Function("MSub")
+    Quot = Function("MDiv")
+    Self = lambda x: x
+    Conv = Function("Conv")
+    Flat.is_jump = False
+    Comp.is_jump = False
+    Diff.is_jump = True
+    Quot.is_jump = True
+    Conv.is_jump = True
+    Self.is_jump = True
+
+    return {"MAdd": Flat, "MMul": Comp, "MSub": Diff, "MDiv": Quot, "Conv": Conv, "Self": Self}
 
 
 def np_map():

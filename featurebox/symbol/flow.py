@@ -23,7 +23,7 @@ from featurebox.symbol.base import SymbolTree
 from featurebox.symbol.dim import dless, Dim
 from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, selKbestDim, \
     selTournament, Statis_func, mutUniform, mutShrink, varAndfus, \
-    mutDifferentReplacementVerbose, mutNodeReplacementVerbose, mutDifferentReplacement, selBest
+    mutDifferentReplacementVerbose, mutNodeReplacementVerbose, selBest
 from featurebox.tools import newclass
 from featurebox.tools.exports import Store
 from featurebox.tools.packbox import Toolbox
@@ -406,7 +406,7 @@ if __name__ == "__main__":
 
     # a = time.time()
     bl = DimForceLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=2,
-                      n_jobs=6, mate_prob=0.8, max_value=5,
+                      n_jobs=1, mate_prob=0.8, max_value=5,
                       mutate_prob=0.5, tq=True, dim_type=dless,
                       re_Tree=1, store=False, random_state=1,
                       stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"]},

@@ -344,7 +344,7 @@ class Dim(numeric.ndarray):
         d = cls(np.array(list(dim_dict.values())))
         d.dim = canon_dim_units
         d.unit = target_units
-        return (expr_scale_factor, d)
+        return expr_scale_factor, d
 
     @classmethod
     def convert_to_Dim(cls, u, target_units=None, unit_system="SI"):

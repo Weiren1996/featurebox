@@ -17,19 +17,17 @@ import sys
 from collections import Counter
 from functools import wraps
 from inspect import isclass
+from operator import attrgetter
 
+import numpy as np
 from deap.tools import Statistics, MultiStatistics
 from numpy import random
-from operator import attrgetter
-from featurebox.symbol.dim import Dim, dnan
-import numpy as np
 
 
-# from featurebox.tools.tool import logg
-# from featurebox.tools.tool import logg
 ######################################
 # Generate                         #
 ######################################
+from featurebox.symbol.scores import score_dim
 
 
 def checkss(func):
@@ -148,64 +146,6 @@ def genGrow(pset, min_, max_, personal_map=False, ):
     return generate(pset, min_, max_, condition, personal_map=personal_map)
 
 
-def compile_(expr, pset):
-    """Compile the expression *expr*.
-
-    :param expr: Expression to compile. It can either be a PrimitiveTree,
-                 a string of Python code or any object that when
-                 converted into string produced a valid Python code
-                 expression.
-    :param pset: Primitive set against which the expression is compile.
-    :returns: a function if the primitive set has 1 or more arguments,
-              or return the results produced by evaluating the tree.
-    """
-    if isinstance(expr, str):
-        code = expr
-    else:
-        code = repr(expr)
-    if len(pset.arguments) > 0:
-        # This section is a stripped version of the lambdify
-        # function of SymPy 0.6.6.
-        args = ",".join(arg for arg in pset.arguments)
-        code = "lambda {args}: {code}".format(args=args, code=code)
-    try:
-        return eval(code, pset.context, {})
-    except MemoryError:
-        _, _, traceback = sys.exc_info()
-        raise MemoryError("DEAP : Error in tree evaluation :"
-                          " Python cannot evaluate a tree higher than 90. "
-                          "To avoid this problem, you should use bloat control on your "
-                          "operators. See the DEAP documentation for more information. "
-                          "DEAP will now abort.").with_traceback(traceback)
-
-
-def compile_context(expr, context):
-    """Compile the expression *expr*.
-
-    :param expr: Expression to compile. It can either be a PrimitiveTree,
-                 a string of Python code or any object that when
-                 converted into string produced a valid Python code
-                 expression.
-    :param context: dict
-    :returns: a function if the primitive set has 1 or more arguments,
-              or return the results produced by evaluating the tree.
-    """
-    if isinstance(expr, str):
-        code = expr
-    else:
-        code = repr(expr)
-
-    try:
-        return eval(code, context, {})
-    except MemoryError:
-        _, _, traceback = sys.exc_info()
-        raise MemoryError("DEAP : Error in tree evaluation :"
-                          " Python cannot evaluate a tree higher than 90. "
-                          "To avoid this problem, you should use bloat control on your "
-                          "operators. See the DEAP documentation for more information. "
-                          "DEAP will now abort.").with_traceback(traceback)
-
-
 def depart(individual):
     if len(individual) <= 10 or individual.height <= 8:
         return [individual, ]
@@ -322,104 +262,105 @@ def mutUniform(individual, expr, pset):
 
 # @logg
 # @checkss
-def mutNodeReplacement(individual, pset):
-    """Replaces a randomly chosen primitive from *individual* by a randomly
-    chosen primitive with the same number of arguments from the :attr:`pset`
-    attribute of the individual.
+# def mutNodeReplacement(individual, pset):
+#     """Replaces a randomly chosen primitive from *individual* by a randomly
+#     chosen primitive with the same number of arguments from the :attr:`pset`
+#     attribute of the individual.
+#
+#     :param individual: The normal or typed tree to be mutated.
+#     :param pset: SymbolSet
+#     :returns: A tuple of one tree.
+#     """
+#
+#     if len(individual) < 4:
+#         return individual,
+#
+#     if random.random() <= 0.8:
+#         index = random.choice(np.arange(1, len(individual), step=2))
+#     else:
+#         index = random.choice(np.arange(0, len(individual), step=2))
+#
+#     node = individual[index]
+#
+#     if index % 2 == 0:
+#         for i in pset.dispose:
+#             assert i.arity == 1
+#         prims = pset.dispose
+#         p_d = np.array([pset.prob_dispose[repr(i)] for i in prims], 'float32')
+#         p_d /= np.sum(p_d)
+#         a = prims[random.choice(len(prims), p=p_d)]
+#         individual[index] = a
+#     else:
+#
+#         if node.arity == 0:  # Terminal
+#             p_t = pset.prob_ter_con_list
+#             term = pset.terminals_and_constants[random.choice(len(pset.terminals_and_constants), p=p_t)]
+#             individual[index] = term
+#         else:  # Primitive
+#             prims = [p for p in pset.primitives if p.arity == node.arity]
+#             p_p = np.array([pset.prob_pri[repr(i)] for i in prims], 'float32')
+#
+#             p_p /= np.sum(p_p)
+#             # except:
+#             a = prims[random.choice(len(prims), p=p_p)]
+#
+#             individual[index] = a
+#
+#     return individual,
 
-    :param individual: The normal or typed tree to be mutated.
-    :param pset: SymbolSet
-    :returns: A tuple of one tree.
-    """
 
-    if len(individual) < 4:
-        return individual,
-
-    if random.random() <= 0.8:
-        index = random.choice(np.arange(1, len(individual), step=2))
-    else:
-        index = random.choice(np.arange(0, len(individual), step=2))
-
-    node = individual[index]
-
-    if index % 2 == 0:
-        for i in pset.dispose:
-            assert i.arity == 1
-        prims = pset.dispose
-        p_d = np.array([pset.prob_dispose[repr(i)] for i in prims], 'float32')
-        p_d /= np.sum(p_d)
-        a = prims[random.choice(len(prims), p=p_d)]
-        individual[index] = a
-    else:
-
-        if node.arity == 0:  # Terminal
-            p_t = pset.prob_ter_con_list
-            term = pset.terminals_and_constants[random.choice(len(pset.terminals_and_constants), p=p_t)]
-            individual[index] = term
-        else:  # Primitive
-            prims = [p for p in pset.primitives if p.arity == node.arity]
-            p_p = np.array([pset.prob_pri[repr(i)] for i in prims], 'float32')
-
-            p_p /= np.sum(p_p)
-            # except:
-            a = prims[random.choice(len(prims), p=p_p)]
-
-            individual[index] = a
-
-    return individual,
-
-
-# @logg
-# @checkss
-def mutDifferentReplacement(individual, pset):
-    """Replaces a randomly chosen primitive from *individual* by a randomly
-    chosen primitive with the same number of arguments from the :attr:`pset`
-    attribute of the individual.
-    decrease the probability of same terminals.
-
-    :param individual: The normal or typed tree to be mutated.
-    :param pset: SymbolSet
-    :returns: A tuple of one tree.
-    """
-    if len(individual) < 4:
-        return individual,
-
-    ters = [repr(i) for i in individual.terminals()]
-    pset_ters = [repr(i) for i in pset.terminals_and_constants]
-
-    cou = Counter(ters)
-    cou_mutil = {i: j for i, j in cou.items() if j >= 2}
-    ks = list(cou_mutil.keys())
-    nks = list(set(pset_ters) - (set(ks)))
-    nks.sort()  # very import for random
-
-    p_nks = np.array([pset.prob_ter_con[i] for i in nks])
-    p_nks /= np.sum(p_nks)
-
-    if cou_mutil:
-        indexs = []
-        for k, v in cou_mutil.items():
-            indi = []
-            for i in np.arange(1, len(individual), 2):
-                if repr(individual[i]) == k:
-                    indi.append(i)
-            if indi:
-                indexs.append(random.choice(indi))
-        if len(indexs) <= len(nks):
-            term = random.choice(nks, len(indexs), replace=False, p=p_nks)
-        else:
-            term = random.choice(nks, len(indexs), replace=True, p=p_nks)
-
-        term_ters = []
-        for name in term:
-            for i in pset.terminals_and_constants:
-                if repr(i) == name:
-                    term_ters.append(i)
-
-        for o, n in zip(indexs, term_ters):
-            individual[o] = n
-
-    return individual,
+# # @logg
+# # @checkss
+# def mutDifferentReplacement(individual, pset):
+#     """Replaces a randomly chosen primitive from *individual* by a randomly
+#     chosen primitive with the same number of arguments from the :attr:`pset`
+#     attribute of the individual.
+#     decrease the probability of same terminals.
+#
+#     :param individual: The normal or typed tree to be mutated.
+#     :param pset: SymbolSet
+#     :returns: A tuple of one tree.
+#     """
+#
+#     if len(individual) < 4:
+#         return individual,
+#
+#     ters = [repr(i) for i in individual.terminals()]
+#     pset_ters = [repr(i) for i in pset.terminals_and_constants]
+#
+#     cou = Counter(ters)
+#     cou_mutil = {i: j for i, j in cou.items() if j >= 2}
+#     ks = list(cou_mutil.keys())
+#     nks = list(set(pset_ters) - (set(ks)))
+#     nks.sort()  # very import for random
+#
+#     p_nks = np.array([pset.prob_ter_con[i] for i in nks])
+#     p_nks /= np.sum(p_nks)
+#
+#     if cou_mutil:
+#         indexs = []
+#         for k, v in cou_mutil.items():
+#             indi = []
+#             for i in np.arange(1, len(individual), 2):
+#                 if repr(individual[i]) == k:
+#                     indi.append(i)
+#             if indi:
+#                 indexs.append(random.choice(indi))
+#         if len(indexs) <= len(nks):
+#             term = random.choice(nks, len(indexs), replace=False, p=p_nks)
+#         else:
+#             term = random.choice(nks, len(indexs), replace=True, p=p_nks)
+#
+#         term_ters = []
+#         for name in term:
+#             for i in pset.terminals_and_constants:
+#                 if repr(i) == name:
+#                     term_ters.append(i)
+#
+#         for o, n in zip(indexs, term_ters):
+#             individual[o] = n
+#
+#     return individual,
 
 
 # @logg
@@ -624,28 +565,6 @@ def selTournament(individuals, k, tournsize, fit_attr="fitness"):
         aspirants = selRandom(individuals, tournsize)
         chosen.append(max(aspirants, key=attrgetter(fit_attr)))
     return chosen
-
-
-def score_dim(dim_, dim_type, fuzzy=False):
-    if dim_type is None:
-        return 1
-    elif isinstance(dim_type, str):
-        if dim_type == 'integer':
-            return 1 if dim_.isinteger() else 0
-        elif dim_type == 'coef':
-            return 1 if not dim_.anyisnan() else 0
-        else:
-            raise TypeError("dim_type should be None,'coef', 'integer', special Dim or list of Dim")
-    elif isinstance(dim_type, list):
-        return 1 if dim_ in dim_type else 0
-    elif isinstance(dim_type, Dim):
-        if fuzzy:
-            return 1 if dim_.is_same_base(dim_type) else 0
-        else:
-            return 1 if dim_ == dim_type else 0
-
-    else:
-        raise TypeError("dim_type should be None,'coef','integer', special Dim or list of Dim")
 
 
 def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness", force_number=False):

@@ -19,9 +19,9 @@ from sklearn.utils import check_X_y, check_array
 
 from featurebox.symbol.dim import dless, dim_map, dnan, Dim
 from featurebox.symbol.function import func_map_dispose, func_map, np_map
-from featurebox.symbol.gp import generate, genGrow, genFull, depart, compile_context
+from featurebox.symbol.gp import generate, genGrow, genFull, depart
 from featurebox.symbol.preference import PreMap
-from featurebox.symbol.scores import calcualte_dim_score, calculate_score, calculate_collect
+from featurebox.symbol.scores import calcualte_dim_score, calculate_score, calculate_collect, compile_context
 from featurebox.tools.tool import parallelize
 
 
@@ -185,6 +185,7 @@ class SymbolSet(object):
         self.dim_ter_con = {}  # Dim of and features and constants
         self.prob_ter_con = {}  # probability of and features and constants
         self.ter_con_dict = {}
+        self.gro_ter_con = {}
 
         self.terminals_init_map = {}
         # terminals representing name "gx0" to represented name "[x1,x2]",
@@ -315,6 +316,15 @@ class SymbolSet(object):
                                          "second %s terminal." % (name,)
 
         self.context[name] = sympy.Symbol(name)
+        if dim.ndim == 1:
+            ng = 1
+        elif dim.ndim == 2:
+            ng = dim.shape[0]
+        else:
+            ng = 1
+
+        self.gro_ter_con[name] = ng
+
         self.dim_ter_con[name] = dim
         self.prob_ter_con[name] = prob
 
@@ -353,6 +363,15 @@ class SymbolSet(object):
                                          "second %s terminal." % (name,)
 
         self.context[name] = sympy.Symbol(name)
+
+        if dim.ndim == 1:
+            ng = 1
+        elif dim.ndim == 2:
+            ng = dim.shape[0]
+        else:
+            ng = 1
+
+        self.gro_ter_con[name] = ng
         self.dim_ter_con[name] = dim
         self.prob_ter_con[name] = prob
 
@@ -416,7 +435,7 @@ class SymbolSet(object):
             categories = ("Add", "Mul", "Self", "exp")
 
         def change(n, p):
-            if isinstance(self_categories, dict):
+            if isinstance(special_prob, dict):
                 if n in special_prob:
                     p = special_prob[n]
             return p
@@ -454,6 +473,7 @@ class SymbolSet(object):
 
         if self_categories:
             for i in self_categories:
+                assert isinstance(i, list)
                 assert len(i) == 5, "check your input of self_categories,wihch size must be 5"
                 assert i[-2] == 1, "check your input of self_categories,wihch arity must be 1"
                 prob = change(i[0], i[4])
@@ -481,15 +501,17 @@ class SymbolSet(object):
                 def rem_dim(d):\n
                     return d
                 self_categories
-                = [['rem',rem, rem_dim, 1, 0.99]]
-                = [['rem',rem, rem_dim, arity, 0.99]]\n
-            when rem_dim == None, (can beused when dont calculate dim),
-            would apply default func, with return dim self.\n
+                = [['rem',rem, rem_dim, 1, 0.99,True]]
+                = [['rem',rem, rem_dim, arity, prob, bool]]\n
+            when the rem,rem_dim,and bool must be uniform.
             Note:
+            the rem and rem_dim must be able to settle dowm 1,2 dimension problems
+            the bool means the rem and rem_dim can be treat 2+ domension problems or not.
             the arity for accumulative_operation must be 1.
             if calculate of func rem relies on the size of ast,
             the size of each feature group is the same, such as n_gs.
             the size of ast must be the same as the size of feature group n_gs.
+
         special_prob: None or dict
             Examples: {"MAdd":0.5,"Self":0.5}
 
@@ -499,7 +521,7 @@ class SymbolSet(object):
         """
 
         def change(n, pp):
-            if isinstance(self_categories, dict):
+            if isinstance(special_prob, dict):
                 if n in special_prob:
                     pp = special_prob[n]
             return pp
@@ -525,7 +547,7 @@ class SymbolSet(object):
             elif i in ("MAdd", "MSub", "MMul", "MDiv"):
                 p = change(i, 0.05)
                 self._add_dispose(func_map_dispose()[i], arity=1, name=i, prob=p)
-            elif i in ("Conv"):
+            elif i is "Conv":
                 p = change(i, 0.05)
                 self._add_dispose(func_map_dispose()[i], arity=1, name=i, prob=p)
             else:
@@ -535,9 +557,12 @@ class SymbolSet(object):
 
         if self_categories:
             for i in self_categories:
-                assert len(i) == 5, "check your input of self_categories,wihch size must be 5"
+                assert isinstance(i, list)
+                assert len(i) == 6, "check your input of self_categories,wihch size must be 5"
                 assert i[-2] == 1, "check your input of self_categories,wihch arity must be 1"
                 prob = change(i, i[4])
+                fu = sympy.Function(i[0])
+                fu.is_jump = i[6]
                 self._add_dispose(sympy.Function(i[0]), arity=i[3], name=i[0], prob=prob, np_func=i[1], dim_func=i[2])
 
         return self
@@ -620,7 +645,7 @@ class SymbolSet(object):
             prob = [1 for _ in range(n)]
         elif isinstance(prob, (float, int)):
             prob = [prob for _ in range(n)]
-        if feature_name:
+        if isinstance(feature_name, list):
             assert n == len(x_dim) == len(feature_name) == len(prob)
         else:
             assert n == len(x_dim) == len(prob)
@@ -645,7 +670,7 @@ class SymbolSet(object):
                                    name="gx%s" % i, dim=dim, prob=prob[gi[0]],
                                    init_name=init_name
                                    )
-                if feature_name:
+                if isinstance(feature_name, list):
                     fea_name = str([feature_name[j] for j in gi])
                     self.terminals_fea_map["gx%s" % i] = (init_name, fea_name)
 
@@ -806,9 +831,9 @@ class _ExprTree(list):
     def __init__(self, content):
         list.__init__(self, content)
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo=None):
         new = self.__class__(self)
-        new.__dict__.update(copy.deepcopy(self.__dict__, memo))
+        new.__dict__.update(copy.deepcopy(self.__dict__))
         return new
 
     def __setitem__(self, key, val):
@@ -998,17 +1023,17 @@ class SymbolTree(_ExprTree):
     @classmethod
     def generate(cls, pset, min_, max_, condition, per=False, *kwargs):
         """details in generate function"""
-        return cls(generate(pset, min_, max_, condition, automap=per, *kwargs))
+        return cls(generate(pset, min_, max_, condition, per, *kwargs))
 
     @classmethod
     def genGrow(cls, pset, min_, max_, per=False, ):
         """details in genGrow function"""
-        return cls(genGrow(pset, min_, max_, automap=per))
+        return cls(genGrow(pset, min_, max_, per))
 
     @classmethod
     def genFull(cls, pset, min_, max_, per=False, ):
         """details in genGrow function"""
-        return cls(genFull(pset, min_, max_, automap=per, ))
+        return cls(genFull(pset, min_, max_, per, ))
 
 
 class ShortStr:
@@ -1030,6 +1055,7 @@ class CalculatePrecisionSet(SymbolSet):
     Add score method to SymbolSet.
     The object can get from a worked symbolset object.
     """
+    hasher = str
 
     def __hash__(self):
         return hash(self.hasher(self))
@@ -1039,13 +1065,12 @@ class CalculatePrecisionSet(SymbolSet):
                 add_coef=True, inter_add=True, inner_add=False, n_jobs=1, batch_size=20, tq=True):
 
         cpset = super().__new__(cls)
-        cpset.__dict__.update(copy.deepcopy((pset.__dict__)))
+        cpset.__dict__.update(copy.deepcopy(pset.__dict__))
 
         return cpset
 
-    def __init__(self, pset, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True,
-                 dim_type=None, fuzzy=False,
-                 add_coef=True, inter_add=True, inner_add=False, n_jobs=1, batch_size=20, tq=True):
+    def __init__(self, pset, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True, dim_type=None,
+                 fuzzy=False, add_coef=True, inter_add=True, inner_add=False, n_jobs=1, batch_size=20, tq=True):
         """
 
         Parameters
@@ -1141,7 +1166,7 @@ class CalculatePrecisionSet(SymbolSet):
         SymbolTree
         """
         if isinstance(ind, SymbolTree):
-            expr = compile_context(ind, self.context)
+            expr = compile_context(ind, self.context, self.gro_ter_con)
         elif isinstance(ind, sympy.Expr):
             expr = ind
         else:
@@ -1178,6 +1203,7 @@ class CalculatePrecisionSet(SymbolSet):
         inds = [i.capsule() for i in inds]
         calls = functools.partial(calculate_collect, context=self.context, x=self.data_x, y=self.y,
                                   terminals_and_constants_repr=self.terminals_and_constants_repr,
+                                  gro_ter_con=self.gro_ter_con,
                                   dim_ter_con_list=self.dim_ter_con_list, dim_type=self.dim_type, fuzzy=self.fuzzy,
                                   scoring=self.scoring, score_pen=self.score_pen,
                                   add_coef=self.add_coef, inter_add=self.inter_add,
