@@ -23,6 +23,7 @@ from sklearn.utils import check_array
 from sympy import Number, Function
 from sympy.core.numbers import ComplexInfinity, NumberSymbol
 
+from featurebox.symbol.coefficient import Coef
 from featurebox.symbol.dim import dim_map, dless, dnan, Dim
 from featurebox.symbol.function import np_map, func_map_dispose, func_map
 
@@ -148,6 +149,29 @@ def compile_context(expr, context, gro_ter_con):
     return expr
 
 
+def get_args(expr_):
+    """"""
+    list_arg = []
+    for argi in expr_.args:
+        list_arg.append(argi)
+        if argi.args:
+            re = get_args(argi)
+            list_arg.extend(re)
+
+    return list_arg
+
+def find_args(expr_,patten):
+    """"""
+    if len(expr_.args)>0:
+        if patten in expr_.args:
+            return expr_.args
+        else:
+            for argi in expr_.args:
+                d = get_args(argi)
+                if d is not None:
+                    return d
+
+
 def addCoefficient(expr01, inter_add=True, inner_add=False):
     """
     try add coefficient to sympy expression.
@@ -166,18 +190,8 @@ def addCoefficient(expr01, inter_add=True, inner_add=False):
     expr
     """
 
-    def get_args(expr_):
-        """"""
-        list_arg = []
-        for argi in expr_.args:
-            list_arg.append(argi)
-            if argi.args:
-                re = get_args(argi)
-                list_arg.extend(re)
-
-        return list_arg
-
     cof_list = []
+    cof_dict={}
 
     if not inner_add:
 
@@ -187,16 +201,24 @@ def addCoefficient(expr01, inter_add=True, inner_add=False):
                 expr01 = expr01.subs(j, Wi * j)
                 cof_list.append(Wi)
 
-        elif isinstance(expr01, (Function("MAdd"), Function("MMul"))):
-            exprin1 = expr01.args[0]
-            if isinstance(exprin1, sympy.Add):
-                argss = []
-                for i, j in enumerate(exprin1.args):
-                    Wi = sympy.Symbol("W%s" % i)
-                    argss.append(Wi * j)
-                    cof_list.append(Wi)
-                args_sum = sum(argss)
-                expr01 = expr01.subs(exprin1, args_sum)
+        elif isinstance(expr01, (Function("MAdd"), Function("MSub"))):
+
+            if hasattr(expr01, "conu") and expr01.conu > 1:
+                Wi = sympy.Symbol("V")
+                arg = expr01.args[0]
+                arg_new = Wi * arg
+                expr01.subs(arg, arg_new)
+                cof_dict[Wi] = expr01.conu
+            else:
+                exprin1 = expr01.args[0]
+                if isinstance(exprin1, sympy.Add):
+                    argss = []
+                    for i, j in enumerate(exprin1.args):
+                        Wi = sympy.Symbol("W%s" % i)
+                        argss.append(Wi * j)
+                        cof_list.append(Wi)
+                    args_sum = sum(argss)
+                    expr01 = expr01.subs(exprin1, args_sum)
 
         else:
             A = sympy.Symbol("A")
@@ -216,16 +238,173 @@ def addCoefficient(expr01, inter_add=True, inner_add=False):
             expr01 = expr01.subs(choi, ai * choi)
         cof_list.extend(a_cho)
 
+
+        cho_add2 = [i for i in arg_list if isinstance(i, (Function("MAdd"), Function("MSub"))) if
+                    hasattr(expr01, "conu") and expr01.conu > 1]
+
+        for i, j in enumerate(cho_add2):
+            Wi = sympy.Symbol("Vi"%i)
+            arg = j.args[0]
+            arg_new = Wi * arg
+            j.subs(arg, arg_new)
+            cof_dict[Wi] = j.conu
+
     if inter_add:
         B = sympy.Symbol("B")
         expr01 = expr01 + B
         cof_list.append(B)
 
-    return expr01, cof_list
+    return expr01, cof_list,cof_dict
+
+class CheckCoef(object):
+    def __init__(self,cof_list,cof_dict):
+        """
+
+        Parameters
+        ----------
+        cof_list:list
+        cof_dict:dict
+        """
+        self.cof_list=cof_list
+        self.cof_dict=cof_dict
+        self.cof_dict_keys=list(cof_dict.keys())
+        self.cof_dict_values=list(cof_dict.values())
+        self.name = cof_list+list(self.cof_dict_keys)
+        self.num = len(cof_list)+sum(list(self.cof_dict_values))
+
+    def __len__(self):
+        return len(self.name)
+    @property
+    def ind(self):
+        lsa = list(range(len(self.cof_list)))
+        n=len(lsa)
+        for k in self.cof_dict_values:
+            lsi = list(range(k))
+            lsi = [lsii+n for lsii in lsi]
+            lsa.append(lsi)
+            n=lsi[-1]+1
+
+        return lsa
+
+    def group(self,p):
+        p=np.array(p)
+        ls=[]
+        for i in self.ind:
+            if isinstance(i,int):
+                ls.append(p[i])
+            else:
+                ls.append(p[i])
+        return ls
 
 
 def calculate_y(expr01, x, y, terminals, add_coef=True,
                 filter_warning=True, inter_add=True, inner_add=False, np_maps=None):
+    """
+    calculate predict y by sympy expression.
+    Parameters
+    ----------
+    expr01: Expr
+        sympy expressions
+    x: list of np.ndarray
+        list of xi
+    y: np.ndarray
+        y value
+    terminals: list of sympy.Symbol
+        features and constants
+    add_coef: bool
+        bool
+    filter_warning: bool
+        bool
+    inter_add: bool
+        bool
+    inner_add: bool
+        bool
+    np_maps: Callable
+        user np.ndarray function
+
+    Returns
+    -------
+    pre_y:
+        np.array or None
+    expr01: Expr
+        New expr.
+    """
+
+
+    if filter_warning:
+        warnings.filterwarnings("ignore")
+    if not np_maps:
+        np_maps = np_map()
+
+    expr00 = copy.deepcopy(expr01)
+
+    if add_coef:
+
+        expr01, a_list,a_dict = addCoefficient(expr01, inter_add=inter_add, inner_add=inner_add)
+        cc = CheckCoef(a_list, a_dict)
+        try:
+
+            func0 = sympy.utilities.lambdify(terminals + cc.name, expr01,   #short
+                                             modules=[np_maps, "numpy", "math"])
+
+
+            def func(x_, p):
+                """"""
+                num_list = []
+
+                num_list.extend(x_)
+                p = cc.group(p)
+
+                num_list.extend(p)
+
+                return func0(*num_list)
+
+            def res(p, x_, y_):
+                """"""
+                ress = y_ - func(x_, p)
+                return ress
+
+            result = optimize.least_squares(res, x0=[1.0] * cc.num, args=(x, y),  #long
+                                            jac='3-point', loss='linear')
+            cof = result.x
+
+        except (ValueError, KeyError, NameError, TypeError, ZeroDivisionError):
+            expr01 = expr00
+
+        else:
+            cof = cc.group(cof)
+            cof_ = []
+            for a_listi, cofi in zip( cc.name,cof):
+                if "B" in a_listi.name:
+                    cof_.append(np.round(cofi, decimals=3))
+                else:
+                    cof_.append(cofi)
+            cof = cof_
+
+            for ai, choi in zip(cc.name, cof):
+                if ai in cc.cof_dict_keys:
+                    fun = Coef(ai.name,choi)
+                    olds = find_args(expr01,ai)
+                    olds = [old for old in olds if old is not ai][0]
+                    expr01 = expr01.subs(ai*olds, fun(olds))
+                else:
+                    expr01 = expr01.subs(ai, choi)
+
+    try:
+        func0 = sympy.utilities.lambdify(terminals, expr01, modules=[np_maps, "numpy"])
+        re = func0(*x)
+        re = re.ravel()
+        assert y.shape == re.shape
+        pre_y = check_array(re, ensure_2d=False)
+
+    except (DataConversionWarning, AssertionError, ValueError, AttributeError, KeyError, ZeroDivisionError):
+        pre_y = None
+
+    return pre_y, expr01
+
+
+def calculate_y_old(expr01, x, y, terminals, add_coef=True,
+                    filter_warning=True, inter_add=True, inner_add=False, np_maps=None):
     """
     calculate predict y by sympy expression.
     Parameters

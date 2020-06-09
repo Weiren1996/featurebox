@@ -87,20 +87,32 @@
 
 # -*- coding: utf-8 -*-
 import torch
+from torch import nn
 
-# N是批大小；D是输入维度
-# H是隐藏层维度；D_out是输出维度
-N, D_in, H, D_out = 64, 1000, 100, 10
-
+# N是样本数量大小；D_in是输入维度,D_out是输出维度
+# 其他是隐藏层维度；
+N, D_in, D_out = 64, 1000, 100
+D1,D2=100,100
+dense1, dense2, dense3 = 32, 32, 16
 # 产生随机输入和输出张量
 x = torch.randn(N, D_in)
 y = torch.randn(N, D_out)
 
 # 使用nn包定义模型和损失函数
-model = torch.nn.Sequential(
-    torch.nn.Linear(D_in, H),
-    torch.nn.ReLU(),
-    torch.nn.Linear(H, D_out),
+model = nn.Sequential(
+    nn.Conv2d(D_in, D1, 3),
+    nn.ReLU(),
+    nn.Conv2d(D1, D2, 3),
+    nn.ReLU(),
+    nn.Conv2d(D1,dense1 , 3),
+    nn.ReLU(),
+    nn.Linear(dense1, dense2),
+    nn.ReLU(True),
+    nn.Dropout(),
+    nn.Linear(dense2, dense3),
+    nn.ReLU(True),
+    nn.Dropout(),
+    nn.Linear(dense3, D_out),
 )
 
 # 使用optim包定义优化器(Optimizer）。Optimizer将会为我们更新模型的权重
@@ -123,9 +135,7 @@ for t in range(500):
     # 这是因为默认情况下，每当调用.backward(）时，渐变都会累积在缓冲区中(即不会被覆盖）
     # 有关更多详细信息，请查看torch.autograd.backward的文档。
     optimizer.zero_grad()
-
     # 反向传播：根据模型的参数计算loss的梯度
     loss.backward()
-
     # 调用Optimizer的step函数使它所有参数更新
     optimizer.step()
