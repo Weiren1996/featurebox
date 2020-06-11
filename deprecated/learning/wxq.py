@@ -10,10 +10,10 @@
 """
 import os
 from itertools import product
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
-import matplotlib.pyplot as plt
 
 
 def move(datas, x_, x, y_, y):

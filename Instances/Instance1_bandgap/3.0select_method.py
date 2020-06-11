@@ -11,15 +11,13 @@ import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-from sklearn import utils, preprocessing
+from sklearn import utils
 from sklearn.model_selection import GridSearchCV
 
 from featurebox.selection.exhaustion import Exhaustion
 from featurebox.selection.quickmethod import dict_method_reg
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
-
 from featurebox.tools.show import BasePlot
 from featurebox.tools.tool import name_to_name
 

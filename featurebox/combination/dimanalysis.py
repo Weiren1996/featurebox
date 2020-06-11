@@ -8,8 +8,6 @@ import numpy as np
 from numpy.linalg import matrix_rank
 from sklearn.utils import check_array
 
-from featurebox.combination.dim import Dim
-
 
 def dimension_check(x, y=None):
     if y is not None:

@@ -15,7 +15,6 @@ import numpy as np
 import pandas as pd
 import sympy
 from deap.tools import Logbook
-
 from scipy import optimize
 from sklearn.exceptions import DataConversionWarning
 from sklearn.metrics import r2_score
@@ -222,7 +221,7 @@ def calculateExpr(expr01, x, y, terminals, scoring=None, add_coeff=True,
             pass
 
         func0 = sympy.utilities.lambdify(terminals, expr01)
-        try :
+        try:
             re = func0(*split_x(x))
         except:
             print(expr01)

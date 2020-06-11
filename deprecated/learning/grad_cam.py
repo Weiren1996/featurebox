@@ -7,13 +7,6 @@
 # from __future__ import print_function
 # from __future__ import print_function, division
 #
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from PIL import Image
-
-from torch import optim
-from torchvision.utils import save_image
 
 #
 # class Net(nn.Module):
@@ -125,7 +118,6 @@ import numpy as np
 import torch
 from matplotlib import cm
 from matplotlib.cm import ScalarMappable
-from torch import nn
 from torch.autograd import Function
 from torchvision import models
 
@@ -171,7 +163,7 @@ class ModelOutputs():
     def __call__(self, x):
         target_activations, output = self.feature_extractor(x)  # 分类层之前的目标层
         output = output.view(output.size(0), -1)
-        output = self.model.classifier(output)
+        output = self.model.connect(output)
         return target_activations, output
 
 
@@ -207,7 +199,7 @@ class GradCam:
             one_hot = torch.sum(one_hot * output)
 
         self.model.features.zero_grad()
-        self.model.classifier.zero_grad()
+        self.model.connect.zero_grad()
         one_hot.backward()
 
         grads_val = self.extractor.get_gradients()[-1].cpu().data.numpy()  # 1 512,14,14 收敛的最后一个结果的target层梯度

@@ -1,13 +1,12 @@
-from itertools import combinations, chain
+# 穷举
+from itertools import combinations
 
-from sklearn import svm
 from sklearn.datasets import make_classification
-from sklearn.decomposition import PCA
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import f_regression
-from sklearn.linear_model import Lasso, LassoCV, LogisticRegression
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV, cross_val_score
-from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVC
+from tqdm import tqdm
+
 
 # 管道
 # pca = PCA(n_components=10)
@@ -19,12 +18,6 @@ from sklearn.pipeline import Pipeline
 # a = SKB_SVC[0]
 # a = SKB_SVC["SKB"]
 # a = SKB_SVC.named_steps.SKB
-
-# 穷举
-from itertools import combinations
-
-from sklearn.svm import LinearSVC
-from tqdm import tqdm
 
 
 def exhausted(x, n_select=(2, 3, 4)):

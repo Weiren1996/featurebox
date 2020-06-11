@@ -1,13 +1,15 @@
+import warnings
+
+import matplotlib.pyplot as plt
 import numpy as np
 import sklearn
+from sklearn import svm
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import MinMaxScaler
-import matplotlib.pyplot as plt
+
 from featurebox.selection.backforward import BackForward
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
-from sklearn import svm
-import warnings
 
 warnings.filterwarnings("ignore")
 

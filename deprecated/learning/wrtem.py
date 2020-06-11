@@ -1,26 +1,27 @@
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_score
 # from sklearn.preprocessing import MinMaxScaler
 from sklearn.utils import shuffle
-import numpy as np
+
 from featurebox.selection.quickmethod import method_pack
 from featurebox.tools.exports import Store
 
 # 数据导入
 
-store = Store(r'/data/home/wangchangxin/data/wr')
+store = Store(r'/data/home/wangchangxin/data/wr/tem')
 
-data = pd.read_excel(r'/data/home/wangchangxin/data/wr/tem.xlsx',
+data = pd.read_excel(r'/data/home/wangchangxin/data/wr/tem/wrtem2.xlsx',
                      header=0, skiprows=None, index_col=0)
 
-y = data["t2"].values
-x_p_name = ['t1', 'v1', 'b1', 'hat', 'd1']
+y = data["S"].values
+x_p_name = ["t", 'v', 'hat']
 x = data[x_p_name].values
 
 # # # 预处理
 # minmax = MinMaxScaler()
 # x = minmax.fit_transform(x)
-x_, y_ = shuffle(x, y, random_state=1)
+x_, y_ = shuffle(x, y, random_state=2)
 
 # # # 建模
 method_all = ['SVR-set', "GPR-set", "RFR-em", "AdaBR-em", "DTR-em", "LASSO-L1", "BRR-L1"]
@@ -29,7 +30,7 @@ methods = method_pack(method_all=method_all,
 pre_y = []
 ests = []
 for name, methodi in zip(method_all, methods):
-    methodi.cv = 10
+    methodi.cv = 5
     methodi.scoring = "neg_root_mean_squared_error"
     gd = methodi.fit(X=x_, y=y_)
     score = gd.best_score_

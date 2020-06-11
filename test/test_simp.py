@@ -1,11 +1,11 @@
 import time
 
+from featurebox.symbol.dim import dless, Dim
+from featurebox.symbol.scores import compile_context
 from numpy import random
 from sklearn.datasets import load_boston
 
 from featurebox.symbol.base import SymbolSet, SymbolTree
-from featurebox.symbol.dim import dless, Dim
-from featurebox.symbol.scores import compile_context
 
 if __name__ == "__main__":
     # data

@@ -1,7 +1,5 @@
 import torch
-from scipy.interpolate import interpolate
 from torch import nn
-import torch.nn.functional as F
 
 
 class VGG(nn.Module):

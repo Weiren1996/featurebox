@@ -1,7 +1,6 @@
 import unittest
 import numpy as np
 
-from featurebox.symbol.dim import Dim, dless, dnan, dim_map
 from featurebox.symbol.preference import PreMap
 
 

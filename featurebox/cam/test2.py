@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 from matplotlib.pyplot import imshow
-from skimage import io
 from torch import nn
 
 from featurebox.cam.cam import GradCRM

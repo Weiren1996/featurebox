@@ -1,12 +1,11 @@
-import operator
 import unittest
 
 import numpy
-
-from featurebox.symbol.base import SymbolTree
-from featurebox.symbol.base import SymbolSet
-from featurebox.symbol.base import CalculatePrecisionSet
 from featurebox.symbol.dim import dless
+
+from featurebox.symbol.base import CalculatePrecisionSet
+from featurebox.symbol.base import SymbolSet
+from featurebox.symbol.base import SymbolTree
 
 
 class MyTestbase(unittest.TestCase):

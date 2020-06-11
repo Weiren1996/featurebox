@@ -23,11 +23,12 @@ import numpy as np
 from deap.tools import Statistics, MultiStatistics
 from numpy import random
 
+from featurebox.symbol.calculation.scores import score_dim
+
 
 ######################################
 # Generate                         #
 ######################################
-from featurebox.symbol.scores import score_dim
 
 
 def checkss(func):
@@ -40,6 +41,24 @@ def checkss(func):
             assert i in pset.dispose
         for i in result[0].top():
             assert i in pset.primitives + pset.terminals_and_constants
+
+        return result
+
+    return wrapper
+
+
+def checks_number(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        if "force_number" in kwargs:
+            fs = kwargs["force_number"]
+        else:
+            fs = False
+        if fs and not len(result):
+            raise TypeError("The DimForceLoop keep the dim of the select offspring,\n"
+                            "But the select number from last population are zero at the current dim_type limitation.\n"
+                            "Please change the dim_type or change the DimForceLoop method to others")
 
         return result
 
@@ -567,6 +586,7 @@ def selTournament(individuals, k, tournsize, fit_attr="fitness"):
     return chosen
 
 
+@checks_number
 def selKbestDim(pop, K_best=10, dim_type=None, fuzzy=False, fit_attr="fitness", force_number=False):
     """
     Select the individual with dim limitation.
@@ -631,6 +651,8 @@ def Statis_func(stats=None):
         # special
         "coef": lambda ind: score_dim(ind.y_dim, "coef", fuzzy=False),
         "integer": lambda ind: score_dim(ind.y_dim, "integer", fuzzy=False),
+
+        "length": lambda ind: len(ind),
 
         # mutil-target
         "weight_fitness": lambda ind: ind.fitness.wvalues,

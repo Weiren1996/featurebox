@@ -1,12 +1,12 @@
 import operator
-import time
 import unittest
+
+from featurebox.symbol.dim import dless
 
 from featurebox.symbol.base import CalculatePrecisionSet
 from featurebox.symbol.base import SymbolSet
 from featurebox.symbol.base import SymbolTree
-from featurebox.symbol.dim import dless
-from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, selRandom, mutShrink, selKbestDim, \
+from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, mutShrink, selKbestDim, \
     mutDifferentReplacement
 from featurebox.tools.packbox import Toolbox
 

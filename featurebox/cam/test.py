@@ -1,16 +1,12 @@
+import numpy as np
+import torch
+from matplotlib.pyplot import imshow
 from torch import nn
 from torchvision.models.vgg import make_layers
 
-from featurebox.cam.cam import GradCAM, GradCAMpp, SmoothGradCAMpp, GradCRM
+from featurebox.cam.cam import GradCRM
 from featurebox.cam.fig import normalize, trans_to_numpy, visualize
 from featurebox.data.datasets import CAMData
-import numpy as np
-import torch
-from skimage import io
-from matplotlib.pyplot import imshow
-from torchvision import models, transforms
-import os
-import torch.nn.functional as F
 
 
 class VGG(nn.Module):

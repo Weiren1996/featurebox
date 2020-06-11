@@ -1,14 +1,11 @@
 import pandas as pd
-
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.utils import shuffle
 
-from featurebox.selection.corr import Corr
 from featurebox.selection.quickmethod import method_pack
 from featurebox.tools.exports import Store
 
 # 数据导入
-from featurebox.tools.show import corr_plot
 
 store = Store(r'C:\Users\Administrator\Desktop/wr')
 
@@ -26,7 +23,7 @@ x_name = ["温度刻度", "速度刻度", "风量", "加盖", "焊口距地距�
 minmax = MinMaxScaler()
 x = minmax.fit_transform(x)
 
-x,y = shuffle(x,y)
+x, y = shuffle(x, y)
 # m_corr = Corr(threshold=0.85, muti_grade=None, muti_index=None, must_index=None)
 # m_corr.fit(x)
 # corr = m_corr.cov
@@ -40,19 +37,19 @@ x,y = shuffle(x,y)
 # # 人工挑选？
 # # select=[]
 
-#预筛选模型
-method_all=['KNR-set', 'SVR-set', "KRR-set", "GPR-set",
-                                  "RFR-em", "AdaBR-em", "DTR-em",
-                                  "LASSO-L1", "BRR-L1", "SGDR-L1", "PAR-L1"]
+# 预筛选模型
+method_all = ['KNR-set', 'SVR-set', "KRR-set", "GPR-set",
+              "RFR-em", "AdaBR-em", "DTR-em",
+              "LASSO-L1", "BRR-L1", "SGDR-L1", "PAR-L1"]
 methods = method_pack(method_all=method_all,
                       me="reg", gd=False)
 
-for name,methodi in zip(method_all, methods):
-    methodi.keywords["cv"]= 3
+for name, methodi in zip(method_all, methods):
+    methodi.keywords["cv"] = 3
     # methodi.keywords["scoring"] = 'neg_mean_absolute_error'
     methodi.keywords["scoring"] = 'r2'
     score = methodi(X=x, y=y).mean()
-    print(name,score)
+    print(name, score)
 
 # method_select=["RFR-em", "AdaBR-em", "BRR-L1"]
 #

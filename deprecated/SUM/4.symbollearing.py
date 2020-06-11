@@ -6,7 +6,6 @@
 # @License: BSD 3-Clause
 
 import numpy as np
-from sklearn import preprocessing
 from sklearn.metrics import r2_score
 from sklearn.utils import shuffle
 
@@ -93,8 +92,6 @@ from featurebox.tools.tool import name_to_name
 
 # 5
 if __name__ == '__main__':
-    import pandas as pd
-
     store = Store(r'C:\Users\Administrator\Desktop\band_gap_exp\4.symbol')
     data = Call(r'C:\Users\Administrator\Desktop\band_gap_exp')
     data_import = data.csv().all_import
@@ -128,10 +125,10 @@ if __name__ == '__main__':
 
     target_dim = [Dim([1, 2, -2, 0, 0, 0, 0])]
     dim_list = [dim1, dim2, dim3, dim4]
-    #GP
+    # GP
     # pset = ExpressionSetFill(x_name=select, power_categories=[2, 3], categories=("Add", "Mul", "exp"),
     #                          partial_categories=None, self_categories=None, dim=dim_list)
-    #GEP
+    # GEP
     pset = FixedSetFill(x_name=select_abbr, power_categories=[1 / 3, 1 / 2, 2, 3],
                         categories=('Add', 'Sub', 'Mul', 'Div', "Rec", 'exp', "log", "Self", "Abs", "Neg", "Rem"),
                         partial_categories=None, self_categories=None, dim=dim_list, max_=4,

@@ -7,10 +7,11 @@
 # @Software: PyCharm
 import numpy as np
 import pandas as pd
-# from pymatgen import Composition
 
 from featurebox.featurizers.compositionfeaturizer import DepartElementFeaturizer
 from featurebox.tools.exports import Store
+
+# from pymatgen import Composition
 
 """
 this is a description

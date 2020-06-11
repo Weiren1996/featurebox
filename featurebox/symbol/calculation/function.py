@@ -33,19 +33,13 @@ def func_map():
     def Sub(left, right):
         return left - right
 
-    def zeroo(_):
-        return 0
-
-    def oneo(_):
-        return 1
-
-    def remo(ax):
+    def rem(ax):
         return 1 - ax
 
-    functions1 = {"sin": sympy.sin, 'cos': sympy.cos, 'exp': sympy.exp, 'log': sympy.ln,
+    functions1 = {"sin": sympy.sin, 'cos': sympy.cos, 'exp': sympy.exp, 'ln': sympy.ln,
                   'Abs': sympy.Abs, "Neg": functools.partial(sympy.Mul, -1.0),
-                  "Rec": functools.partial(sympy.Pow, e=-1.0),
-                  'Zeroo': zeroo, "Oneo": oneo, "Remo": remo}
+                  "Rec": functools.partial(sympy.Pow, e=-1.0),"Self":lambda x:x,
+                  "Rem": rem}
     functions2 = {"Add": sympy.Add, 'Sub': Sub, 'Mul': sympy.Mul, 'Div': Div}
 
     return functions1, functions2
@@ -65,6 +59,13 @@ def func_map_dispose():
     Quot.is_jump = True
     Conv.is_jump = True
     Self.is_jump = True
+
+    Flat.keep = False
+    Comp.keep = False
+    Diff.keep = False
+    Quot.keep = False
+    Conv.keep = True
+    Self.keep = True
 
     return {"MAdd": Flat, "MMul": Comp, "MSub": Diff, "MDiv": Quot, "Conv": Conv, "Self": Self}
 

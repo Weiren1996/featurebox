@@ -92,7 +92,7 @@ from torch import nn
 # N是样本数量大小；D_in是输入维度,D_out是输出维度
 # 其他是隐藏层维度；
 N, D_in, D_out = 64, 1000, 100
-D1,D2=100,100
+D1, D2 = 100, 100
 dense1, dense2, dense3 = 32, 32, 16
 # 产生随机输入和输出张量
 x = torch.randn(N, D_in)
@@ -104,7 +104,7 @@ model = nn.Sequential(
     nn.ReLU(),
     nn.Conv2d(D1, D2, 3),
     nn.ReLU(),
-    nn.Conv2d(D1,dense1 , 3),
+    nn.Conv2d(D1, dense1, 3),
     nn.ReLU(),
     nn.Linear(dense1, dense2),
     nn.ReLU(True),

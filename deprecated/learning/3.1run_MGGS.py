@@ -3,13 +3,13 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from featurebox.tools.quickmethod import dict_method_reg
 from sklearn import preprocessing, utils
 from sklearn.model_selection import GridSearchCV
 
 from featurebox.selection.ugs import UGS
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
-from featurebox.tools.quickmethod import dict_method_reg
 from featurebox.tools.tool import name_to_name
 
 warnings.filterwarnings("ignore")

@@ -75,6 +75,7 @@ if __name__ == "__main__":
     composition = pd.Series(map(eval, com_data['composition']))
     composition_mp = pd.Series(map(Composition, composition))
 
+
     # # """get ele_ratio"""
 
     def comdict_to_df(composition_mp):
@@ -108,16 +109,16 @@ if __name__ == "__main__":
     x_rame = (all_import_title['electron number_0'] + all_import_title['electron number_1']) / all_import_title[
         'cell volume']
 
-    all_import_title.insert(10, "electron density", x_rame,)
+    all_import_title.insert(10, "electron density", x_rame, )
 
-    store.to_csv(all_import_title, "all_import_title",reverse=False)
+    store.to_csv(all_import_title, "all_import_title", reverse=False)
 
     all_import = all_import_title.drop(
         ['name_number', 'name_number', "name", "structure", "structure_type", "space_group", "reference", 'material_id',
          'composition', "com_0", "com_1"], axis=1)
 
     all_import = all_import.iloc[np.where(all_import['group_number'] == 225)[0]]
-    all_import=all_import.drop(['group_number'], axis=1)
+    all_import = all_import.drop(['group_number'], axis=1)
     store.to_csv(all_import, "all_import", reverse=False)
 
 

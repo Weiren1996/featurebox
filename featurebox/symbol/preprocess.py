@@ -1,6 +1,6 @@
-from sklearn.base import TransformerMixin, BaseEstimator
 import numpy as np
-from sklearn.utils import check_X_y, check_array
+from sklearn.base import TransformerMixin, BaseEstimator
+from sklearn.utils import check_array
 
 
 def ger_magnitude(a):
@@ -149,5 +149,3 @@ class MagnitudeTransformer(TransformerMixin, BaseEstimator):
 
     def fit_transform_constant(self, c):
         return self.fit_constant(c).transform_constant(c)
-
-

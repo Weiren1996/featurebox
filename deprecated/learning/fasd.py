@@ -1,8 +1,3 @@
-from minepy import MINE
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-
 # x = np.linspace(0, 1, 1000)
 # y = np.sin(10 * np.pi * x) + x
 # mine = MINE(alpha=0.6, c=15)

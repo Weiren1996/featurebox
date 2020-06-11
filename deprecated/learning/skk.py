@@ -1,21 +1,14 @@
-import numpy as np
 import pandas as pd
-from pandas.io import pickle
-from sklearn import metrics
+from pymatgen import Composition
 from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
-from sklearn.feature_selection import RFECV, SelectFromModel
+from sklearn.feature_selection import RFECV
 from sklearn.linear_model import BayesianRidge
 from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeRegressor
 
-from featurebox.selection import corr
-from pandas import DataFrame
-from pymatgen import Composition
-from sklearn.preprocessing import MinMaxScaler
-
-from featurebox.featurizers.compositionfeaturizer import DepartElementFeaturizer, WeightedAverage
+from featurebox.featurizers.compositionfeaturizer import WeightedAverage
 from featurebox.selection.corr import Corr
-from featurebox.selection.quickmethod import method_pack
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
 

@@ -14,6 +14,7 @@ Notes:
 from __future__ import division
 
 import numbers
+
 import numpy as np
 import numpy.core.numeric as numeric
 import sympy

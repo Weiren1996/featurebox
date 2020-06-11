@@ -303,7 +303,7 @@ class GS(object):
             pass
         else:
             cal_score = partial(self.predict)
-            ret = parallelize(n_jobs=n_jobs, func=cal_score, iterable=slices, batch_size= batch_size)
+            ret = parallelize(n_jobs=n_jobs, func=cal_score, iterable=slices, batch_size=batch_size)
 
             self.add_prop("cv_predict_all", estimator_i=self.estimator_i, slices=slices, values=ret)
 
@@ -600,7 +600,7 @@ class UGS(GS):
 
     """
 
-    def __init__(self, estimator, slices, estimator_n=None, n_jobs=2, estimator_i=0 ,batch_size=1):
+    def __init__(self, estimator, slices, estimator_n=None, n_jobs=2, estimator_i=0, batch_size=1):
         """
 
         Parameters
@@ -614,7 +614,7 @@ class UGS(GS):
         estimator_n: list
             default indexes of estimator
         """
-        super().__init__(estimator, slices, estimator_i,n_jobs=n_jobs,batch_size=batch_size)
+        super().__init__(estimator, slices, estimator_i, n_jobs=n_jobs, batch_size=batch_size)
         if estimator_n is None:
             self.estimator_n = list(range(len(estimator)))
         else:

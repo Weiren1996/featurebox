@@ -8,8 +8,9 @@
 # @time: 2020/5/26 19:50
 
 from itertools import combinations
-from numpy import random
+
 import numpy as np
+from numpy import random
 from numpy.core import numeric
 
 

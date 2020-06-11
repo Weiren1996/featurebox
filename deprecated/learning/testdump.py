@@ -4,7 +4,6 @@
 # @Email   : 986798607@qq.com
 # @Software: PyCharm
 # @License: BSD 3-Clause
-import json
 
 # import requests
 # from pymatgen import MPRester

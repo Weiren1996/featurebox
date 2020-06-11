@@ -21,7 +21,7 @@ from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.linear_model import LogisticRegression, BayesianRidge, SGDRegressor, Lasso, ElasticNet, Perceptron, \
     SGDClassifier, PassiveAggressiveRegressor
 from sklearn.metrics import get_scorer
-from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_val_score, KFold
+from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_val_score
 from sklearn.svm import SVR, SVC
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
@@ -206,7 +206,7 @@ def dict_method_reg():
                                 random_state=None, verbose=0, warm_start=False)
     cv7 = 5
     scoring7 = 'r2'
-    param_grid7 = [{'max_depth': [3, 4, 5],}]
+    param_grid7 = [{'max_depth': [3, 4, 5], }]
     dict_method.update({"RFR-em": [me7, cv7, scoring7, param_grid7]})
 
     """7GBR"""

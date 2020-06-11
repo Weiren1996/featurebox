@@ -9,10 +9,6 @@
 """
 this is a description
 """
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import seaborn as sns
 
 from featurebox.selection.corr import Corr
 from featurebox.tools.exports import Store
@@ -30,7 +26,7 @@ if __name__ == "__main__":
     store = Store()
     data = Call()
     all_import = data.csv().all_import
-    name_and_abbr= data.csv().name_and_abbr
+    name_and_abbr = data.csv().name_and_abbr
 
     data_import = all_import
     data225_import = data_import
@@ -49,9 +45,9 @@ if __name__ == "__main__":
     X_frame_name = corr.transform(X_frame.columns.values)
     X_frame_name = [i.replace("_0", "") for i in X_frame_name]
 
-    X_frame_abbr = name_to_name(name_and_abbr.columns.values, list(name_and_abbr.iloc[0,:]),
+    X_frame_abbr = name_to_name(name_and_abbr.columns.values, list(name_and_abbr.iloc[0, :]),
                                 search=X_frame_name, search_which=1,
-                                return_which=[2,],
+                                return_which=[2, ],
                                 two_layer=False)
 
     """rename"""
@@ -65,7 +61,7 @@ if __name__ == "__main__":
     #             annot=True, annot_kws={'size': 3})
     # plt.show()
     #
-    corr_plot(corr.cov_shrink, X_frame_abbr,title="", left_down="fill", right_top="pie", threshold_right=0,
+    corr_plot(corr.cov_shrink, X_frame_abbr, title="", left_down="fill", right_top="pie", threshold_right=0,
               front_raito=0.4)
     #
     # list_name, list_abbr = name_to_name(X_frame_name, X_frame_abbr, search=corr.list_count, search_which=0,
@@ -94,4 +90,3 @@ if __name__ == "__main__":
     # store.to_txt(select_abbr, "list_abbr_select")
 
     # corr_plot(cov_select, select_abbr, title="", left_down="fill", right_top="pie", threshold_right=0, front_raito=0.6)
-

@@ -8,9 +8,6 @@
 @file: ttt.py
 @time: 2020/5/14 23:13
 """
-from functools import partial
-
-import numpy as np
 
 a = [1, 2, 3, 4]
 b = a[:1]

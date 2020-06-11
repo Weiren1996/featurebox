@@ -20,7 +20,7 @@ from sklearn.metrics import r2_score
 from featurebox.symbol.base import CalculatePrecisionSet
 from featurebox.symbol.base import SymbolSet
 from featurebox.symbol.base import SymbolTree
-from featurebox.symbol.dim import dless, Dim
+from featurebox.symbol.calculation.dim import dless, Dim
 from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, selKbestDim, \
     selTournament, Statis_func, mutUniform, mutShrink, varAndfus, \
     mutDifferentReplacementVerbose, mutNodeReplacementVerbose, selBest
@@ -219,7 +219,7 @@ class BaseLoop(Toolbox):
                 path = os.getcwd()
             file_new_name = "_".join((str(self.pop), str(self.gen),
                                       str(self.mutate_prob), str(self.mate_prob),
-                                      str(time.ctime(time.time()))))
+                                      str(time.time())))
             try:
                 st = Store(path)
                 st.to_csv(data_all, file_new_name)
@@ -331,6 +331,7 @@ class BaseLoop(Toolbox):
         if self.store:
             self.to_csv(self.data_all)
         self.hall.items = [self.cpset.calculate_detail(indi) for indi in self.hall.items]
+
         return self.hall
 
 
@@ -398,19 +399,19 @@ if __name__ == "__main__":
 
     # symbolset
     pset0 = SymbolSet()
-    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=None)
+    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2], [3, 4]])
     pset0.add_constants(c, dim=c_dim, prob=None)
     pset0.add_operations(power_categories=(2, 3, 0.5),
                          categories=("Add", "Mul", "Sub", "Div", "exp"),
                          self_categories=None)
 
     # a = time.time()
-    bl = DimForceLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=2,
-                      n_jobs=1, mate_prob=0.8, max_value=5,
-                      mutate_prob=0.5, tq=True, dim_type=dless,
-                      re_Tree=1, store=False, random_state=1,
-                      stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"]},
-                      add_coef=True, cal_dim=True, personal_map=False)
+    bl = MutilMutateLoop(pset=pset0, gen=10, pop=300, hall=1, batch_size=40, re_hall=2,
+                         n_jobs=6, mate_prob=0.8, max_value=4,
+                         mutate_prob=0.5, tq=True, dim_type=None,
+                         re_Tree=1, store=False, random_state=4,
+                         stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"], "length": ["mean"]},
+                         add_coef=True, cal_dim=True, inner_add=False, personal_map=False)
     # b = time.time()
     bl.run()
     # c = time.time()

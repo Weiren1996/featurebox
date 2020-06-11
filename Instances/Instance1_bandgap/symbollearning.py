@@ -1,12 +1,10 @@
-import time
+from sklearn.utils import shuffle
 
-from sklearn import preprocessing
-from sklearn.datasets import load_boston
+from featurebox.symbol.dim import dless, Dim
 from sklearn.utils import shuffle
 
 from featurebox.symbol.base import SymbolSet
-from featurebox.symbol.dim import dless, Dim
-from featurebox.symbol.flow import BaseLoop, DimForceLoop, MutilMutateLoop
+from featurebox.symbol.flow import MutilMutateLoop
 from featurebox.symbol.preprocess import MagnitudeTransformer
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
@@ -61,10 +59,10 @@ if __name__ == "__main__":
     # select = ['core electron distance(schubert)', 'electronegativity(martynov&batsanov)', 'valence electron number']
     # select_unit = [pm,dless,dless] ###
 
-    from sympy.physics.units import eV,pm
-    select = ['cohesive energy(Brewer)', 'covalent radii', 'valence electron number']
-    select_unit = [eV,pm,dless]
+    from sympy.physics.units import eV, pm
 
+    select = ['cohesive energy(Brewer)', 'covalent radii', 'valence electron number']
+    select_unit = [eV, pm, dless]
 
     select = [j + "_%i" % i for j in select for i in range(2)]
     x_u = [j for j in select_unit for i in range(2)]
@@ -81,7 +79,7 @@ if __name__ == "__main__":
     y_u = eV
     # c_unit
     c = [1, 5.290 * 10 ** -11, 1.74, 2, 3, 4, 0.5, 1 / 3, 1 / 4]
-    c_u = [elementary_charge, m, dless,dless,dless,dless,dless,dless,dless]
+    c_u = [elementary_charge, m, dless, dless, dless, dless, dless, dless, dless]
 
     """preprocessing"""
     x, x_dim = Dim.convert_x(x, x_u, target_units=None, unit_system="SI")

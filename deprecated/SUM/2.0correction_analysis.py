@@ -9,15 +9,12 @@
 """
 this is a description
 """
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 
 from featurebox.selection.corr import Corr
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
-from featurebox.tools.show import corr_plot
 from featurebox.tools.tool import name_to_name
 
 # import seaborn as sns

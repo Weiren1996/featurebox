@@ -254,7 +254,6 @@ def mainPart(x_, y_, pset, max_=5, pop_n=100, random_seed=2, cxpb=0.8, mutpb=0.1
     return hof
 
 
-
 if __name__ == '__main__':
     # 输入
     store = Store(r'D:\sy')
@@ -296,8 +295,8 @@ if __name__ == '__main__':
 
 
     results = mainPart(X, y, pset, pop_n=500, random_seed=1, cxpb=1, mutpb=0.6,
-                      ngen=3, max_value=10, max_=4,
-                      score=[custom_loss_func, custom_loss_func], cal_dim=False, store=True,
-                      inter_add=False, iner_add=True)
+                       ngen=3, max_value=10, max_=4,
+                       score=[custom_loss_func, custom_loss_func], cal_dim=False, store=True,
+                       inter_add=False, iner_add=True)
 
-    result = np.array([[i.fitness.values[0],str(i.expr)] for i in results.items])
+    result = np.array([[i.fitness.values[0], str(i.expr)] for i in results.items])

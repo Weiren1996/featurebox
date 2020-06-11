@@ -17,11 +17,13 @@ import numpy as np
 import sympy
 from sklearn.utils import check_X_y, check_array
 
-from featurebox.symbol.dim import dless, dim_map, dnan, Dim
-from featurebox.symbol.function import func_map_dispose, func_map, np_map
-from featurebox.symbol.gp import generate, genGrow, genFull, depart
-from featurebox.symbol.preference import PreMap
-from featurebox.symbol.scores import calcualte_dim_score, calculate_score, calculate_collect, compile_context
+from featurebox.symbol.calculation.dim import dless, dim_map, dnan, Dim
+from featurebox.symbol.calculation.function import func_map_dispose, func_map, np_map
+from featurebox.symbol.calculation.scores import calcualte_dim_score, calculate_score, calculate_collect, \
+    compile_context
+from featurebox.symbol.calculation.translate import ppprint
+from featurebox.symbol.gp import genGrow, genFull, depart
+from featurebox.symbol.probability.preference import PreMap
 from featurebox.tools.tool import parallelize
 
 
@@ -324,7 +326,6 @@ class SymbolSet(object):
             ng = 1
 
         self.gro_ter_con[name] = ng
-
         self.dim_ter_con[name] = dim
         self.prob_ter_con[name] = prob
 
@@ -396,17 +397,14 @@ class SymbolSet(object):
             map table:
                     {"Add": sympy.Add, 'Sub': Sub, 'Mul': sympy.Mul, 'Div': Div}
 
-                    {"sin": sympy.sin, 'cos': sympy.cos, 'exp': sympy.exp, 'log': sympy.ln,
+                    {"sin": sympy.sin, 'cos': sympy.cos, 'exp': sympy.exp, 'ln': sympy.ln,
 
                     {'Abs': sympy.Abs, "Neg": functools.partial(sympy.Mul, -1.0),
                     "Rec": functools.partial(sympy.Pow, e=-1.0)}
 
                     Others:  \n
-                    "Zeroo": f(x)=0,if x true \n
-                    "Oneo":  f(x)=1,if x true \n
-                    "Remo":  f(x)=1-x,if x true \n
+                    "Rem":  f(x)=1-x,if x true \n
                     "Self":  f(x)=x,if x true \n
-                    "Relu":  f(x)=x,if x>0, f(x)=0,if x<=0 \n
                      
         self_categories: None or list of list
             Examples: \n
@@ -501,8 +499,8 @@ class SymbolSet(object):
                 def rem_dim(d):\n
                     return d
                 self_categories
-                = [['rem',rem, rem_dim, 1, 0.99,True]]
-                = [['rem',rem, rem_dim, arity, prob, bool]]\n
+                = [['rem',rem, rem_dim, 1, 0.99,True,False]]
+                = [['rem',rem, rem_dim, arity, prob, bool,False]]\n
             when the rem,rem_dim,and bool must be uniform.
             Note:
             the rem and rem_dim must be able to settle dowm 1,2 dimension problems
@@ -558,11 +556,12 @@ class SymbolSet(object):
         if self_categories:
             for i in self_categories:
                 assert isinstance(i, list)
-                assert len(i) == 6, "check your input of self_categories,wihch size must be 5"
+                assert len(i) == 7, "check your input of self_categories,wihch size must be 7"
                 assert i[-2] == 1, "check your input of self_categories,wihch arity must be 1"
                 prob = change(i, i[4])
                 fu = sympy.Function(i[0])
-                fu.is_jump = i[6]
+                fu.is_jump = i[5]
+                fu.keep = i[6]
                 self._add_dispose(sympy.Function(i[0]), arity=i[3], name=i[0], prob=prob, np_func=i[1], dim_func=i[2])
 
         return self
@@ -583,20 +582,32 @@ class SymbolSet(object):
         SymbolSet
         """
         try:
-            check_array(Tree.pre_y, ensure_2d=False)
+            value = Tree.pre_y
+            check_array(value, ensure_2d=False)
+
+            eq = any([np.all(np.equal(value, i)) for i in self.data_x_dict.values()])
+            if eq:
+                raise ValueError
+
             assert Tree.y_dim is not dnan
-        except(ValueError, AssertionError):
-            pass
-        else:
             dim = Tree.y_dim
-            init_name = str(Tree)
-            value = Tree.pre_y  # self.expr are not passed
+            init_name = str("(%s)" % Tree.expr)
+            # self.expr are not passed
+            t_map_va = list(self.terminals_init_map.keys())
+            t_map_va.reverse()
+            for i in t_map_va:
+                init_name = init_name.replace(i, self.terminals_init_map[i])
 
             name = "new%s" % self.new_num
-            self.new_num += 1
             Tree.p_name = name
-            self._add_terminal(value, name, dim=dim, prob=prob, init_name=init_name)
+            if init_name in self.terminals_init_map.values():
+                raise NameError
 
+        except(AssertionError, NameError, ValueError):
+            pass
+        else:
+            self.new_num += 1
+            self._add_terminal(value, name, dim=dim, prob=prob, init_name=init_name)
             self.premap = self.premap.add_new()
         return self
 
@@ -976,6 +987,10 @@ class SymbolTree(_ExprTree):
         else:
             return _ExprTree.__repr__(self)
 
+    def __str__(self):
+
+        return _ExprTree.__str__(self)
+
     def __hash__(self):
         return hash(self.hasher(self))
 
@@ -991,39 +1006,12 @@ class SymbolTree(_ExprTree):
     def ter_site(self):
         return [i for i, primitive in enumerate(self) if primitive.arity == 0]
 
-    def sub(self, pset):
-        """
-        substitute the representing name with featue_name.
-        
-        Parameters
-        ----------
-        pset: SymbolSet
-            SymbolSet
-            
-        Returns
-        -------
-        """
-
-        maps = pset.terminals_fea_map
-        name_subd = str(self)
-        if maps:
-            for i, j1, j2 in maps.items():
-                name_subd = name_subd.replace(i, j1)
-                name_subd = name_subd.replace(j1, j2)
-        else:
-            print("Don not assign the feature_name to pset when pest.add_features")
-        return name_subd
-
     def depart(self):
         return depart(self)
 
+    @property
     def capsule(self):
         return ShortStr(self)
-
-    @classmethod
-    def generate(cls, pset, min_, max_, condition, per=False, *kwargs):
-        """details in generate function"""
-        return cls(generate(pset, min_, max_, condition, per, *kwargs))
 
     @classmethod
     def genGrow(cls, pset, min_, max_, per=False, ):
@@ -1034,6 +1022,12 @@ class SymbolTree(_ExprTree):
     def genFull(cls, pset, min_, max_, per=False, ):
         """details in genGrow function"""
         return cls(genFull(pset, min_, max_, per, ))
+
+    def compile(self, pset):
+        return compile_context(self, pset.context, pset.gro_ter_con)
+
+    def ppprint(self, pset, feature_name=False):
+        return ppprint(self, pset, feature_name=feature_name)
 
 
 class ShortStr:
@@ -1048,6 +1042,9 @@ class ShortStr:
 
     def __repr__(self):
         return self.reprst
+
+    def __hash__(self):
+        return hash(self.__repr__())
 
 
 class CalculatePrecisionSet(SymbolSet):
@@ -1146,7 +1143,6 @@ class CalculatePrecisionSet(SymbolSet):
         # this group should be get onetime and get all.
         ind.coef_expr = expr01
         ind.coef_pre_y = pre_y
-
         ind.coef_score = score
 
         ind.pure_expr = ind.expr
@@ -1166,7 +1162,7 @@ class CalculatePrecisionSet(SymbolSet):
         SymbolTree
         """
         if isinstance(ind, SymbolTree):
-            expr = compile_context(ind, self.context, self.gro_ter_con)
+            expr = compile_context(ind.capsule, self.context, self.gro_ter_con)
         elif isinstance(ind, sympy.Expr):
             expr = ind
         else:
@@ -1200,17 +1196,24 @@ class CalculatePrecisionSet(SymbolSet):
         -------
         list of (score,dim,dim_score)
         """
-        inds = [i.capsule() for i in inds]
+        inds = [i.capsule for i in inds]
+
+
         calls = functools.partial(calculate_collect, context=self.context, x=self.data_x, y=self.y,
-                                  terminals_and_constants_repr=self.terminals_and_constants_repr,
-                                  gro_ter_con=self.gro_ter_con,
-                                  dim_ter_con_list=self.dim_ter_con_list, dim_type=self.dim_type, fuzzy=self.fuzzy,
-                                  scoring=self.scoring, score_pen=self.score_pen,
-                                  add_coef=self.add_coef, inter_add=self.inter_add,
-                                  inner_add=self.inner_add, np_maps=self.np_map,
-                                  filter_warning=self.filter_warning,
-                                  dim_maps=self.dim_map, cal_dim=self.cal_dim)
-        score_dim_list = parallelize(func=calls, iterable=inds, n_jobs=self.n_jobs, respective=False,
+                                      terminals_and_constants_repr=self.terminals_and_constants_repr,
+                                      gro_ter_con=self.gro_ter_con,
+                                      dim_ter_con_list=self.dim_ter_con_list, dim_type=self.dim_type, fuzzy=self.fuzzy,
+                                      scoring=self.scoring, score_pen=self.score_pen,
+                                      add_coef=self.add_coef, inter_add=self.inter_add,
+                                      inner_add=self.inner_add, np_maps=self.np_map,
+                                      filter_warning=self.filter_warning,
+                                      dim_maps=self.dim_map, cal_dim=self.cal_dim)
+        @functools.lru_cache(1000)
+        def pack(ind):
+            return calls(ind)
+        if self.n_jobs>=1:
+            pack=calls
+        score_dim_list = parallelize(func=pack, iterable=inds, n_jobs=self.n_jobs, respective=False,
                                      tq=self.tq, batch_size=self.batch_size)
 
         return score_dim_list

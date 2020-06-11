@@ -1,7 +1,6 @@
-import functools
+import operator
 import operator
 import random
-import warnings
 from copy import deepcopy
 from functools import partial
 
@@ -12,14 +11,13 @@ from deap.gp import staticLimit, cxOnePoint, mutNodeReplacement, genHalfAndHalf
 from deap.tools import HallOfFame, MultiStatistics, Statistics, initIterate, initRepeat, selTournament, Logbook
 from scipy import optimize
 from sklearn.exceptions import DataConversionWarning
-from sklearn.metrics import explained_variance_score, mean_squared_error, mean_absolute_error
+from sklearn.metrics import explained_variance_score, mean_absolute_error
 from sklearn.metrics import r2_score
 from sklearn.utils import check_array
-from sklearn.utils import shuffle
 from sympy import sympify
 
 from featurebox.combination import creator
-from featurebox.combination.common import custom_loss_func, calcualte_dim, _compile, varAnd, sub
+from featurebox.combination.common import _compile, varAnd
 from featurebox.combination.common import selKbestDim
 from featurebox.combination.deapbase import ExpressionSetFill
 from featurebox.combination.deapbase import ExpressionTree, ExpressionSet

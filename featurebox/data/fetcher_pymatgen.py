@@ -110,7 +110,7 @@ def get_ids(api_key="Di2IZMunaeR8vr9w", name_list=None):
     m = MPRester(api_key)
     ids = m.query(criteria={
         # 'pretty_formula': {"$in": name_list},
-        'nelements': {"$lt": 5,"$gt": 3},
+        'nelements': {"$lt": 5, "$gt": 3},
         # 'spacegroup.number': {"$in": [225]},
         'nsites': {"$lt": 20},
         'formation_energy_per_atom': {"$lt": 0},

@@ -1,8 +1,7 @@
 from statistics import mode, mean
-import torch.nn.functional as F
-import torch
 
-from featurebox.cam.fig import normalize, visualize
+import torch
+import torch.nn.functional as F
 
 
 class SaveValues():
