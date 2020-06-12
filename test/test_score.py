@@ -5,7 +5,8 @@ from sklearn.datasets import load_boston
 
 from featurebox.symbol.base import SymbolSet, SymbolTree, CalculatePrecisionSet
 from featurebox.symbol.calculation.dim import dless, Dim
-from featurebox.symbol.calculation.scores import compile_context
+from featurebox.symbol.calculation.function import np_map
+from featurebox.symbol.calculation.scores import compile_context, calculate_y
 from featurebox.symbol.calculation.translate import ppprint, simple
 
 if __name__ == "__main__":
@@ -36,9 +37,9 @@ if __name__ == "__main__":
                          categories=("Add", "Mul", "Sub", "Div", "ln"),
                          self_categories=None)
 
-    random.seed(1)
+    random.seed(2)
     z = time.time()
-    sl = [SymbolTree.genGrow(pset0, 3, 4) for _ in range(100)]
+    sl = [SymbolTree.genGrow(pset0, 3, 4) for _ in range(500)]
     a = time.time()
     # sli =" MAdd(Sub(Add(Mul(x0, gx1), exp(x10)), Mul(Conv(Add(x0, gx0)), Mul(x6, MAdd(x10)))))"
     # sl =["MAdd(gx1 * x11 * (-x0 + x11) * MAdd(gx1))"]
@@ -46,27 +47,35 @@ if __name__ == "__main__":
     # sl = [compile_context(sli, pset0.context, pset0.gro_ter_con) for sli in sl]
     # sl = [simple(sli.args[0], pset0.gro_ter_con) for sli in sl if len(sli.args)>0]
     c = 1
-    b = time.time()
-    pset0 = CalculatePrecisionSet(pset0, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True, dim_type=None,
-                                  fuzzy=False, add_coef=True, inter_add=True, inner_add=False, n_jobs=1, batch_size=20,
+    a = time.time()
+    pset0 = CalculatePrecisionSet(pset0, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=False,
+                                  dim_type=None,
+                                  fuzzy=False, add_coef=False, inter_add=True,
+                                  inner_add=False, n_jobs=1, batch_size=20,
                                   tq=True)
+    from sys import getsizeof
+    import numpy as np
+    T100 = getsizeof(sl)
+    psize = getsizeof(pset0)
+    # print(T100,psize)
     for i in sl:
-        # b = time.time()
+        b = time.time()
         i0 = compile_context(i, pset0.context, pset0.gro_ter_con)
-        # r2 = time.time()
+        r2 = time.time()
         # pprint(i0,pset0)
-        # y = calculate_y(i0, pset0.data_x,pset0.y, pset0.terminals_and_constants_repr, add_coef=True,
-        #             filter_warning=True, inter_add=True, inner_add=True, np_maps=np_map())
-        i = pset0.calculate_detail(i)
-        j = simple(i.coef_expr, pset0.gro_ter_con)
-        print(i)
-        print(repr(i))
-        print(i0)
-        ppprint(i, pset0, feature_name=True)
+        calculate_y(i0, pset0.data_x,pset0.y, pset0.terminals_and_constants_repr, add_coef=True,
+                    filter_warning=True, inter_add=True, inner_add=True, np_maps=np_map())
+        # i = pset0.calculate_detail(i)
+        # j = simple(i.coef_expr, pset0.gro_ter_con)
+        # print(i)
+        # print(repr(i))
+        # print(i0)
+        # ppprint(i, pset0, feature_name=True)
         if y[0] is None:
             c = c + 1
 
         r3 = time.time()
-    #     print(r3-r2,"all")
-    #     print(r2-b,"adfg")
-    # print(c)
+    #     print(r2 - b, "com")
+    #     print(r3-r2,"cal")
+    # e = time.time()
+    # print(e-a)

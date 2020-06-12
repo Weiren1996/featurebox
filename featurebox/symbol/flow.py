@@ -35,7 +35,7 @@ class BaseLoop(Toolbox):
     def __init__(self, pset, pop=500, gen=20, mutate_prob=0.1, mate_prob=0.5,
                  hall=1, re_hall=None, re_Tree=None, initial_max=3, max_value=10,
                  scoring=(r2_score,), score_pen=(1,), filter_warning=True,
-                 add_coef=True, inter_add=True, inner_add=False,
+                 add_coef=True, inter_add=True, inner_add=False, vector_add=False,
                  cal_dim=True, dim_type=None, fuzzy=False,
                  n_jobs=1, batch_size=40, random_state=None,
                  stats=None, verbose=True, tq=True, store=True,
@@ -159,6 +159,7 @@ class BaseLoop(Toolbox):
         self.cpset = CalculatePrecisionSet(pset, scoring=scoring, score_pen=score_pen,
                                            filter_warning=filter_warning, cal_dim=cal_dim,
                                            add_coef=add_coef, inter_add=inter_add, inner_add=inner_add,
+                                           vector_add=vector_add,
                                            n_jobs=n_jobs, batch_size=batch_size, tq=tq,
                                            fuzzy=fuzzy, dim_type=dim_type,
                                            )
@@ -170,11 +171,12 @@ class BaseLoop(Toolbox):
         self.register("gen_mu", genGrow, min_=2, max_=3, personal_map=self.personal_map)
         # def selection
 
-        self.register("selBest", selBest)
-        self.register("select", selTournament, tournsize=3)
+
+        self.register("select", selTournament, tournsize=2)
 
         self.register("selKbestDim", selKbestDim,
                       dim_type=self.cpset.dim_type, fuzzy=self.cpset.fuzzy)
+        self.register("selBest", selBest)
 
         self.register("mate", cxOnePoint)
         # def mutate
@@ -253,7 +255,7 @@ class BaseLoop(Toolbox):
 
             inds_dim = []
 
-        inds = copy.deepcopy(inds_dim)
+        inds = inds_dim
         return inds
 
     def re_add(self):
@@ -325,6 +327,12 @@ class BaseLoop(Toolbox):
             offspring = self.varAnd(population, self, self.mate_prob, self.mutate_prob)
             offspring.extend(inds_dim)
             population = offspring
+
+            # for i in population:
+            #     print(str(i))
+            #     print(repr(i))
+            #     print(i.to_expr(self.cpset))
+            #     i.ppprint(self.cpset)
 
         # 6.store#####################################################################
 
@@ -399,19 +407,19 @@ if __name__ == "__main__":
 
     # symbolset
     pset0 = SymbolSet()
-    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2], [3, 4]])
+    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2], [3, 4],[5,6],[7,8],[9,10]])
     pset0.add_constants(c, dim=c_dim, prob=None)
     pset0.add_operations(power_categories=(2, 3, 0.5),
                          categories=("Add", "Mul", "Sub", "Div", "exp"),
                          self_categories=None)
 
     # a = time.time()
-    bl = MutilMutateLoop(pset=pset0, gen=10, pop=300, hall=1, batch_size=40, re_hall=2,
-                         n_jobs=6, mate_prob=0.8, max_value=4,
+    bl = MutilMutateLoop(pset=pset0, gen=10, pop=500, hall=1, batch_size=40, re_hall=2,
+                         n_jobs=1, mate_prob=0.8, max_value=1,
                          mutate_prob=0.5, tq=True, dim_type=None,
-                         re_Tree=1, store=False, random_state=4,
+                         re_Tree=0, store=False, random_state=4,
                          stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"], "length": ["mean"]},
-                         add_coef=True, cal_dim=True, inner_add=False, personal_map=False)
+                         add_coef=True, cal_dim=False, inner_add=False, vector_add=True, personal_map=False)
     # b = time.time()
     bl.run()
     # c = time.time()

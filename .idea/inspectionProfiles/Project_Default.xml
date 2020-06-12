@@ -2,103 +2,22 @@
   <profile version="1.0">
     <option name="myName" value="Project Default" />
     <inspection_tool class="DuplicatedCode" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
-    <inspection_tool class="PyArgumentListInspection" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="PyAttributeOutsideInitInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
-    <inspection_tool class="PyAugmentAssignmentInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
-    <inspection_tool class="PyBehaveInspection" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="PyClassicStyleClassInspection" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="PyCompatibilityInspection" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="ourVersions">
-        <value>
-          <list size="2">
-            <item index="0" class="java.lang.String" itemvalue="3.7" />
-            <item index="1" class="java.lang.String" itemvalue="3.8" />
-          </list>
-        </value>
-      </option>
-    </inspection_tool>
-    <inspection_tool class="PyMandatoryEncodingInspection" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="PyMethodOverridingInspection" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="PyMissingConstructorInspection" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="PyMissingTypeHintsInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
-    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="ignoredPackages">
-        <value>
-          <list size="18">
-            <item index="0" class="java.lang.String" itemvalue="pymatgen" />
-            <item index="1" class="java.lang.String" itemvalue="deap" />
-            <item index="2" class="java.lang.String" itemvalue="scikit-image" />
-            <item index="3" class="java.lang.String" itemvalue="scipy" />
-            <item index="4" class="java.lang.String" itemvalue="networkx" />
-            <item index="5" class="java.lang.String" itemvalue="six" />
-            <item index="6" class="java.lang.String" itemvalue="joblib" />
-            <item index="7" class="java.lang.String" itemvalue="scikit-learn" />
-            <item index="8" class="java.lang.String" itemvalue="setuptools" />
-            <item index="9" class="java.lang.String" itemvalue="torch" />
-            <item index="10" class="java.lang.String" itemvalue="numpy" />
-            <item index="11" class="java.lang.String" itemvalue="torchvision" />
-            <item index="12" class="java.lang.String" itemvalue="pandas" />
-            <item index="13" class="java.lang.String" itemvalue="tqdm" />
-            <item index="14" class="java.lang.String" itemvalue="seaborn" />
-            <item index="15" class="java.lang.String" itemvalue="matplotlib" />
-            <item index="16" class="java.lang.String" itemvalue="sympy" />
-            <item index="17" class="java.lang.String" itemvalue="Pillow" />
-          </list>
-        </value>
-      </option>
-    </inspection_tool>
-    <inspection_tool class="PyPep8Inspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
-      <option name="ignoredErrors">
-        <list>
-          <option value="E731" />
-        </list>
-      </option>
-    </inspection_tool>
     <inspection_tool class="PyPep8NamingInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="ignoredErrors">
         <list>
-          <option value="N802" />
           <option value="N806" />
+          <option value="N802" />
           <option value="N803" />
         </list>
       </option>
     </inspection_tool>
-    <inspection_tool class="PyProtectedMemberInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
-    <inspection_tool class="PyRedundantParenthesesInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
-    <inspection_tool class="PyTypeCheckerInspection" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false">
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredIdentifiers">
         <list>
           <option value="tuple.x" />
-          <option value="matplotlib.cm.Blues_r" />
-          <option value="matplotlib.cm.Paired" />
-          <option value="matplotlib.cm.tab20c" />
-          <option value="tuple.mode" />
-          <option value="object.shape" />
-          <option value="str.ravel" />
-          <option value="list.T" />
-          <option value="typing.Iterable.__getitem__" />
-          <option value="tuple.set_xlim" />
-          <option value="tuple.axis" />
-          <option value="tuple.set_facecolor" />
-          <option value="tuple.spines" />
-          <option value="tuple.text" />
-          <option value="tuple.*" />
-          <option value="list.pop" />
-          <option value="typing.Iterable.append" />
-          <option value="object.astype" />
-          <option value="list.extend" />
           <option value="typing.Iterable.__add__" />
-          <option value="featurebox.symbol.base.CalculatePrecisionSet.*" />
-          <option value="featurebox.tools.packbox.Toolbox.*" />
-          <option value="str.*" />
-          <option value="featurebox.symbol.flow.BaseLoop.*" />
-          <option value="featurebox.symbol.flow.MutimutateLoop.gen_mu" />
-          <option value="featurebox.symbol.flow.MutilMutateLoop.gen_mu" />
-          <option value="featurebox.symbol.flow.PreferenceMap.*" />
         </list>
       </option>
     </inspection_tool>
-    <inspection_tool class="UnusedDefine" enabled="true" level="WARNING" enabled_by_default="true" />
   </profile>
 </component>

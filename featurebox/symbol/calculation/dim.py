@@ -135,7 +135,7 @@ class Dim(numeric.ndarray):
                                       order='c')
         return ret
 
-    def __init__(self, _):
+    def __init__(self, *_):
         """
         self.unit = [str(i) for i in SI._base_units]\n
         self.unit_map = {'meter': "m", 'kilogram': "kg", 'second': "s",
@@ -304,6 +304,7 @@ class Dim(numeric.ndarray):
         return res_exponents, canon_dim_units
 
     @classmethod
+
     def convert_to(cls, expr, target_units=None, unit_system="SI"):
 
         from sympy.physics.units import UnitSystem
@@ -521,9 +522,9 @@ def check_dimension(x, y=None):
     
     Parameters
     ----------
-    x: list of Dim
+    x: list
         dim of x
-    y:Dim
+    y: Dim
         dim of y
 
     Returns

@@ -31,6 +31,20 @@ class MagnitudeTransformer(TransformerMixin, BaseEstimator):
         self.tolerate = tolerate
 
     def fit(self, X, y=None, group=2, apply=None, keep=None):
+        """
+
+        Parameters
+        ----------
+        X: np.ndarray
+        y:
+        group
+        apply
+        keep
+
+        Returns
+        -------
+
+        """
 
         X = X.astype(np.float32)
         X = check_array(X, ensure_2d=True)

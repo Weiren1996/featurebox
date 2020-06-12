@@ -1,1 +1,1 @@
-__all__ = ["base", "dim", "function", "gp", "flow", "scores", "preference"]
+__all__ = ["base",  "gp", "flow"]

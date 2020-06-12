@@ -3,11 +3,12 @@ import sys
 
 import numpy as np
 import sympy
-from sympy import Number, Function, Expr
+from sympy import Number, Expr
 from sympy.core.numbers import ComplexInfinity, NumberSymbol
 
 from featurebox.symbol.calculation.coefficient import get_args
-from featurebox.symbol.calculation.function import func_map_dispose, func_map
+from featurebox.symbol.calculation.function import func_map_dispose
+from featurebox.tools.tool import time_this_function
 
 
 def compile_(expr, pset):
@@ -42,7 +43,12 @@ def compile_(expr, pset):
 
 
 def simple(expr01, groups):
-    """str to sympy.Expr function"""
+    """str to sympy.Expr function.
+    add conv to MMdd and MMul.
+    !!!!!!! the calcualte conv need conform with np_func().
+        is_jump: jump the calculate >= 3 (group_size).
+        keep: the calculate is return then input group_size or 1.
+    """
 
     def max_method(expr):
 
@@ -113,8 +119,8 @@ def simple(expr01, groups):
                         return expr, ns
 
             elif hasattr(expr,"arr"):
-                expr, ns = max_method(expr)
-                # assert expr.arr.shape[0] == ns  #
+                #### expr, ns = max_method(expr)
+                #### assert expr.arr.shape[0] == ns  #
                 return max_method(expr)
 
             else:
@@ -132,7 +138,7 @@ def compile_context(expr, context, gro_ter_con):
                  converted into string produced a valid Python code
                  expression.
     :param context: dict
-    :param gro_ter_con: length
+    :param gro_ter_con: list if group_size
     :returns: a function if the primitive set has 1 or more arguments,
               or return the results produced by evaluating the tree.
     """
@@ -155,6 +161,18 @@ def compile_context(expr, context, gro_ter_con):
 
 
 def ppprint(self, pset, feature_name=False):
+    """
+    return expr just build by input feature name.
+    Parameters
+    ----------
+    self:sympy.Expr or SymbolTree
+    pset:SymbolSet
+    feature_name:Bool
+
+    Returns
+    -------
+
+    """
     #####get expr
     if isinstance(self, Expr):
         expr = copy.deepcopy(self)
@@ -176,7 +194,7 @@ def ppprint(self, pset, feature_name=False):
     name_subd = str(expr)
 
     ### replace Vi() to Vi*(),Vi+()
-    arg_list = get_args(expr)
+    arg_list = get_args(expr,sole=False)
     V_map1 = {ar.name: str([str(_) for _ in ar.arr.ravel()]) for ar in arg_list if
               hasattr(ar, "arr") and ar.tp == "Coef"}
     V_map2 = {ar.name: str([str(_) for _ in ar.arr.ravel()]) for ar in arg_list if
@@ -192,8 +210,12 @@ def ppprint(self, pset, feature_name=False):
     for i, j in V_map_va2:
         name_subd = name_subd.replace(i, "%s+" % j)
 
-    ### replace gxi to [xi,xj]
     ### replace newi to (xi+xj*xk...)
+    e_map_va1 = list(pset.expr_init_map.items())
+    e_map_va1.reverse()
+    for i, j in e_map_va1:
+        name_subd = name_subd.replace(i, j)
+    ### replace gxi to [xi,xj]
     t_map_va1 = list(pset.terminals_init_map.items())
     t_map_va1.reverse()
     for i, j in t_map_va1:

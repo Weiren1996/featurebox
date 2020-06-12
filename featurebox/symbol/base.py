@@ -39,7 +39,7 @@ class SymbolTerminal:
 
         Parameters
         ----------
-        values: number or np.ndarray
+        values: None, number or np.ndarray
             xi value, the shape can be (n,) or (n_x,n),
             n is number of samples, n_x is numbers of feature.
         name: sympy.Symbol
@@ -161,7 +161,7 @@ class SymbolSet(object):
     def __init__(self, name="PSet"):
         self.arguments = []  # for translate
         self.name = name
-        self.y = 0  # data y
+        self.y = None  # data y
 
         self.data_x_dict = {}  # data x
         self.y_dim = dless  # dim y
@@ -181,18 +181,21 @@ class SymbolSet(object):
         self.primitives_dict = {}
         self.prob_pri = {}  # probability of operation default is 1
 
-        self.prob_dispose = {}  # probability of  structure operation, default is 1/n
         self.dispose_dict = {}
+        self.prob_dispose = {}  # probability of  structure operation, default is 1/n
 
+        self.ter_con_dict = {} # term and const
         self.dim_ter_con = {}  # Dim of and features and constants
         self.prob_ter_con = {}  # probability of and features and constants
-        self.ter_con_dict = {}
-        self.gro_ter_con = {}
 
-        self.terminals_init_map = {}
+        self.gro_ter_con = {} # for group size calculation and simple
+
+        self.terminals_init_map = {}  # for Tree show
         # terminals representing name "gx0" to represented name "[x1,x2]",
-        # or "Mul(x2,x4)".
-        self.terminals_fea_map = {}  # terminals Latex feature name.
+        # or "newx0" to represented name "Add(Mul(x2,x4)+[x1,x2])".
+        self.expr_init_map ={}      # for expr show
+        # terminals representing name "newx0" to represented name "(x2*x4+gx0)"
+        self.terminals_fea_map = {}  #  for terminals Latex feature name show.
 
         self.premap = PreMap.from_shape(3)
 
@@ -329,7 +332,7 @@ class SymbolSet(object):
         self.dim_ter_con[name] = dim
         self.prob_ter_con[name] = prob
 
-        prim = SymbolTerminal(value, sympy.Symbol(name), dim=dim, prob=prob, init_name=init_name)
+        prim = SymbolTerminal(None, sympy.Symbol(name), dim=dim, prob=prob, init_name=init_name)
         self.data_x_dict[name] = value
         self.ter_con_dict[name] = prim
         self.terms_count += 1
@@ -341,7 +344,7 @@ class SymbolSet(object):
         """
         Parameters
         ----------
-        name: str
+        name: None, str
             function name
         value: numpy.ndarray or float
             ci value
@@ -382,16 +385,14 @@ class SymbolSet(object):
         self.ter_con_dict[name] = prim
         self.constant_count += 1
 
-    def add_operations(self, power_categories=None,
-                       categories=None,
-                       self_categories=None, power_categories_prob="balance",
-                       categories_prob="balance", special_prob=None):
+    def add_operations(self, power_categories=None, categories=None, self_categories=None,
+                       power_categories_prob="balance", categories_prob="balance", special_prob=None):
         """
         Add operations with probability.
 
         Parameters
         ----------
-        power_categories: None or list of float
+        power_categories: None, Sized, list of float
             Examples:[0.5,2,3]
         categories: tuple of str
             map table:
@@ -487,7 +488,7 @@ class SymbolSet(object):
         ----------
         categories: tuple of str
             categories=("Self","MAdd","MSub", "MMul","MDiv")
-        categories_prob: "balance" or float (0,1]
+        categories_prob: None, "balance" or float (0,1]
             probility of categories, except ("Self","MAdd", "MSub", "MMul", "MDiv"),
             "balance" is 1/n_categories.
             "MSub", "MMul", "MDiv" only work on the size of group is 2, else work like "Self".
@@ -591,24 +592,41 @@ class SymbolSet(object):
 
             assert Tree.y_dim is not dnan
             dim = Tree.y_dim
-            init_name = str("(%s)" % Tree.expr)
+
+
+            init_name0 = str("(%s)"%Tree)
+
             # self.expr are not passed
             t_map_va = list(self.terminals_init_map.keys())
             t_map_va.reverse()
             for i in t_map_va:
-                init_name = init_name.replace(i, self.terminals_init_map[i])
+                init_name0 = init_name0.replace(i, self.terminals_init_map[i])
 
-            name = "new%s" % self.new_num
-            Tree.p_name = name
-            if init_name in self.terminals_init_map.values():
+            if init_name0 in self.terminals_init_map.values():
+                raise NameError
+
+
+            init_name1 = str("(%s)" % Tree.expr)
+
+            # self.expr are not passed
+            t_map_va = list(self.expr_init_map.keys())
+            t_map_va.reverse()
+            for i in t_map_va:
+                init_name1 = init_name1.replace(i, self.expr_init_map[i])
+
+            if init_name1 in self.expr_init_map.values():
                 raise NameError
 
         except(AssertionError, NameError, ValueError):
             pass
         else:
+            name = "new%s" % self.new_num
+            Tree.p_name = name
             self.new_num += 1
-            self._add_terminal(value, name, dim=dim, prob=prob, init_name=init_name)
+            self._add_terminal(value, name, dim=dim, prob=prob, init_name=init_name0)
+
             self.premap = self.premap.add_new()
+            self.expr_init_map[name] = init_name1
         return self
 
     def add_features(self, X, y, x_dim=1, y_dim=1, prob=None, group=None,
@@ -1023,7 +1041,7 @@ class SymbolTree(_ExprTree):
         """details in genGrow function"""
         return cls(genFull(pset, min_, max_, per, ))
 
-    def compile(self, pset):
+    def to_expr(self, pset):
         return compile_context(self, pset.context, pset.gro_ter_con)
 
     def ppprint(self, pset, feature_name=False):
@@ -1059,7 +1077,7 @@ class CalculatePrecisionSet(SymbolSet):
 
     def __new__(cls, pset, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True,
                 dim_type=None, fuzzy=False,
-                add_coef=True, inter_add=True, inner_add=False, n_jobs=1, batch_size=20, tq=True):
+                add_coef=True, inter_add=True, inner_add=False, vector_add=False, n_jobs=1, batch_size=20, tq=True):
 
         cpset = super().__new__(cls)
         cpset.__dict__.update(copy.deepcopy(pset.__dict__))
@@ -1067,7 +1085,7 @@ class CalculatePrecisionSet(SymbolSet):
         return cpset
 
     def __init__(self, pset, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True, dim_type=None,
-                 fuzzy=False, add_coef=True, inter_add=True, inner_add=False, n_jobs=1, batch_size=20, tq=True):
+                 fuzzy=False, add_coef=True, inter_add=True, inner_add=False, vector_add=False, n_jobs=1, batch_size=20, tq=True):
         """
 
         Parameters
@@ -1113,6 +1131,7 @@ class CalculatePrecisionSet(SymbolSet):
         self.add_coef = add_coef
         self.inter_add = inter_add
         self.inner_add = inner_add
+        self.vector_add = vector_add
         self.n_jobs = n_jobs
         self.batch_size = batch_size
         self.tq = tq
@@ -1135,7 +1154,7 @@ class CalculatePrecisionSet(SymbolSet):
         score, expr01, pre_y = calculate_score(ind.expr, self.data_x, self.y,
                                                self.terminals_and_constants_repr,
                                                add_coef=self.add_coef, inter_add=self.inter_add,
-                                               inner_add=self.inner_add,
+                                               inner_add=self.inner_add,vector_add=self.vector_add,
                                                scoring=self.scoring, score_pen=self.score_pen,
                                                filter_warning=self.filter_warning,
                                                np_maps=self.np_map)
@@ -1169,7 +1188,7 @@ class CalculatePrecisionSet(SymbolSet):
             raise TypeError("must be SymbolTree or sympy.Expr")
         score, expr01, pre_y = calculate_score(expr, self.data_x, self.y,
                                                self.terminals_and_constants_repr,
-                                               add_coef=False, inter_add=False, inner_add=False,
+                                               add_coef=False, inter_add=False, inner_add=False, vector_add=False,
                                                scoring=self.scoring, score_pen=self.score_pen,
                                                filter_warning=self.filter_warning, np_maps=self.np_map)
         if self.cal_dim:
@@ -1204,11 +1223,12 @@ class CalculatePrecisionSet(SymbolSet):
                                       gro_ter_con=self.gro_ter_con,
                                       dim_ter_con_list=self.dim_ter_con_list, dim_type=self.dim_type, fuzzy=self.fuzzy,
                                       scoring=self.scoring, score_pen=self.score_pen,
+                                        vector_add=self.vector_add,
                                       add_coef=self.add_coef, inter_add=self.inter_add,
                                       inner_add=self.inner_add, np_maps=self.np_map,
                                       filter_warning=self.filter_warning,
                                       dim_maps=self.dim_map, cal_dim=self.cal_dim)
-        @functools.lru_cache(1000)
+
         def pack(ind):
             return calls(ind)
         if self.n_jobs>=1:
