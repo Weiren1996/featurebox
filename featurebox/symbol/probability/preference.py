@@ -48,9 +48,6 @@ class PreMap(numeric.ndarray):
             ret[i, i] = 0.01 / shape[0]
         return cls(ret)
 
-    def __init__(self, _):
-        _ = _
-
     def down_other_point(self, *sv):
 
         """
@@ -223,7 +220,7 @@ class PreMap(numeric.ndarray):
         ----------
         indexes:tuple, indexes
             get the value of average of indexes affect
-        weight:tuple,ndarray
+        weight: None, tuple,np.ndarray
             the same size with self.shape[0]
             
         Returns

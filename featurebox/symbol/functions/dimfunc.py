@@ -26,10 +26,6 @@ from sympy.physics.units import Dimension
 from sympy.physics.units.quantities import Quantity
 
 
-# from sympy.physics.units.systems import SI
-# from featurebox.tools.tool import parallelize
-
-
 def dim_map():
     """expr to dim function """
 
@@ -50,6 +46,8 @@ def dim_map():
             if dim.ndim == 1:
                 return dim
             elif dim.shape[0] == 2:
+                if dim.anyisnan():
+                    return dnan
                 return dless
             else:
                 return dim
@@ -62,6 +60,7 @@ def dim_map():
                 return dim
             elif dim.shape[0] == 2:
                 return dim[0].copy()
+
             else:
                 return dim
         else:
@@ -104,9 +103,9 @@ def dim_map():
         else:
             return dim
 
-    my_log = my_cos = my_sin = my_exp
+    my_ln = my_cos = my_sin = my_exp
 
-    my_funcs = {"Abs": my_abs, "exp": my_exp, "log": my_log, 'cos': my_cos, 'sin': my_sin,
+    my_funcs = {"Abs": my_abs, "exp": my_exp, "ln": my_ln, 'cos': my_cos, 'sin': my_sin,
                 'sqrt': my_sqrt, "MAdd": my_flat, "MMul": my_comp, "MSub": my_diff,
                 "MDiv": my_quot, "Self": my_self, "Conv": my_conv}
     return my_funcs
@@ -119,6 +118,13 @@ class Dim(numeric.ndarray):
         # >>>from sympy.physics.units import N
         # >>>scale,dim = Dim.convert_to_Dim(N)
         #inverse back
+    """
+    """
+    #     self.unit = [str(i) for i in SI._base_units]\n
+    #     self.unit_map = {'meter': "m", 'kilogram': "kg", 'second': "s",
+    #     'ampere': "A", 'mole': "mol", 'candela': "cd", 'kelvin': "K"}\n
+    #     self.dim = ['length', 'mass', 'time', 'current', 'amount_of_substance',
+    #     'luminous_intensity', 'temperature']
     """
 
     def __new__(cls, data):
@@ -135,23 +141,17 @@ class Dim(numeric.ndarray):
                                       order='c')
         return ret
 
-    def __init__(self, *_):
-        """
-        self.unit = [str(i) for i in SI._base_units]\n
-        self.unit_map = {'meter': "m", 'kilogram': "kg", 'second': "s",
-        'ampere': "A", 'mole': "mol", 'candela': "cd", 'kelvin': "K"}\n
-        self.dim = ['length', 'mass', 'time', 'current', 'amount_of_substance',
-        'luminous_intensity', 'temperature']
-        """
-
     def __eq__(self, other):
-        se = self.copy()
-        ot = other.copy()
-        if se.ndim == 2:
-            se = se[0]
-        if ot.ndim == 2:
-            ot = ot[0]
-        return all(np.equal(se, ot))
+        if isinstance(other, Dim):
+            se = self.copy()
+            ot = other.copy()
+            if se.ndim == 2:
+                se = se[0]
+            if ot.ndim == 2:
+                ot = ot[0]
+            return all(np.equal(se, ot))
+        else:
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -195,6 +195,8 @@ class Dim(numeric.ndarray):
 
         if isinstance(other, (numbers.Real, sympy.Rational, sympy.Float)):
             return self.__pow__(-1)
+        elif isinstance(other, Dim):
+            return Dim(np.array(other) - np.array(self))
         else:
             return dnan  #
 
@@ -276,6 +278,7 @@ class Dim(numeric.ndarray):
 
     @staticmethod
     def _get_conversion_matrix_for_expr(expr, target_units, unit_system):
+        """depend on sympy 1.5-1.6!!!"""
         from sympy import Matrix
 
         dimension_system = unit_system.get_dimension_system()
@@ -304,9 +307,8 @@ class Dim(numeric.ndarray):
         return res_exponents, canon_dim_units
 
     @classmethod
-
     def convert_to(cls, expr, target_units=None, unit_system="SI"):
-
+        """depend on sympy 1.5-1.6!!!"""
         from sympy.physics.units import UnitSystem
         unit_system = UnitSystem.get_unit_system(unit_system)
         if not target_units:
@@ -351,7 +353,7 @@ class Dim(numeric.ndarray):
     @classmethod
     def convert_to_Dim(cls, u, target_units=None, unit_system="SI"):
         """
-
+        depend on sympy 1.5-1.6!!!
         Parameters
         ----------
         u: sympy.physics.unit or Expr of sympy.physics.unit
@@ -374,6 +376,7 @@ class Dim(numeric.ndarray):
     @classmethod
     def convert_xi(cls, xi, ui, target_units=None, unit_system="SI"):
         """
+        depend on sympy 1.5-1.6!!!
         Quick method. translate xi and ui to standard system.
         Parameters
         
@@ -404,6 +407,7 @@ class Dim(numeric.ndarray):
     @classmethod
     def convert_x(cls, x, u, target_units=None, unit_system="SI"):
         """
+        depend on sympy 1.5-1.6!!!
          Quick method. translate x and u to standard system.
          
          Parameters
@@ -440,6 +444,7 @@ class Dim(numeric.ndarray):
     @classmethod
     def inverse_convert(cls, dim, scale=1, target_units=None, unit_system="SI"):
         """
+        depend on sympy 1.5-1.6!!!
         Quick method. Translate ui to other unit.
         Parameters
         
@@ -487,6 +492,7 @@ class Dim(numeric.ndarray):
     @classmethod
     def inverse_convert_xi(cls, xi, dim, scale=1, target_units=None, unit_system="SI"):
         """
+        depend on sympy 1.5-1.6!!!
         Quick method. Translate xi, dim to other unit.
         Parameters
         
@@ -522,7 +528,7 @@ def check_dimension(x, y=None):
     
     Parameters
     ----------
-    x: list
+    x: container
         dim of x
     y: Dim
         dim of y
@@ -535,6 +541,7 @@ def check_dimension(x, y=None):
         x.append(y)
     x = np.array(x).T
     x = check_array(x, ensure_2d=True)
+    assert isinstance(x, np.ndarray)
     x = x.astype(np.float64)
     det = matrix_rank(x)
     che = []

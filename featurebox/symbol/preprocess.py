@@ -7,11 +7,11 @@ def ger_magnitude(a):
     c = 0
     if abs(a) > 1:
         while a >= 1:
-            a = a / 10
+            a /= 10
             c += 1
     elif 1 >= abs(a) > 0:
         while a <= 1:
-            a = a * 10
+            a *= 10
             c += 1
         c = -c
 
@@ -23,6 +23,9 @@ def _scale(a):
 
 
 class MagnitudeTransformer(TransformerMixin, BaseEstimator):
+    """
+    Transform x, y or c to near to 1, and store the transform Magnitude.
+    """
     def __init__(self, standard=1, tolerate=0):
         self.standard = standard
         self.scale = None
@@ -36,10 +39,10 @@ class MagnitudeTransformer(TransformerMixin, BaseEstimator):
         Parameters
         ----------
         X: np.ndarray
-        y:
-        group
-        apply
-        keep
+        y: np.ndarray
+        group:group index of x
+        apply: specific which index of x to transform
+        keep: specific which index of x to not transform
 
         Returns
         -------
@@ -49,6 +52,7 @@ class MagnitudeTransformer(TransformerMixin, BaseEstimator):
         X = X.astype(np.float32)
         X = check_array(X, ensure_2d=True)
         n = X.shape[1]
+        assert isinstance(X, np.ndarray)
         means = np.mean(X, axis=0)
 
         if not group:
@@ -87,6 +91,7 @@ class MagnitudeTransformer(TransformerMixin, BaseEstimator):
         if y is not None:
             y = y.astype(np.float32)
             y = check_array(y, ensure_2d=False)
+            assert isinstance(y,np.ndarray)
             means = np.mean(y)
             scale = _scale(means)
             if self.tolerate:

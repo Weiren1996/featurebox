@@ -1,7 +1,7 @@
 import unittest
 
 import numpy as np
-from featurebox.symbol.dim import Dim, dless, dnan, dim_map
+from featurebox.symbol.calculation.dim import Dim, dless, dnan, dim_map
 
 
 class MyTestCase(unittest.TestCase):
@@ -13,6 +13,9 @@ class MyTestCase(unittest.TestCase):
         self.dn = dnan
 
         self.c = Dim([[1, 2, 3, 4, 5, 6, 7], [1, 2, 3, 4, 5, 6, 7]])
+        self.dl2 = Dim([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]])
+        self.dn2 = Dim([[np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan],
+                        [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]])
 
         self.dim_map = dim_map()
 
@@ -28,8 +31,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(a, a + a)
 
         # assert (a + b).anyisnan()
-        self.assertEqual(a, a + dl)
-        self.assertEqual(a, dl + a)
+        self.assertNotEqual(a, a + dl)
+        self.assertNotEqual(a, dl + a)
         assert (a + dn).anyisnan()
         assert (dn + a).anyisnan()
 
@@ -49,14 +52,14 @@ class MyTestCase(unittest.TestCase):
         a, b, c, dl, dn = self.a, self.b, self.c, self.dl, self.dn
         self.assertEqual(a, a * 1)
         self.assertEqual(a, 1 * a)
-        self.assertEqual(np.array(a) * 2, a * a)
+        self.assertEqual(Dim(np.array(a) * 2), a * a)
 
-        self.assertEqual(np.array([3, 4, 6, 8, 10, 12, 14]), a * b)
-        self.assertNotEqual(np.array([2, 4, 6, 8, 10, 12, 14]), a * b)
+        self.assertEqual(Dim(np.array([3, 4, 6, 8, 10, 12, 14])), a * b)
+        self.assertNotEqual(Dim(np.array([2, 4, 6, 8, 10, 12, 14])), a * b)
         self.assertEqual(a, a * dl)
         self.assertEqual(a, dl * a)
-        assert ((a * dn).anyisnan())
-        assert ((dn * a).anyisnan())
+        assert (a * dn).anyisnan()
+        assert (dn * a).anyisnan()
 
         self.assertEqual(2, (1 * c).ndim)
         self.assertEqual(2, (c * 1).ndim)
@@ -76,16 +79,17 @@ class MyTestCase(unittest.TestCase):
     def test_div(self):
         a, b, c, dl, dn = self.a, self.b, self.c, self.dl, self.dn
         self.assertEqual(a, a / 1)
-        self.assertEqual(-np.array(a), 1 / a)
+        self.assertEqual(Dim(-np.array(a)), 1 / a)
         self.assertEqual(dless, a / a)
         self.a = Dim([1, 2, 3, 4, 5, 6, 7])
         self.b = Dim([2, 2, 3, 4, 5, 6, 7])
-        self.assertEqual(np.array([-1, 0, 0, 0, 0, 0, 0]), a / b)
-        self.assertNotEqual(np.array([2, 4, 6, 8, 10, 12, 14]), a / b)
+        self.assertEqual(Dim(np.array([-1, 0, 0, 0, 0, 0, 0])), a / b)
+        self.assertNotEqual(Dim(np.array([2, 4, 6, 8, 10, 12, 14])), a / b)
         self.assertEqual(a, a / dl)
-        self.assertEqual(-np.array(a), dl / a)
-        assert ((a / dn).anyisnan())
-        assert ((dn / a).anyisnan())
+        self.assertEqual(Dim(-np.array(a)), dl / a)
+        assert (a / dn).anyisnan()
+        assert (dn / a).anyisnan()
+        assert (dn / dn).anyisnan()
 
         self.assertEqual(2, (1 / c).ndim)
         self.assertEqual(2, (c / 1).ndim)
@@ -104,10 +108,10 @@ class MyTestCase(unittest.TestCase):
     #
     def test_pow(self):
         a, b, c, dl, dn = self.a, self.b, self.c, self.dl, self.dn
-        self.assertEqual(np.array(a) * 2, a ** 2)
-        self.assertEqual(np.array(a) / 2, a ** 0.5)
-        assert ((4 ** a).anyisnan())
-        assert ((a ** b).anyisnan())
+        self.assertEqual(Dim(np.array(a)* 2), a ** 2)
+        self.assertEqual(Dim(np.array(a) / 2), a ** 0.5)
+        assert (4 ** a).anyisnan()
+        assert (a ** b).anyisnan()
 
         self.assertEqual(1, (1 ** c).ndim)
         self.assertEqual(2, (c ** 1).ndim)
@@ -132,7 +136,7 @@ class MyTestCase(unittest.TestCase):
         func = my_funcs["Abs"]
         self.assertEqual(a, func(a))
         self.assertEqual(b, func(b))
-        self.assertEqual(dl, func(4))
+        self.assertNotEqual(dl, func(4))
 
         self.assertEqual(2, func(c).ndim)
         self.assertEqual(2, func(a + c).ndim)
@@ -147,10 +151,10 @@ class MyTestCase(unittest.TestCase):
         a, b, c, dl, dn = self.a, self.b, self.c, self.dl, self.dn
         my_funcs = self.dim_map
         func = my_funcs["exp"]
-        assert (func(a).anyisnan())
-        assert (func(b).anyisnan())
-        assert (func(dn).anyisnan())
-        self.assertEqual(dl, func(4))
+        assert func(a).anyisnan()
+        assert func(b).anyisnan()
+        assert func(dn).anyisnan()
+        self.assertNotEqual(dl, func(4))
         self.assertEqual(dl, func(dl))
 
         self.assertEqual(2, func(c).ndim)
@@ -163,16 +167,18 @@ class MyTestCase(unittest.TestCase):
         # my_funcs = {"Abs": my_abs, "exp": my_exp, "log": my_log, 'cos': my_cos, 'sin': my_sin,
         #             'sqrt': my_sqrt, "Flat": my_flat, "Comp": my_comp, "Diff": my_diff,
         #             "Quot": my_quot, "Self": my_self}
-        a, b, c, dl, dn = self.a, self.b, self.c, self.dl, self.dn
+        a, b, c, dl, dn ,dl2,dn2= self.a, self.b, self.c, self.dl, self.dn,self.dl2,self.dn2
         my_funcs = self.dim_map
         func = my_funcs["MAdd"]
 
         self.assertEqual(a, func(a))
         self.assertEqual(b, func(b))
         self.assertEqual(dl, func(dl))
-        assert (func(dn).anyisnan())
+        assert func(dn).anyisnan()
+        assert func(dn2).anyisnan()
         self.assertEqual(c, func(c))
-        self.assertEqual(dl, func(3))
+        self.assertEqual(dl2, func(dl2))
+        self.assertNotEqual(dl, func(3))
 
         self.assertEqual(1, func(a).ndim)
         self.assertEqual(1, func(b).ndim)
@@ -184,7 +190,7 @@ class MyTestCase(unittest.TestCase):
         # my_funcs = {"Abs": my_abs, "exp": my_exp, "log": my_log, 'cos': my_cos, 'sin': my_sin,
         #             'sqrt': my_sqrt, "Flat": my_flat, "Comp": my_comp, "Diff": my_diff,
         #             "Quot": my_quot, "Self": my_self}
-        a, b, c, dl, dn = self.a, self.b, self.c, self.dl, self.dn
+        a, b, c, dl, dn ,dl2,dn2= self.a, self.b, self.c, self.dl, self.dn,self.dl2,self.dn2
         c5 = a.copy()
         c5 = Dim(np.array([c5] * 5))
 
@@ -194,9 +200,11 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(a, func(a))
         self.assertEqual(b, func(b))
         self.assertEqual(dl, func(dl))
-        assert (func(dn).anyisnan())
+        assert func(dn).anyisnan()
+        assert func(dn2).anyisnan()
         self.assertEqual(c, func(c))
-        self.assertEqual(dl, func(3))
+        self.assertEqual(dl2, func(dl2))
+        self.assertNotEqual(dl, func(3))
 
         self.assertEqual(1, func(a).ndim)
         self.assertEqual(1, func(b).ndim)
@@ -209,7 +217,7 @@ class MyTestCase(unittest.TestCase):
         # my_funcs = {"Abs": my_abs, "exp": my_exp, "log": my_log, 'cos': my_cos, 'sin': my_sin,
         #             'sqrt': my_sqrt, "Flat": my_flat, "Comp": my_comp, "Diff": my_diff,
         #             "Quot": my_quot, "Self": my_self}
-        a, b, c, dl, dn = self.a, self.b, self.c, self.dl, self.dn
+        a, b, c, dl, dn ,dl2,dn2= self.a, self.b, self.c, self.dl, self.dn,self.dl2,self.dn2
         c5 = a.copy()
         c5 = Dim(np.array([c5] * 5))
 
@@ -219,10 +227,12 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(a, func(a))
         self.assertEqual(b, func(b))
         self.assertEqual(dl, func(dl))
-        assert (func(dn).anyisnan())
-        self.assertEqual(2 * np.array(c), func(c))
-        self.assertEqual(5 * np.array(c), func(c5))
-        self.assertEqual(dl, func(3))
+        assert func(dn).anyisnan()
+        assert func(dn2).anyisnan()
+        self.assertEqual(dl2**2, func(dl2))
+        self.assertEqual(Dim(2 * np.array(c)), func(c))
+        self.assertEqual(Dim(5 * np.array(c)), func(c5))
+        self.assertNotEqual(dl, func(3))
 
         self.assertEqual(1, func(a).ndim)
         self.assertEqual(1, func(b).ndim)
@@ -236,7 +246,7 @@ class MyTestCase(unittest.TestCase):
         # my_funcs = {"Abs": my_abs, "exp": my_exp, "log": my_log, 'cos': my_cos, 'sin': my_sin,
         #             'sqrt': my_sqrt, "Flat": my_flat, "Comp": my_comp, "Diff": my_diff,
         #             "Quot": my_quot, "Self": my_self}
-        a, b, c, dl, dn = self.a, self.b, self.c, self.dl, self.dn
+        a, b, c, dl, dn ,dl2,dn2= self.a, self.b, self.c, self.dl, self.dn,self.dl2,self.dn2
         c5 = a.copy()
         c5 = Dim(np.array([c5] * 5))
 
@@ -246,10 +256,12 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(a, func(a))
         self.assertEqual(b, func(b))
         self.assertEqual(dl, func(dl))
-        assert (func(dn).anyisnan())
+        assert func(dn).anyisnan()
+        assert func(dn2).anyisnan()
+        self.assertEqual(dl2, func(dl2))
         self.assertEqual(dless, func(c))
         self.assertEqual(c5, func(c5))
-        self.assertEqual(dl, func(3))
+        self.assertNotEqual(dl, func(3))
 
         self.assertEqual(1, func(a).ndim)
         self.assertEqual(1, func(b).ndim)
@@ -257,6 +269,19 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(1, func(dn).ndim)
         self.assertEqual(1, func(c).ndim)
         self.assertEqual(2, func(c5).ndim)
+
+    def test_all(self):
+        a, b, c, dl, dn,dl2= self.a, self.b, self.c, self.dl, self.dn,self.dl2
+        c5 = a.copy()
+        c5 = Dim(np.array([c5] * 5))
+
+        my_funcs = self.dim_map
+        MMul = my_funcs["MMul"]
+        MDiv = my_funcs["MDiv"]
+        ln= my_funcs["ln"]
+        assert  ln(MDiv(dl2+ MMul(c))).anyisnan()
+        assert MDiv(dl2+ MMul(c)).anyisnan()
+        assert (dl2+ MMul(c)).anyisnan()
 
 
 if __name__ == '__main__':

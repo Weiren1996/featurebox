@@ -10,6 +10,7 @@
 Notes:
     this part is a customization from deap.
 """
+
 import copy
 import functools
 
@@ -17,11 +18,14 @@ import numpy as np
 import sympy
 from sklearn.utils import check_X_y, check_array
 
-from featurebox.symbol.calculation.dim import dless, dim_map, dnan, Dim
-from featurebox.symbol.calculation.function import func_map_dispose, func_map, np_map
-from featurebox.symbol.calculation.scores import calcualte_dim_score, calculate_score, calculate_collect, \
-    compile_context
-from featurebox.symbol.calculation.translate import ppprint
+from featurebox.combination.dim import dless
+from featurebox.symbol.calculation.scores import calcualte_dim_score, \
+    calculate_score, calculate_collect, compile_context
+from featurebox.symbol.calculation.translate import group_str
+from featurebox.symbol.functions.dimfunc import dim_map, Dim, dnan
+from featurebox.symbol.functions.gsymfunc import gsym_map, NewArray
+from featurebox.symbol.functions.npfunc import np_map
+from featurebox.symbol.functions.symfunc import sym_vector_map, sym_dispose_map
 from featurebox.symbol.gp import genGrow, genFull, depart
 from featurebox.symbol.probability.preference import PreMap
 from featurebox.tools.tool import parallelize
@@ -32,53 +36,40 @@ class SymbolTerminal:
     The name for show (str) and calculation (repr) are set to different string for
     avoiding repeated calculations.
     """
-    __slots__ = ('name', 'value', 'arity', 'dim', "is_constant", "prob", 'conv_fct', "init_name")
 
-    def __init__(self, values, name, dim=None, prob=None, init_name=None):
+    def __init__(self, name, init_name=None):
         """
 
         Parameters
         ----------
-        values: None, number or np.ndarray
-            xi value, the shape can be (n,) or (n_x,n),
-            n is number of samples, n_x is numbers of feature.
-        name: sympy.Symbol
+        name: str
             Represent name. Default "xi"
-        dim: featurebox.symbol.dim.Dim or None
-            None
-        prob: float or None
-            None
-        init_name: str or None 
+        init_name: str
             Just for show, rather than calculate.\n
             Examples:\n
-            init_name="[x1,x2]" , if is compact features, need[]\n
-            init_name="(x1*x4-x3)", if is expr, need ()
+            init_name=[x1,x2] , if is compact features, need[]\n
+            init_name=(x1*x4-x3), if is expr, need ()
         """
-        if prob is None:
-            prob = 1
-        if dim is None:
-            dim = dless
-        self.value = values
         self.name = str(name)
         self.conv_fct = str
         self.arity = 0
-        self.dim = dim
-        self.is_constant = False
-        self.prob = prob
-        self.init_name = init_name
+        if init_name is None:
+            self.init_name = None
+        else:
+            self.init_name = str(init_name)
 
-    def format(self):
+    def format_repr(self):
         # short,repr
         """representing name"""
         return self.conv_fct(self.name)
 
-    def format_long(self):
+    def format_str(self):
         # long.str
         """represented name"""
         if self.init_name:
-            return self.conv_fct(self.init_name)
+            return self.init_name
         else:
-            return self.conv_fct(self.name)
+            return self.name
 
     def __str__(self):
         """represented name"""
@@ -98,19 +89,113 @@ class SymbolTerminal:
         return hash(repr(self))
 
 
-class SymbolConstant(SymbolTerminal):
-    """General feature type."""
+class SymbolTerminalDetail(SymbolTerminal):
+    """General feature type.\n
+    The name for show (str) and calculation (repr) are set to different string for
+    avoiding repeated calculations.
+    """
 
-    def __init__(self, values, name, dim=None, prob=None):
-        super(SymbolConstant, self).__init__(values, name, dim=dim, prob=prob)
-        self.is_constant = True
+    def __init__(self, values, name, dim=None, prob=None, init_sym=None, init_name=None):
+        """
+
+        Parameters
+        ----------
+        values: None, number or np.ndarray
+            xi value, the shape can be (n,) or (n_x,n),
+            n is number of samples, n_x is numbers of feature.
+        name: str
+            Represent name. Default "xi"
+        dim: featurebox.symbol.dim.Dim or None
+            None
+        prob: float or None
+            None
+        init_sym: list, sympy.Expr
+            list
+        init_name: str or None 
+            Just for show, rather than calculate.\n
+            Examples:\n
+            init_name="[x1,x2]" , if is compact features, need[]\n
+            init_name="(x1*x4-x3)", if is expr, need ()
+        """
+        super(SymbolTerminalDetail,self).__init__(name, init_name)
+        if prob is None:
+            prob = 1
+        if dim is None:
+            dim = dless
+        self.value = values
+        self.sym = sympy.Symbol(str(name))
+        self.init_sym = init_sym
+        self.dim = dim
+        self.prob = prob
+
+    def capsule(self):
+        return SymbolTerminal(self.name, self.init_name)
+
+
+def tsum(*ters, name="gx0"):
+    """
+
+    Parameters
+    ----------
+    ters:tuple of SymbolTerminalDetail
+    name
+
+    Returns
+    -------
+
+    """
+
+    for i in ters:
+        assert isinstance(i, SymbolTerminalDetail), "only the SymbolTerminals can be added"
+    assert all(ters[0].dim == i.dim for i in ters)
+    values = np.array([i.value for i in ters])
+    dim = Dim(np.array([i.dim for i in ters]))
+    sym = NewArray([i.sym for i in ters],shape=(len(ters),))
+    name = str(name)
+    prob = sum([i.prob for i in ters]) / len(ters)
+    res = SymbolTerminalDetail(values, name, dim=dim, prob=prob,
+                               init_sym=sym, init_name=str(list(sym)))
+    return res
 
 
 class SymbolPrimitive:
     """General operation type"""
-    __slots__ = ('name', 'func', 'arity', 'seq', 'prob', "args")
 
-    def __init__(self, func, name, arity, prob=None):
+    def __init__(self, name, arity):
+        """
+        Parameters
+        ----------
+        name: str
+            function name
+        arity: int
+            function input numbers
+        """
+        self.name = str(name)
+        self.arity = arity
+        self.args = list(range(arity))
+
+        args = ", ".join(map("{{{0}}}".format, list(range(self.arity))))
+        self.seq = "{name}({args})".format(name=self.name, args=args)
+
+    def format_str(self, *args):
+        return self.seq.format(*args)
+
+    format_repr = format_str  # for function the format for machine and user is the same.
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __hash__(self):
+        return hash(repr(self))
+
+    def __str__(self):
+        return self.name
+
+    __repr__ = __str__  # for function the format for machine and user is the same.
+
+
+class SymbolPrimitiveDetail(SymbolPrimitive):
+    def __init__(self, name, arity, func, prob, np_func=None, dim_func=None, sym_func=None):
         """
         Parameters
         ----------
@@ -126,31 +211,20 @@ class SymbolPrimitive:
         prob: float
             default 1
         """
+        super(SymbolPrimitiveDetail, self).__init__(name, arity)
+
         if prob is None:
             prob = 1
         self.func = func
-        self.name = str(name)
-        self.arity = arity
-        self.args = list(range(arity))
         self.prob = prob
-        args = ", ".join(map("{{{0}}}".format, list(range(self.arity))))
-        self.seq = "{name}({args})".format(name=self.name, args=args)
+        self.np_func = np_func
+        self.dim_func = dim_func
+        self.sym_func = sym_func
 
-    def format(self, *args):
-        return self.seq.format(*args)
+    def capsule(self):
+        return SymbolPrimitive(self.name, self.arity)
 
-    format_long = format  # for function the format for machine and user is the same.
 
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __hash__(self):
-        return hash(repr(self))
-
-    def __str__(self):
-        return self.name
-
-    __repr__ = __str__  # for function the format for machine and user is the same.
 
 
 class SymbolSet(object):
@@ -162,9 +236,9 @@ class SymbolSet(object):
         self.arguments = []  # for translate
         self.name = name
         self.y = None  # data y
+        self.y_dim = dless  # dim y
 
         self.data_x_dict = {}  # data x
-        self.y_dim = dless  # dim y
 
         self.new_num = 0
 
@@ -177,6 +251,7 @@ class SymbolSet(object):
 
         self.dim_map = dim_map()
         self.np_map = np_map()
+        self.gsym_map = gsym_map()
 
         self.primitives_dict = {}
         self.prob_pri = {}  # probability of operation default is 1
@@ -184,18 +259,23 @@ class SymbolSet(object):
         self.dispose_dict = {}
         self.prob_dispose = {}  # probability of  structure operation, default is 1/n
 
-        self.ter_con_dict = {} # term and const
+        self.ter_con_dict = {}  # term and const
         self.dim_ter_con = {}  # Dim of and features and constants
         self.prob_ter_con = {}  # probability of and features and constants
 
-        self.gro_ter_con = {} # for group size calculation and simple
+        self.gro_ter_con = {}  # for group size calculation and simple
 
         self.terminals_init_map = {}  # for Tree show
         # terminals representing name "gx0" to represented name "[x1,x2]",
         # or "newx0" to represented name "Add(Mul(x2,x4)+[x1,x2])".
-        self.expr_init_map ={}      # for expr show
+
+        self.terminals_symbol_map = {}  # for Tree show
+        # terminals representing name "gx0" to represented name "[x1,x2]",
+        # or "newx0" to represented name "Add(Mul(x2,x4)+[x1,x2])".
+
+        self.expr_init_map = {}  # for expr show
         # terminals representing name "newx0" to represented name "(x2*x4+gx0)"
-        self.terminals_fea_map = {}  #  for terminals Latex feature name show.
+        self.terminals_fea_map = {}  # for terminals Latex feature name show.
 
         self.premap = PreMap.from_shape(3)
 
@@ -204,7 +284,8 @@ class SymbolSet(object):
 
     __str__ = __repr__
 
-    def _add_primitive(self, func, name, arity, prob=None, np_func=None, dim_func=None):
+    def _add_primitive(self, func, name, arity, prob=None, np_func=None,
+                       dim_func=None, sym_func=None):
 
         """
         Parameters
@@ -231,23 +312,16 @@ class SymbolSet(object):
         if name is None:
             name = func.__name__
 
-        assert name not in self.context, "Primitives are required to have a unique x_name. " \
-                                         "Consider using the argument 'x_name' to rename your " \
-                                         "second '%s' primitive." % (name,)
-        if np_func:
-            self.np_map[name] = np_func
-            if dim_func is None:
-                dim_func = lambda x: x
-            self.dim_map[name] = dim_func
+        assert name not in self.primitives_dict, "Primitives are required to have a unique func. " \
+                                                 "Consider  rename your second '%s' primitive." % (name,)
 
-        self.prob_pri[name] = prob
-        self.context[name] = func
+        self.primitives_dict[name] = SymbolPrimitiveDetail(name, arity, func, prob=prob,
+                                                           np_func=np_func, dim_func=dim_func,
+                                                           sym_func=sym_func)
 
-        prim = SymbolPrimitive(func, name, arity, prob=prob)
-        self.primitives_dict[name] = prim
         self.prims_count += 1
 
-    def _add_dispose(self, func, name, arity=1, prob=None, np_func=None, dim_func=None):
+    def _add_dispose(self, func, name, arity=1, prob=None, np_func=None, dim_func=None, sym_func=None):
         """
         Parameters
         ----------
@@ -273,23 +347,12 @@ class SymbolSet(object):
         if name is None:
             name = func.__name__
 
-        assert name not in self.context, "Primitives are required to have a unique x_name. " \
-                                         "Consider using the argument 'x_name' to rename your " \
-                                         "second '%s' primitive." % (name,)
-        if np_func:
-            self.np_map[name] = np_func
-            if dim_func is None:
-                dim_func = lambda x: x
-            self.dim_map[name] = dim_func
-
-        self.prob_dispose[name] = prob
-        self.context[name] = func
-
-        prim = SymbolPrimitive(func, name, arity, prob=prob)
-        self.dispose_dict[name] = prim
+        self.dispose_dict[name] = SymbolPrimitiveDetail(name, arity, func, prob=prob,
+                                                        np_func=np_func, dim_func=dim_func,
+                                                        sym_func=sym_func)
         self.dispose_count += 1
 
-    def _add_terminal(self, value, name, dim=None, prob=None, init_name=None):
+    def _add_terminal(self, value, name, dim=None, prob=None, init_sym=None, init_name=None):
         """
         Parameters
         ----------
@@ -313,32 +376,100 @@ class SymbolSet(object):
         if dim is None:
             dim = dless
 
-        if name is None:
-            name = "x%s" % self.terms_count
-
-        assert name not in self.context, "Terminals are required to have a unique x_name. " \
-                                         "Consider using the argument 'x_name' to rename your " \
-                                         "second %s terminal." % (name,)
-
-        self.context[name] = sympy.Symbol(name)
-        if dim.ndim == 1:
-            ng = 1
-        elif dim.ndim == 2:
-            ng = dim.shape[0]
-        else:
-            ng = 1
-
-        self.gro_ter_con[name] = ng
-        self.dim_ter_con[name] = dim
-        self.prob_ter_con[name] = prob
-
-        prim = SymbolTerminal(None, sympy.Symbol(name), dim=dim, prob=prob, init_name=init_name)
-        self.data_x_dict[name] = value
-        self.ter_con_dict[name] = prim
+        self.ter_con_dict[name] = SymbolTerminalDetail(value, name, dim=dim, prob=prob,
+                                                       init_sym=init_sym,
+                                                       init_name=init_name)
         self.terms_count += 1
 
-        if init_name:
-            self.terminals_init_map[name] = init_name
+    def register(self, primitives_dict="all", dispose_dict="all", ter_con_dict="all"):
+        """
+
+        Parameters
+        ----------
+        primitives_dict:None,str,dict
+        dispose_dict:None,str,dict
+        ter_con_dict:None,str,dict
+
+        Returns
+        -------
+
+        """
+        if primitives_dict == "all":
+            primitives_dict = self.primitives_dict
+        if dispose_dict == "all":
+            dispose_dict = self.dispose_dict
+        if ter_con_dict == "all":
+            ter_con_dict = self.ter_con_dict
+
+        if primitives_dict is not None:
+            for p in primitives_dict.values():
+                if p.np_func is not None:
+                    self.np_map[p.name] = p.np_func
+                if p.sym_func is not None:
+                    self.gsym_map[p.name] = p.sym_func
+                if p.dim_func is not None:
+                    self.dim_map[p.name] = p.dim_func
+                self.prob_pri[p.name] = p.prob
+                self.context[p.name] = p.func
+                self.primitives_dict[p.name] = self.primitives_dict[p.name].capsule()
+
+        if dispose_dict is not None:
+            for p in dispose_dict.values():
+                if p.np_func is not None:
+                    self.np_map[p.name] = p.np_func
+                if p.sym_func is not None:
+                    self.gsym_map[p.name] = p.sym_func
+                if p.dim_func is not None:
+                    self.dim_map[p.name] = p.dim_func
+                self.prob_dispose[p.name] = p.prob
+                self.context[p.name] = p.func
+                self.dispose_dict[p.name] = self.dispose_dict[p.name].capsule()
+
+        if ter_con_dict is not None:
+            for t in ter_con_dict.values():
+                if t.name in self.data_x_dict:
+                    pass
+                else:
+                    if t.dim.ndim == 1:
+                        ng = 1
+                    elif t.dim.ndim == 2:
+                        ng = t.dim.shape[0]
+                    else:
+                        ng = 1
+
+                    self.gro_ter_con[t.name] = ng
+                    self.dim_ter_con[t.name] = t.dim
+                    self.prob_ter_con[t.name] = t.prob
+                    self.data_x_dict[t.name] = t.value
+
+                    self.context[t.name] = sympy.Symbol(t.name)
+
+                    if t.init_name:
+                        self.terminals_init_map[t.name] = t.init_name
+                        if isinstance(t.init_sym, (np.ndarray,NewArray)):
+                            self.terminals_symbol_map[t.name] = t.init_sym
+                        else:
+                            self.expr_init_map[t.name] = t.init_sym
+                    self.ter_con_dict[t.name] = self.ter_con_dict[t.name].capsule()
+
+    def _group(self, x_group):
+        if not x_group:
+            x_group = [[]]
+        if isinstance(x_group, int):
+            assert self.terms_count > x_group > 1, "the len of group should in (2,x.shape[1]]"
+            indexes = [_ for _ in range(self.terms_count)]
+            x_group = [indexes[i:i + x_group] for i in range(0, len(indexes), x_group)]
+
+        for i, gi in enumerate(x_group):
+            len_gi = len(gi)
+            if len_gi > 0:
+                init_ter_name = ["x%s" % j for j in gi]
+                init_ter = [self.ter_con_dict.pop(i) for i in init_ter_name]
+                name = "gx%s" % i
+                ter = tsum(*init_ter, name=name)
+                self.ter_con_dict[name] = ter
+
+                self.terms_count -= (len(init_ter) - 1)
 
     def _add_constant(self, value, name=None, dim=None, prob=None):
         """
@@ -362,27 +493,8 @@ class SymbolSet(object):
         if name is None:
             name = "c%s" % self.constant_count
 
-        assert name not in self.context, "Terminals are required to have a unique x_name. " \
-                                         "Consider using the argument 'x_name' to rename your " \
-                                         "second %s terminal." % (name,)
+        self.ter_con_dict[name] = SymbolTerminalDetail(value, sympy.Symbol(name), dim=dim, prob=prob)
 
-        self.context[name] = sympy.Symbol(name)
-
-        if dim.ndim == 1:
-            ng = 1
-        elif dim.ndim == 2:
-            ng = dim.shape[0]
-        else:
-            ng = 1
-
-        self.gro_ter_con[name] = ng
-        self.dim_ter_con[name] = dim
-        self.prob_ter_con[name] = prob
-
-        prim = SymbolConstant(value, sympy.Symbol(name), dim=dim, prob=prob)
-
-        self.data_x_dict[name] = value
-        self.ter_con_dict[name] = prim
         self.constant_count += 1
 
     def add_operations(self, power_categories=None, categories=None, self_categories=None,
@@ -392,8 +504,18 @@ class SymbolSet(object):
 
         Parameters
         ----------
-        power_categories: None, Sized, list of float
-            Examples:[0.5,2,3]
+        self_categories:list of dict,None
+            the dict can be generate from newfuncV or defination self.
+            the function at least containing:
+            {"func": func, "name": name, "arity":2,"np_func": npf, "dim_func": dimf, "sym_func": gsymf}
+            func:sympy.Function(name) object
+            name:name
+            arity:int,the number of parameter
+            np_func:numpy function
+            dim_func:dimension function
+            sym_func:NewArray function. (unpack the group,used just for shown)
+        power_categories: Sized,tuple, None
+            Examples:(0.5,2,3)
         categories: tuple of str
             map table:
                     {"Add": sympy.Add, 'Sub': Sub, 'Mul': sympy.Mul, 'Div': Div}
@@ -406,19 +528,7 @@ class SymbolSet(object):
                     Others:  \n
                     "Rem":  f(x)=1-x,if x true \n
                     "Self":  f(x)=x,if x true \n
-                     
-        self_categories: None or list of list
-            Examples: \n
-                def rem(a): \n
-                    return 1-a
-                def rem_dim(d):\n
-                    return d
-                self_categories \n
-                =  [['rem',rem, rem_dim, 1, 0.99]] \n
-                =  [['rem',rem, rem_dim, arity, prob]] \n
-            when rem_dim == None, (can beused when dont calculate dim),
-            would apply default func, with return dim self
-            
+
         power_categories_prob:" balance" or float (0,1]
             probability of power categories, "balance" is 1/n_power_cat
         categories_prob: "balance" or float (0,1]
@@ -439,10 +549,10 @@ class SymbolSet(object):
                     p = special_prob[n]
             return p
 
-        if "MAdd" not in self.context:
+        if "MAdd" not in self.dispose_dict or "Self" not in self.dispose_dict:
             self.add_accumulative_operation()
 
-        functions1, functions2 = func_map()
+        functions1, functions2 = sym_vector_map()
         if power_categories:
             if power_categories_prob is "balance":
                 prob = 1 / len(power_categories)
@@ -458,7 +568,11 @@ class SymbolSet(object):
 
         for i in categories:
             if categories_prob is "balance":
-                prob1 = 1 / len([_ for _ in power_categories if _ not in ("Add", 'Sub' 'Mul', 'Div')])
+                ca_new = [_ for _ in categories if _ not in  ("Add", 'Sub' 'Mul', 'Div')]
+                if len(ca_new) >= 1:
+                    prob1 = 1 / len(ca_new)
+                else:
+                    prob1 = 1
             elif isinstance(categories_prob, float):
                 prob1 = categories_prob
             else:
@@ -472,12 +586,11 @@ class SymbolSet(object):
 
         if self_categories:
             for i in self_categories:
-                assert isinstance(i, list)
-                assert len(i) == 5, "check your input of self_categories,wihch size must be 5"
-                assert i[-2] == 1, "check your input of self_categories,wihch arity must be 1"
-                prob = change(i[0], i[4])
-                self._add_primitive(sympy.Function(i[0]), arity=i[3], name=i[0], prob=prob, np_func=i[1],
-                                    dim_func=i[2])
+                prob = change(i, 0.2)
+                i["prob"]=prob
+                i["arity"]=1
+                self._add_dispose(*i)
+        self.register(primitives_dict="all", dispose_dict=None, ter_con_dict=None)
         return self
 
     def add_accumulative_operation(self, categories=None, categories_prob="balance",
@@ -488,29 +601,20 @@ class SymbolSet(object):
         ----------
         categories: tuple of str
             categories=("Self","MAdd","MSub", "MMul","MDiv")
-        categories_prob: None, "balance" or float (0,1]
-            probility of categories, except ("Self","MAdd", "MSub", "MMul", "MDiv"),
+        categories_prob: None, "balance" or float.
+            probility of categories  (0,1], except ("Self","MAdd", "MSub", "MMul", "MDiv"),
             "balance" is 1/n_categories.
             "MSub", "MMul", "MDiv" only work on the size of group is 2, else work like "Self".
             Notes: the  ("Self","MAdd","MSub", "MMul", "MDiv") are set as 1 and 0.1 to be a standard.
-        self_categories: list of list
-            Examples:\n
-                def rem(ast):\n
-                    return ast[0]+ast[1]+ast[2]
-                def rem_dim(d):\n
-                    return d
-                self_categories
-                = [['rem',rem, rem_dim, 1, 0.99,True,False]]
-                = [['rem',rem, rem_dim, arity, prob, bool,False]]\n
-            when the rem,rem_dim,and bool must be uniform.
-            Note:
-            the rem and rem_dim must be able to settle dowm 1,2 dimension problems
-            the bool means the rem and rem_dim can be treat 2+ domension problems or not.
-            the arity for accumulative_operation must be 1.
-            if calculate of func rem relies on the size of ast,
-            the size of each feature group is the same, such as n_gs.
-            the size of ast must be the same as the size of feature group n_gs.
-
+        self_categories:list of dict,None
+            the dict can be generate from newfuncD or defination self.
+            the function at least containing:
+            {"func": func, "name": name, "np_func": npf, "dim_func": dimf, "sym_func": gsymf}
+            func:sympy.Function(name) object
+            name:name
+            np_func:numpy function
+            dim_func:dimension function
+            sym_func:NewArray function. (unpack the group,used just for shown)
         special_prob: None or dict
             Examples: {"MAdd":0.5,"Self":0.5}
 
@@ -526,45 +630,52 @@ class SymbolSet(object):
             return pp
 
         if not categories:
-            categories = ["Self", "MAdd", "MSub", "MMul", "MDiv", "Conv"]
+            if self.types == 1:
+                categories = ["Self"]
+            elif self.types ==2: # classification detail
+                categories = ["Self", "MAdd", "MSub", "MMul", "MDiv", "Conv"]
+            else:
+                categories = ["Self", "MAdd",  "MMul"]
+            # else:
+            #     categories = ["Self", "MAdd", "MSub", "MMul", "MDiv", "Conv"]
         if isinstance(categories, str):
             categories = [categories, ]
 
+        if categories_prob is "balance":
+            ca_new = [_ for _ in categories if _ not in ("Self", 'Flat', "MSub", "MMul",
+                                                         "MDiv", "Conv")]
+            if len(ca_new) >= 1:
+                prob1 = 1 / len(ca_new)
+            else:
+                prob1 = 1
+        elif isinstance(categories_prob, float):
+            prob1 = categories_prob
+        else:
+            raise TypeError("categories_prob accept int from (0,1] or 'balance'.")
+
         for i in categories:
 
-            if categories_prob is "balance":
-                prob1 = 1 / len(
-                    [_ for _ in categories_prob if _ not in ("Self", 'Flat', "MSub", "MMul", "MDiv", "Conv")])
-            elif isinstance(categories_prob, float):
-                prob1 = categories_prob
-            else:
-                raise TypeError("categories_prob accept int from (0,1] or 'balance'.")
-
             if i is "Self":
-                p = change(i, 0.75)
-                self._add_dispose(func_map_dispose()[i], arity=1, name=i, prob=p)
+                p = change(i, 0.5)
+                self._add_dispose(sym_dispose_map()[i], arity=1, name=i, prob=p)
             elif i in ("MAdd", "MSub", "MMul", "MDiv"):
-                p = change(i, 0.05)
-                self._add_dispose(func_map_dispose()[i], arity=1, name=i, prob=p)
+                p = change(i, 0.1)
+                self._add_dispose(sym_dispose_map()[i], arity=1, name=i, prob=p)
             elif i is "Conv":
                 p = change(i, 0.05)
-                self._add_dispose(func_map_dispose()[i], arity=1, name=i, prob=p)
+                self._add_dispose(sym_dispose_map()[i], arity=1, name=i, prob=p)
             else:
                 # to be add for future
                 p = change(i, prob1)
-                self._add_dispose(func_map_dispose()[i], arity=1, name=i, prob=p)
+                self._add_dispose(sym_dispose_map()[i], arity=1, name=i, prob=p)
 
         if self_categories:
             for i in self_categories:
-                assert isinstance(i, list)
-                assert len(i) == 7, "check your input of self_categories,wihch size must be 7"
-                assert i[-2] == 1, "check your input of self_categories,wihch arity must be 1"
-                prob = change(i, i[4])
-                fu = sympy.Function(i[0])
-                fu.is_jump = i[5]
-                fu.keep = i[6]
-                self._add_dispose(sympy.Function(i[0]), arity=i[3], name=i[0], prob=prob, np_func=i[1], dim_func=i[2])
-
+                prob = change(i, 0.2)
+                i["prob"]=prob
+                i["arity"]=1
+                self._add_dispose(*i)
+        self.register(primitives_dict=None, dispose_dict="all", ter_con_dict=None)
         return self
 
     def add_tree_to_features(self, Tree, prob=0.3):
@@ -593,10 +704,8 @@ class SymbolSet(object):
             assert Tree.y_dim is not dnan
             dim = Tree.y_dim
 
+            init_name0 = str("(%s)" % Tree)
 
-            init_name0 = str("(%s)"%Tree)
-
-            # self.expr are not passed
             t_map_va = list(self.terminals_init_map.keys())
             t_map_va.reverse()
             for i in t_map_va:
@@ -605,31 +714,27 @@ class SymbolSet(object):
             if init_name0 in self.terminals_init_map.values():
                 raise NameError
 
-
-            init_name1 = str("(%s)" % Tree.expr)
+            init_name1 = Tree.expr
 
             # self.expr are not passed
             t_map_va = list(self.expr_init_map.keys())
             t_map_va.reverse()
             for i in t_map_va:
-                init_name1 = init_name1.replace(i, self.expr_init_map[i])
-
-            if init_name1 in self.expr_init_map.values():
-                raise NameError
+                init_name1 =init_name1.subs(sympy.Symbol(i), self.expr_init_map[i])
 
         except(AssertionError, NameError, ValueError):
             pass
         else:
             name = "new%s" % self.new_num
             Tree.p_name = name
-            self.new_num += 1
-            self._add_terminal(value, name, dim=dim, prob=prob, init_name=init_name0)
-
+            self._add_terminal(value, name, dim=dim, prob=prob,
+                               init_sym=init_name1, init_name=init_name0)
             self.premap = self.premap.add_new()
-            self.expr_init_map[name] = init_name1
-        return self
+            self.new_num += 1
+            self.register(primitives_dict=None, dispose_dict=None,
+                          ter_con_dict={name: self.ter_con_dict[name]})
 
-    def add_features(self, X, y, x_dim=1, y_dim=1, prob=None, group=None,
+    def add_features(self, X, y, x_dim=1, y_dim=1, x_prob=None, x_group=None,
                      feature_name=None, ):
 
         """
@@ -643,13 +748,13 @@ class SymbolSet(object):
             1D data
         feature_name: None, list of str
             the same size wih x.shape[1]
-        x_dim: 1, list of Dim
+        x_dim: 1 or list of Dim
             the same size wih x.shape[1], default 1 is dless for all x
         y_dim: 1,Dim
             dim of y
-        prob: None,list of float
+        x_prob: None,list of float
             the same size wih x.shape[1]
-        group: None or list of list, int
+        x_group: None or list of list, int
             features group
 
         Returns
@@ -670,64 +775,39 @@ class SymbolSet(object):
         if x_dim is 1:
             x_dim = [dless for _ in range(n)]
 
-        if prob is None:
-            prob = [1 for _ in range(n)]
-        elif isinstance(prob, (float, int)):
-            prob = [prob for _ in range(n)]
+        if x_prob is None:
+            x_prob = [1 for _ in range(n)]
+        elif isinstance(x_prob, (float, int)):
+            x_prob = [x_prob for _ in range(n)]
         if isinstance(feature_name, list):
-            assert n == len(x_dim) == len(feature_name) == len(prob)
+            assert n == len(x_dim) == len(feature_name) == len(x_prob)
         else:
-            assert n == len(x_dim) == len(prob)
+            assert n == len(x_dim) == len(x_prob)
 
-        if not group:
-            group = [[]]
-        if isinstance(group, int):
-            assert n > group > 1, "the len of group should in (2,x.shape[1]]"
-            indexes = [_ for _ in range(n)]
-            group = [indexes[i:i + group] for i in range(0, len(indexes), group)]
+        for i in range(n):
+            self._add_terminal(np.array(X.T[i]), name="x%s" % i, dim=x_dim[i], prob=x_prob[i])
 
-        for i, gi in enumerate(group):
-            len_gi = len(gi)
-            if len_gi > 0:
-                init_name = str(["x%s" % j for j in gi])
-                assert all(x_dim[gi[0]] == x_dim[i] for i in gi)
-                ns = np.vstack(np.array([x_dim[i] for i in gi]))
-                dim = Dim(ns)
-                # dim = copy.deepcopy(x_dim[gi[0]])
-                # dim.n = len_gi
-                self._add_terminal(np.array(X.T[gi]),
-                                   name="gx%s" % i, dim=dim, prob=prob[gi[0]],
-                                   init_name=init_name
-                                   )
-                if isinstance(feature_name, list):
-                    fea_name = str([feature_name[j] for j in gi])
-                    self.terminals_fea_map["gx%s" % i] = (init_name, fea_name)
+        if isinstance(feature_name, list):
+            for i, j in enumerate(feature_name):
+                self.terminals_fea_map["x%s" % i] = j
 
-        groups = []
-        for groupi in group:
-            groups.extend(groupi)
+        self._group(x_group)
 
-        for i, (v, dimi, probi) in enumerate(zip(X.T, x_dim, prob)):
-            if i not in groups:
-                self._add_terminal(v, name="x%s" % i, dim=dimi, prob=probi)
-                if feature_name:
-                    self.terminals_fea_map["x%s" % i] = ("x%s" % i, feature_name[i])
-
-        self.premap = PreMap.from_shape(len(self.terminals_and_constants_repr))
-        # re-generate each time.
+        self.register(primitives_dict=None, dispose_dict=None, ter_con_dict="all")
+        self.premap = PreMap.from_shape(len(self.ter_con_dict))
         return self
 
-    def add_constants(self, c, dim=1, prob=None):
+    def add_constants(self, c, c_dim=1, c_prob=None):
         """
         Add features with dimension and probability.
 
         Parameters
         ----------
-        dim: 1, list of Dim
+        c_dim: 1, list of Dim
             the same size wih c
-        c: float
+        c: float,list
             list of float
-        prob: None, list of float
+        c_prob: None, float, list of float
             the same size wih c
 
         Returns
@@ -739,22 +819,30 @@ class SymbolSet(object):
 
         n = len(c)
 
-        if dim is 1:
-            dim = [dless for _ in range(n)]
+        if c_dim is 1:
+            c_dim = [dless for _ in range(n)]
 
-        if prob is None:
-            prob = [0.1 for _ in range(n)]
-        elif isinstance(prob, (float, int)):
-            prob = [prob for _ in range(n)]
+        if c_prob is None:
+            c_prob = [0.1 for _ in range(n)]
+        elif isinstance(c_prob, (float, int)):
+            c_prob = [c_prob for _ in range(n)]
 
-        assert len(c) == len(dim) == len(prob)
+        assert len(c) == len(c_dim) == len(c_prob)
 
-        for v, dimi, probi in zip(c, dim, prob):
+        for v, dimi, probi in zip(c, c_dim, c_prob):
             self._add_constant(v, name=None, dim=dimi, prob=probi)
 
-        self.premap = PreMap.from_shape(len(self.terminals_and_constants_repr))
+        self.register(primitives_dict=None, dispose_dict=None, ter_con_dict="all")
+        self.premap = PreMap.from_shape(len(self.ter_con_dict))
         # re-generate each time.
         return self
+
+    def add_features_and_constants(self, X, y, c, x_dim=1, y_dim=1, c_dim=1, x_prob=None,
+                                   c_prob=None, x_group=None, feature_name=None):
+        self.add_features(X, y, x_dim=x_dim, y_dim=y_dim, x_prob=x_prob, x_group=x_group,
+                          feature_name=feature_name, )
+        if c is not None:
+            self.add_constants(c, c_dim=c_dim, c_prob=c_prob)
 
     def set_personal_maps(self, pers):
         """
@@ -777,7 +865,7 @@ class SymbolSet(object):
         Bond the points with ratio. the others would be penalty.\n
         For example set the [1,2,0.9],
         the others bond such as (1,2),(1,3),(1,4)...(2,3),(2,4)...would be with small prob.
-        
+
         Parameters
         ----------
         pers : list of list
@@ -826,6 +914,25 @@ class SymbolSet(object):
         return self.get_values(self.primitives_dict, mean=False)
 
     @property
+    def types(self):
+        if self.gro_ter_con:
+            ln = list(self.gro_ter_con.values())
+            ln.append(1)
+            ln = set(ln)
+            if len(ln) == 1:
+                return 1
+            elif len(ln) == 2:
+                ln = list(ln)
+                ln.remove(1)
+                return ln[0]
+            else:
+                return None
+        else:
+            raise NotImplementedError("the question type are defined by 'group' "
+                                      "parameters in .add_features"
+                                      "please add features before add operations.")
+
+    @property
     def dispose(self):
         return self.get_values(self.dispose_dict, mean=False)
 
@@ -841,21 +948,25 @@ class SymbolSet(object):
     def data_x(self):
         return self.get_values(self.data_x_dict, mean=False)
 
-    def compress(self):
-        """Delete unnecessary detials, used before build Tree"""
-        [delattr(i, "func") for i in self.dispose if hasattr(i, "func")]
-        [delattr(i, "func") for i in self.primitives if hasattr(i, "func")]
-        [delattr(i, "value") for i in self.terminals_and_constants if hasattr(i, "value")]
-        [delattr(i, "dim") for i in self.terminals_and_constants if hasattr(i, "dim")]
+    @property
+    def free_symbol(self):
+        init_sub = self.terminals_symbol_map.values()
+        name = self.terminals_symbol_map.keys()
+        old = [sympy.Symbol(si) for si in name]
 
-        return self
+        new =list(init_sub)
+        s = self.terminals_and_constants_repr
+        s = [i for i in s if i not in old]
+        fea_zip = old+s
+        fea_unpack = new+s
+        return fea_zip,fea_unpack
 
 
 class _ExprTree(list):
     """
     Tree of expression
     """
-    hasher = str
+    hasher = repr
 
     def __init__(self, content):
         list.__init__(self, content)
@@ -905,7 +1016,7 @@ class _ExprTree(list):
                 stack.append((node, []))
                 while len(stack[-1][1]) == stack[-1][0].arity:
                     prim, args = stack.pop()
-                    string = prim.format_long(*args)
+                    string = prim.format_str(*args)
                     if len(stack) == 0:
                         break  # If stack is empty, all nodes should have been seen
                     stack[-1][1].append(string)
@@ -924,7 +1035,7 @@ class _ExprTree(list):
                 stack.append((node, []))
                 while len(stack[-1][1]) == stack[-1][0].arity:
                     prim, args = stack.pop()
-                    string = prim.format(*args)
+                    string = prim.format_repr(*args)
                     if len(stack) == 0:
                         break  # If stack is empty, all nodes should have been seen
                     stack[-1][1].append(string)
@@ -989,15 +1100,13 @@ class SymbolTree(_ExprTree):
         self.expr = None
         self.dim_score = 0
 
-    def __setitem__(self, key, val):
+    def reset(self):
         """keep these attribute refreshed"""
         self.p_name = None
         self.y_dim = dnan
         self.pre_y = None
         self.expr = None
         self.dim_score = 0
-
-        _ExprTree.__setitem__(self, key, val)
 
     def __repr__(self):
         if self.p_name:
@@ -1014,7 +1123,8 @@ class SymbolTree(_ExprTree):
 
     def compress(self):
 
-        [_ExprTree.__delattr__(self, i) for i in ("coef_expr", "coef_pre_y", "coef_score", "pure_expr", "pure_pre_y")
+        [_ExprTree.__delattr__(self, i) for i in ("coef_expr", "coef_pre_y",
+                                                  "coef_score", "pure_expr", "pure_pre_y")
          if hasattr(self, i)]
 
     def terminals(self):
@@ -1045,7 +1155,7 @@ class SymbolTree(_ExprTree):
         return compile_context(self, pset.context, pset.gro_ter_con)
 
     def ppprint(self, pset, feature_name=False):
-        return ppprint(self, pset, feature_name=feature_name)
+        return group_str(self, pset, feature_name=feature_name)
 
 
 class ShortStr:
@@ -1075,17 +1185,10 @@ class CalculatePrecisionSet(SymbolSet):
     def __hash__(self):
         return hash(self.hasher(self))
 
-    def __new__(cls, pset, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True,
-                dim_type=None, fuzzy=False,
-                add_coef=True, inter_add=True, inner_add=False, vector_add=False, n_jobs=1, batch_size=20, tq=True):
-
-        cpset = super().__new__(cls)
-        cpset.__dict__.update(copy.deepcopy(pset.__dict__))
-
-        return cpset
-
-    def __init__(self, pset, scoring=None, score_pen=(1,), filter_warning=True, cal_dim=True, dim_type=None,
-                 fuzzy=False, add_coef=True, inter_add=True, inner_add=False, vector_add=False, n_jobs=1, batch_size=20, tq=True):
+    def __init__(self, pset, scoring=None, score_pen=(1,), filter_warning=True,
+                 cal_dim=True, dim_type=None,fuzzy=False, add_coef=True, inter_add=True,
+                 inner_add=False, vector_add=False, n_jobs=1, batch_size=20,
+                 tq=True):
         """
 
         Parameters
@@ -1122,7 +1225,8 @@ class CalculatePrecisionSet(SymbolSet):
             bool
 
         """
-        _ = pset
+        super(CalculatePrecisionSet,self).__init__()
+        self.__dict__.update(copy.deepcopy(pset.__dict__))
         self.name = "CPSet"
         self.cal_dim = cal_dim
         self.score_pen = score_pen
@@ -1154,7 +1258,7 @@ class CalculatePrecisionSet(SymbolSet):
         score, expr01, pre_y = calculate_score(ind.expr, self.data_x, self.y,
                                                self.terminals_and_constants_repr,
                                                add_coef=self.add_coef, inter_add=self.inter_add,
-                                               inner_add=self.inner_add,vector_add=self.vector_add,
+                                               inner_add=self.inner_add, vector_add=self.vector_add,
                                                scoring=self.scoring, score_pen=self.score_pen,
                                                filter_warning=self.filter_warning,
                                                np_maps=self.np_map)
@@ -1188,12 +1292,15 @@ class CalculatePrecisionSet(SymbolSet):
             raise TypeError("must be SymbolTree or sympy.Expr")
         score, expr01, pre_y = calculate_score(expr, self.data_x, self.y,
                                                self.terminals_and_constants_repr,
-                                               add_coef=False, inter_add=False, inner_add=False, vector_add=False,
+                                               add_coef=False, inter_add=False,
+                                               inner_add=False, vector_add=False,
                                                scoring=self.scoring, score_pen=self.score_pen,
-                                               filter_warning=self.filter_warning, np_maps=self.np_map)
+                                               filter_warning=self.filter_warning,
+                                               np_maps=self.np_map)
         if self.cal_dim:
             dim, dim_score = calcualte_dim_score(expr, self.terminals_and_constants_repr,
-                                                 self.dim_ter_con_list, self.dim_type, self.fuzzy, self.dim_map)
+                                                 self.dim_ter_con_list, self.dim_type,
+                                                 self.fuzzy, self.dim_map)
         else:
             dim, dim_score = dless, 1
 
@@ -1209,31 +1316,60 @@ class CalculatePrecisionSet(SymbolSet):
 
         Parameters
         ----------
-        inds:SymbolTree
-        
+        inds:list of SymbolTree
+
         Returns
         -------
         list of (score,dim,dim_score)
         """
-        inds = [i.capsule for i in inds]
 
+        indss = [i.capsule for i in inds]
 
         calls = functools.partial(calculate_collect, context=self.context, x=self.data_x, y=self.y,
-                                      terminals_and_constants_repr=self.terminals_and_constants_repr,
-                                      gro_ter_con=self.gro_ter_con,
-                                      dim_ter_con_list=self.dim_ter_con_list, dim_type=self.dim_type, fuzzy=self.fuzzy,
-                                      scoring=self.scoring, score_pen=self.score_pen,
-                                        vector_add=self.vector_add,
-                                      add_coef=self.add_coef, inter_add=self.inter_add,
-                                      inner_add=self.inner_add, np_maps=self.np_map,
-                                      filter_warning=self.filter_warning,
-                                      dim_maps=self.dim_map, cal_dim=self.cal_dim)
+                                  terminals_and_constants_repr=self.terminals_and_constants_repr,
+                                  gro_ter_con=self.gro_ter_con,
+                                  dim_ter_con_list=self.dim_ter_con_list, dim_type=self.dim_type,
+                                  fuzzy=self.fuzzy,
+                                  scoring=self.scoring, score_pen=self.score_pen,
+                                  vector_add=self.vector_add,
+                                  add_coef=self.add_coef, inter_add=self.inter_add,
+                                  inner_add=self.inner_add, np_maps=self.np_map,
+                                  filter_warning=self.filter_warning,
+                                  dim_maps=self.dim_map, cal_dim=self.cal_dim)
 
-        def pack(ind):
-            return calls(ind)
-        if self.n_jobs>=1:
-            pack=calls
-        score_dim_list = parallelize(func=pack, iterable=inds, n_jobs=self.n_jobs, respective=False,
+        score_dim_list = parallelize(func=calls, iterable=indss, n_jobs=self.n_jobs,
+                                     respective=False,
                                      tq=self.tq, batch_size=self.batch_size)
 
         return score_dim_list
+
+
+# from sklearn.datasets import load_boston
+#
+# data = load_boston()
+# x = data["data"]
+# y = data["target"]
+# # No = Normalizer()
+# # y=y/max(y)
+# # x = No.fit_transform(x)
+# pset = SymbolSet()
+# # self.pset.add_features(x, y, )
+# pset.add_features(x, y, x_group=[[1, 2], [4, 5]])
+# pset.add_constants([6, 3, 4], c_dim=[dless, dless, dless], c_prob=None)
+# pset.add_operations(power_categories=(2, 3, 0.5),
+#                     categories=("Add", "Mul", "Self", "Abs"),
+#                     self_categories=None)
+# cp = CalculatePrecisionSet(pset, scoring=[r2_score, ],
+#                            score_pen=[1, ],
+#                            filter_warning=True)
+# from numpy import random
+#
+# random.seed(1)
+# sl = SymbolTree.genGrow(pset, 3, 4)
+# sl.pre_y = y
+# sl.y_dim = dless
+# expr = compile_context(expr=sl, context=pset.context, gro_ter_con=pset.gro_ter_con)
+# sl.expr = expr
+# pset.add_tree_to_features(sl)
+#
+# assert "new0" in pset.terminals_init_map

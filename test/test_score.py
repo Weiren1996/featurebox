@@ -7,7 +7,7 @@ from featurebox.symbol.base import SymbolSet, SymbolTree, CalculatePrecisionSet
 from featurebox.symbol.calculation.dim import dless, Dim
 from featurebox.symbol.calculation.function import np_map
 from featurebox.symbol.calculation.scores import compile_context, calculate_y
-from featurebox.symbol.calculation.translate import ppprint, simple
+from featurebox.symbol.calculation.translate import group_str, simple
 
 if __name__ == "__main__":
     # data
@@ -30,9 +30,9 @@ if __name__ == "__main__":
 
     # symbolset
     pset0 = SymbolSet()
-    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, group=[[1, 2], [3, 4, 5], [6, 7]],
+    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, x_group=[[1, 2], [3, 4, 5], [6, 7]],
                        feature_name=["Ss%i" % i for i in range(13)])
-    pset0.add_constants(c, dim=c_dim, prob=None)
+    pset0.add_constants(c, c_dim=c_dim, c_prob=None)
     pset0.add_operations(power_categories=(2, 3, 0.5),
                          categories=("Add", "Mul", "Sub", "Div", "ln"),
                          self_categories=None)

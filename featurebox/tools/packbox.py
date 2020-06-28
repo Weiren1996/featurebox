@@ -14,18 +14,19 @@ Notes:
 
 from inspect import getfullargspec
 
-try:
-    from collections.abc import Sequence
-except ImportError:
-    from collections import Sequence
 
 try:
     from collections.abc import Sequence
 except ImportError:
     from collections import Sequence
 
-from copy import deepcopy
-from functools import partial
+try:
+    from collections.abc import Sequence
+except ImportError:
+    from collections import Sequence
+
+from copy import deepcopy, copy
+from functools import partial, wraps
 
 
 class Toolbox(object):
@@ -119,6 +120,8 @@ class Toolbox(object):
         self.register(alias, function, *args, **kargs)
 
     def refresh(self, alias=None, *nargs, **nkwargs):
+        "the refreshed function  only can be used by kwargs parameter ranther args "
+
         if isinstance(alias, str):
             if hasattr(self, alias):
                 pfunc = getattr(self, alias)
@@ -129,24 +132,32 @@ class Toolbox(object):
                 n_arg = len(detail.args)
                 if detail.defaults:
                     defu = [None] * (n_arg - len(detail.defaults))
-                    defu.extend(detail.defaults)
+                    defu.extend(detail.defaults)#?
                 else:
                     defu = [None] * n_arg
 
+
                 defu_dict = {}
                 for i, j in zip(detail.args, defu):
-                    defu_dict[i] = j
+                    if j is not None:
+                        defu_dict[i] = j
+
                 if detail.kwonlydefaults:
                     defu_dict.update(detail.kwonlydefaults)
 
                 for i, j in zip(detail.args, args):
                     defu_dict[i] = j
+
                 defu_dict.update(kargs)
 
-                for i, j in zip(detail.args, nargs):
-                    defu_dict[i] = j
                 defu_dict.update(nkwargs)
-                self.register(alias, function, **defu_dict)
+
+                for i, j in zip(detail.args, nargs):
+                    if i in defu_dict:
+                        del defu_dict[i]
+
+
+                self.register(alias, function, *nargs, **defu_dict)
             else:
                 pass
 
@@ -156,12 +167,33 @@ class Toolbox(object):
 
 
 if __name__ == "__main__":
-    def func(a, b, c=2, name=4, **kwargs):
+    def func(a, b=1, c=2, name=4, **kwargs):
         print(a, b, c, name, kwargs)
         pass
 
 
+    def staticLimit(key, max_value):
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+
+
+                new_inds = func(*args, **kwargs)
+
+                print(key,max_value)
+                return new_inds
+
+            return wrapper
+
+        return decorator
+
+
     to = Toolbox()
+
+
+
+
     to.register("a", func, 1, 5, abss=3)
-    to.refresh("a", 3, name=3, abss=4)
+    to.decorate("a", staticLimit(key=4, max_value=5))
+    to.refresh("a", 3,4,6,name=3, abss=4)
     to.a()

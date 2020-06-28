@@ -1,1 +1,1 @@
-__all__=["coefficient","dim","function","scores","translate"]
+__all__=["coefficient","scores","translate"]

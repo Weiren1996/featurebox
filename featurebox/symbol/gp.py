@@ -11,6 +11,7 @@ Notes:
     this part are one copy from deap,
     change the random to numpy.random
 """
+
 import copy
 import operator
 import sys
@@ -130,11 +131,16 @@ def generate(pset, min_, max_, condition, personal_map=False, *kwargs):
 
     dispose = list(random.choice(pset.dispose, len(expr), p=pset.prob_dispose_list))
 
-    add_ = [i for i in pset.dispose if i.name == "MAdd"]
-    mul_ = [i for i in pset.dispose if i.name == "MMul"]
-    add_.extend(mul_)
+    if pset.types == 1:
+        add_ = [pset.dispose_dict["Self"]]
+        dispose = add_*len(expr)
 
-    dispose[0] = random.choice(add_, p=[0.8, 0.2])
+    elif pset.types == 2:
+        add_ = list(pset.dispose_dict[i] for i in ["MAdd", "MSub", "MMul", "MDiv"] )
+        dispose[0] = random.choice(add_, p=[0.25, 0.25, 0.25, 0.25])
+    else:
+        add_ = list(pset.dispose_dict[i] for i in ["MAdd", "MMul"] )
+        dispose[0] = random.choice(add_, p=[0.5, 0.5])
 
     re = []
     for i, j in zip(dispose, expr):
@@ -243,7 +249,9 @@ def staticLimit(key, max_value):
             new_inds = list(func(*args, **kwargs))
             for i, ind in enumerate(new_inds):
 
-                if key(ind) > max_value:
+                if key(ind) == key(keep_inds[i]):
+                    pass
+                elif key(ind) > max_value:
                     new_inds[i] = keep_inds[random.choice(len(keep_inds))]
 
             return new_inds
@@ -281,109 +289,6 @@ def mutUniform(individual, expr, pset):
 
 # @logg
 # @checkss
-# def mutNodeReplacement(individual, pset):
-#     """Replaces a randomly chosen primitive from *individual* by a randomly
-#     chosen primitive with the same number of arguments from the :attr:`pset`
-#     attribute of the individual.
-#
-#     :param individual: The normal or typed tree to be mutated.
-#     :param pset: SymbolSet
-#     :returns: A tuple of one tree.
-#     """
-#
-#     if len(individual) < 4:
-#         return individual,
-#
-#     if random.random() <= 0.8:
-#         index = random.choice(np.arange(1, len(individual), step=2))
-#     else:
-#         index = random.choice(np.arange(0, len(individual), step=2))
-#
-#     node = individual[index]
-#
-#     if index % 2 == 0:
-#         for i in pset.dispose:
-#             assert i.arity == 1
-#         prims = pset.dispose
-#         p_d = np.array([pset.prob_dispose[repr(i)] for i in prims], 'float32')
-#         p_d /= np.sum(p_d)
-#         a = prims[random.choice(len(prims), p=p_d)]
-#         individual[index] = a
-#     else:
-#
-#         if node.arity == 0:  # Terminal
-#             p_t = pset.prob_ter_con_list
-#             term = pset.terminals_and_constants[random.choice(len(pset.terminals_and_constants), p=p_t)]
-#             individual[index] = term
-#         else:  # Primitive
-#             prims = [p for p in pset.primitives if p.arity == node.arity]
-#             p_p = np.array([pset.prob_pri[repr(i)] for i in prims], 'float32')
-#
-#             p_p /= np.sum(p_p)
-#             # except:
-#             a = prims[random.choice(len(prims), p=p_p)]
-#
-#             individual[index] = a
-#
-#     return individual,
-
-
-# # @logg
-# # @checkss
-# def mutDifferentReplacement(individual, pset):
-#     """Replaces a randomly chosen primitive from *individual* by a randomly
-#     chosen primitive with the same number of arguments from the :attr:`pset`
-#     attribute of the individual.
-#     decrease the probability of same terminals.
-#
-#     :param individual: The normal or typed tree to be mutated.
-#     :param pset: SymbolSet
-#     :returns: A tuple of one tree.
-#     """
-#
-#     if len(individual) < 4:
-#         return individual,
-#
-#     ters = [repr(i) for i in individual.terminals()]
-#     pset_ters = [repr(i) for i in pset.terminals_and_constants]
-#
-#     cou = Counter(ters)
-#     cou_mutil = {i: j for i, j in cou.items() if j >= 2}
-#     ks = list(cou_mutil.keys())
-#     nks = list(set(pset_ters) - (set(ks)))
-#     nks.sort()  # very import for random
-#
-#     p_nks = np.array([pset.prob_ter_con[i] for i in nks])
-#     p_nks /= np.sum(p_nks)
-#
-#     if cou_mutil:
-#         indexs = []
-#         for k, v in cou_mutil.items():
-#             indi = []
-#             for i in np.arange(1, len(individual), 2):
-#                 if repr(individual[i]) == k:
-#                     indi.append(i)
-#             if indi:
-#                 indexs.append(random.choice(indi))
-#         if len(indexs) <= len(nks):
-#             term = random.choice(nks, len(indexs), replace=False, p=p_nks)
-#         else:
-#             term = random.choice(nks, len(indexs), replace=True, p=p_nks)
-#
-#         term_ters = []
-#         for name in term:
-#             for i in pset.terminals_and_constants:
-#                 if repr(i) == name:
-#                     term_ters.append(i)
-#
-#         for o, n in zip(indexs, term_ters):
-#             individual[o] = n
-#
-#     return individual,
-
-
-# @logg
-# @checkss
 def mutShrink(individual, pset=None):
     """This operator shrinks the *individual* by choosing randomly a branch and
     replacing it with one of the branch's arguments (also randomly chosen).
@@ -394,7 +299,7 @@ def mutShrink(individual, pset=None):
     """
     _ = pset
     # We don't want to "shrink" the root
-    if len(individual) < 6 or individual.height <= 4:
+    if len(individual) < 4 or individual.height <= 4:
         return individual,
 
     index = random.randint(0, len(individual))
@@ -432,12 +337,15 @@ def mutNodeReplacementVerbose(individual, pset, personal_map=False):
     if len(individual) < 4:
         return individual,
 
-    if random.random() <= 0.8:
-        index = random.choice(np.arange(1, len(individual), step=2))
+    if pset.types > 1:
+        if random.random() <= 0.8:
+            index = random.choice(np.arange(1, len(individual), step=2))
+        else:
+            index = random.choice(np.arange(0, len(individual), step=2))
     else:
         index = random.choice(np.arange(0, len(individual), step=2))
-
     node = individual[index]
+
 
     if index % 2 == 0:
         for i in pset.dispose:
@@ -653,6 +561,7 @@ def Statis_func(stats=None):
         "integer": lambda ind: score_dim(ind.y_dim, "integer", fuzzy=False),
 
         "length": lambda ind: len(ind),
+        "height": lambda ind: ind.height,
 
         # mutil-target
         "weight_fitness": lambda ind: ind.fitness.wvalues,
@@ -796,7 +705,7 @@ def varAndfus(population, toolbox, cxpb, mutpb, fus):
         for i in range(len(offspring)):
             if random.random() < mutpb:
                 # print(random.random(), i)
-                offspring[i], = j(individual=offspring[i])
+                offspring[i], = j(offspring[i])
                 del offspring[i].fitness.values
 
     return offspring

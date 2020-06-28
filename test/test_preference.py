@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from featurebox.symbol.preference import PreMap
+from featurebox.symbol.probability.preference import PreMap
 
 
 class MyTestCase(unittest.TestCase):

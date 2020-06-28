@@ -20,9 +20,8 @@ from sklearn.metrics import r2_score
 from sklearn.utils import check_array
 
 from featurebox.symbol.calculation.coefficient import try_add_coef
-from featurebox.symbol.calculation.dim import dim_map, dless, dnan, Dim
+from featurebox.symbol.functions.dimfunc import dim_map, dless, dnan, Dim
 from featurebox.symbol.calculation.translate import compile_context
-from featurebox.tools.tool import time_this_function
 
 
 def calculate_y(expr01, x, y, terminals, add_coef=True,
@@ -32,8 +31,9 @@ def calculate_y(expr01, x, y, terminals, add_coef=True,
     try:
         if add_coef:
             pre_y, expr01 = try_add_coef(expr01, x, y, terminals,
-                                  filter_warning=filter_warning, inter_add=inter_add,
-                                         inner_add=inner_add, vector_add=vector_add, np_maps=np_maps)
+                                         filter_warning=filter_warning,
+                                         inter_add=inter_add,inner_add=inner_add,
+                                         vector_add=vector_add, np_maps=np_maps)
         else:
             func0 = sympy.utilities.lambdify(terminals, expr01, modules=[np_maps, "numpy"])
             pre_y = func0(*x)
@@ -60,12 +60,14 @@ def uniform_score(score_pen=1):
         return score_pen
 
 
-def calculate_score(expr01, x, y, terminals, scoring=None, score_pen=(1,), add_coef=True,
-                    filter_warning=True, inter_add=True, inner_add=False, vector_add=False, np_maps=None):
+def calculate_score(expr01, x, y, terminals, scoring=None, score_pen=(1,),
+                    add_coef=True,filter_warning=True, inter_add=True,
+                    inner_add=False, vector_add=False, np_maps=None):
     """
 
     Parameters
     ----------
+    vector_add
     expr01: Expr
         sympy expression.
     x: list of np.ndarray
@@ -110,7 +112,8 @@ def calculate_score(expr01, x, y, terminals, scoring=None, score_pen=(1,), add_c
     assert len(scoring) == len(score_pen)
 
     pre_y, expr01 = calculate_y(expr01, x, y, terminals, add_coef=add_coef,
-                                filter_warning=filter_warning, inter_add=inter_add, inner_add=inner_add, vector_add=vector_add,
+                                filter_warning=filter_warning, inter_add=inter_add, inner_add=inner_add,
+                                vector_add=vector_add,
                                 np_maps=np_maps)
 
     try:
@@ -126,6 +129,7 @@ def calculate_score(expr01, x, y, terminals, scoring=None, score_pen=(1,), add_c
         sc_all = [uniform_score(score_pen=i) for i in score_pen]
 
     return sc_all, expr01, pre_y
+
 
 
 def score_dim(dim_, dim_type, fuzzy=False):
@@ -221,7 +225,8 @@ def calcualte_dim_score(expr01, terminals, dim_list, dim_type, fuzzy, dim_maps=N
 def calculate_collect(ind, context, x, y, terminals_and_constants_repr, gro_ter_con,
                       dim_ter_con_list, dim_type, fuzzy,
                       scoring=None, score_pen=(1,),
-                      add_coef=True, filter_warning=True, inter_add=True, inner_add=False, vector_add=False,
+                      add_coef=True, filter_warning=True, inter_add=True, inner_add=False,
+                      vector_add=False,
                       np_maps=None, dim_maps=None, cal_dim=True):
     expr01 = compile_context(ind, context, gro_ter_con)
 

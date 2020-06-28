@@ -9,7 +9,6 @@
 """
 some tools for characterization
 """
-
 import inspect
 import numbers
 import random
@@ -174,7 +173,7 @@ def name_to_name(*iters, search, search_which=1, return_which=(1,), two_layer=Fa
 
     Parameters
     ----------
-    iters:Iterable
+    iters:tuple
         iterable objects to select and sort
     search:Iterable
         the rank basis
@@ -240,10 +239,79 @@ def name_to_name(*iters, search, search_which=1, return_which=(1,), two_layer=Fa
         return return_res
 
 
-if __name__ == "__main__":
-    list1 = [1, 2, 3, 4, 5]
-    list2 = ["a", "b", "c", "d", "e"]
+class _TTClass(dict):
+    def __init__(self, **kwargs):
+        super(_TTClass, self).__init__(**kwargs)
 
-    # a = name_to_name(list(range(len(list1))),list2, search=["a","e"], search_which=2,
-    # return_which=(0,1), two_layer=False)
-    a = name_to_name(list1, list2, search=[["a", "e"], ["b", "e"]], search_which=2, return_which=1, two_layer=True)
+    def _t(self):
+        self._r()
+
+    def _p(self):
+        a = np.array(list(self.keys()))
+        b = np.array(list(self.values()))
+        a0 = np.delete(a, 0)
+        a = np.delete(a, -1)
+        b0 = np.delete(b, 0)
+        b = np.delete(b, -1)
+        ti = b0 - b
+        func = lambda x, y: "{}-{}:".format(x, y)
+        ufunc = np.frompyfunc(func, 2, 1)
+        ni = ufunc(a0, a)
+        re = np.vstack((ni, ti))
+        re = re.T
+        print(re)
+        self.clear()
+
+    def _r(self, name=None):
+        ti = time.time()
+        if name is None:
+            n = len(self)
+            name = "t%s" % n
+        self[name] = ti
+
+    def subs(self, name1, name2):
+        if name2 in self and name2 in self:
+            return self[name1] - self[name2]
+        else:
+            raise NameError("There is no name:{} or {}".format(name1, name2))
+
+    # def tp(self, name=None):
+    #     ti = time.time()
+    #     n = len(self)
+    #     if name is None:
+    #         name = "tp"
+    #     if n >= 1:
+    #         name0 = list(self.keys())[-1]
+    #         t0 = list(self.values())[-1]
+    #         print("-".join((name,name0)), ti - t0)
+    #     else:
+    #         raise UserWarning("The .tp only used after .t, or .r")
+
+
+class TTClass(_TTClass):
+    """
+    quick time.
+    use tt object.
+    >>>tt.t
+    >>>#tt.**n
+    >>>tt.p
+    """
+
+    def __init__(self, **kwargs):
+        super(_TTClass, self).__init__(**kwargs)
+
+    def __getattribute__(self, item):
+        if item is "t":
+            _TTClass._t(self)
+
+        elif item is "p":
+            _TTClass._p(self)
+
+        elif item[-1] in "0123456789":
+            _TTClass._r(self, name=item)
+
+        else:
+            return _TTClass.__getattribute__(self, item)
+
+
+tt = TTClass()

@@ -2,7 +2,6 @@
 vector coef and vector const, which is a UndefinedFunction to excape the auto calculation of numpy to sympy.
 """
 import copy
-import time
 import warnings
 from collections import Counter
 
@@ -12,7 +11,6 @@ from scipy import optimize
 from sympy import Function
 from sympy.core.function import UndefinedFunction
 
-from featurebox.tools.tool import time_this_function
 
 
 class Coef(UndefinedFunction):
@@ -23,7 +21,7 @@ class Coef(UndefinedFunction):
     def __new__(mcs, name, arr):
 
         implementation = lambda x: arr * x
-        f = super().__new__(mcs, name=name, _imp_=staticmethod(implementation))
+        f = super(Coef,mcs).__new__(mcs, name=name, _imp_=staticmethod(implementation))
         f.arr = arr
         f.name = name
         f.tp = "Coef"
@@ -53,7 +51,7 @@ class Const(UndefinedFunction):
     def __new__(mcs, name, arr):
 
         implementation = lambda x: arr + x
-        f = super().__new__(mcs, name=name, _imp_=staticmethod(implementation))
+        f = super(Const,mcs).__new__(mcs, name=name, _imp_=staticmethod(implementation))
         f.arr = arr
         f.name = name
         f.tp = "Const"
@@ -167,6 +165,7 @@ def _replace_args_first(expr_, old, new, keep=False):
 
 
 def replace_args_first(expr_, old, new):
+    """a"""
     return _replace_args_first(expr_, old, new)[0]
 
 
@@ -342,6 +341,8 @@ def try_add_coef(expr01, x, y, terminals,
     if except error return expr self.
     Parameters
     ----------
+    vector_add: bool
+        add vector coefficent or not
     expr01: sympy.Expr
         sympy expressions
     x: list of np.ndarray
@@ -368,10 +369,8 @@ def try_add_coef(expr01, x, y, terminals,
     """
     if filter_warning:
         warnings.filterwarnings("ignore")
-    if isinstance(expr01,sympy.Symbol):
-        expr00 = copy.deepcopy(expr01)
-    else:
-        expr00 = expr01.copy()
+
+    expr00 = copy.deepcopy(expr01)
 
     expr01, a_list, a_dict = add_coefficient(expr01, inter_add=inter_add, inner_add=inner_add, vector_add=vector_add)
 

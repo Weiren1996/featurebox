@@ -1,13 +1,12 @@
 import operator
 import unittest
 
-from featurebox.symbol.dim import dless
+from featurebox.symbol.calculation.dim import dless
 
 from featurebox.symbol.base import CalculatePrecisionSet
 from featurebox.symbol.base import SymbolSet
 from featurebox.symbol.base import SymbolTree
-from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, mutShrink, selKbestDim, \
-    mutDifferentReplacement
+from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, mutShrink, selKbestDim
 from featurebox.tools.packbox import Toolbox
 
 
@@ -26,8 +25,8 @@ class MyTestgp(unittest.TestCase):
         self.x = x
         self.y = y
         # self.pset.add_features(x, y, )
-        self.pset.add_features(x, y, group=[[1, 2], [4, 5]])
-        self.pset.add_constants([6, 3, 4], dim=[dless, dless, dless], prob=None)
+        self.pset.add_features(x, y, x_group=[[1, 2], [4, 5]])
+        self.pset.add_constants([6, 3, 4], c_dim=[dless, dless, dless], c_prob=None)
         self.pset.add_operations(power_categories=(2, 3, 0.5),
                                  categories=("Add", "Mul", "Neg", "Abs"),
                                  self_categories=None)
@@ -60,8 +59,7 @@ class MyTestgp(unittest.TestCase):
         toolbox.register("generate", genGrow, pset=cpset, min_=2, max_=3)
         # toolbox.register("mutate", mutUniform, expr=toolbox.generate, pset=cpset)
         # toolbox.register("mutate", mutNodeReplacement, pset=cpset)
-        toolbox.register("mutate", mutShrink)
-        toolbox.register("mutate", mutDifferentReplacement, pset=cpset)
+        toolbox.register("mutate", mutShrink,pset=cpset)
 
         toolbox.decorate("mate", staticLimit(key=operator.attrgetter("height"), max_value=10))
         toolbox.decorate("mutate", staticLimit(key=operator.attrgetter("height"), max_value=10))
@@ -75,11 +73,9 @@ class MyTestgp(unittest.TestCase):
         population = [PTree_.genGrow(cpset, 3, 4) for _ in range(10)]
         # si = sys.getsizeof(cpset)
         for i in range(5):
-            xa = time.time()
             invalid_ind = [ind for ind in population if not ind.fitness.valid]
-            xb = time.time()
-            invalid_ind_score = cpset.parallelize_score(inds=invalid_ind, n_jobs=4, batch_size=50)
-            x = time.time()
+            invalid_ind_score = cpset.parallelize_score(inds=invalid_ind)
+
             for ind, score in zip(invalid_ind, invalid_ind_score):
                 ind.fitness.values = score[0]
                 ind.y_dim = score[1]
@@ -87,14 +83,9 @@ class MyTestgp(unittest.TestCase):
             # invalid_ind=[i.compress() for i in invalid_ind]
             # si3 = sys.getsizeof(invalid_ind[0])
             # print(si3,si2,si)
-            a = time.time()
             population = toolbox.select(population, len(population))
-            b = time.time()
             offspring = varAnd(population, toolbox, 1, 1)
-            c = time.time()
             population[:] = offspring
-            d = time.time()
-            print("inval", xb - xa, "fuzhi", a - x, "cross_mutate", c - b, "select", b - a, "re", d - c)
             # cpsl.compress()
 
 
