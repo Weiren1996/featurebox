@@ -1,7 +1,7 @@
 import operator
 import unittest
 
-from featurebox.symbol.calculation.dim import dless
+from featurebox.symbol.functions.dimfunc import dless
 
 from featurebox.symbol.base import CalculatePrecisionSet
 from featurebox.symbol.base import SymbolSet
@@ -30,12 +30,11 @@ class MyTestgp(unittest.TestCase):
         self.pset.add_operations(power_categories=(2, 3, 0.5),
                                  categories=("Add", "Mul", "Neg", "Abs"),
                                  self_categories=None)
-        self.pset.compress()
 
         from sklearn.metrics import r2_score, mean_squared_error
 
         self.cp = CalculatePrecisionSet(self.pset, scoring=[r2_score, mean_squared_error],
-                                        score_pen=[1, -1],
+                                        score_pen=[1, -1],dim_type=None,
                                         filter_warning=True)
 
     def test_gp_flow(self):

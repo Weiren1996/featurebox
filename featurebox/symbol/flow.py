@@ -69,9 +69,9 @@ class BaseLoop(Toolbox):
             number of new features to add to next generation.
             0 is false to add.
         personal_map:bool or "auto"
-            "auto" is using premap and with auto refresh the premap with individual
-            True is just using constant premap
-            False is just use the prob of terminals
+            "auto" is using premap and with auto refresh the premap with individual.\n
+            True is just using constant premap.\n
+            False is just use the prob of terminals.
         scoring: list of Callbale, default is [sklearn.metrics.r2_score,]
             See Also sklearn.metrics
         score_pen: tuple of  1, -1 or float but 0.
@@ -366,6 +366,7 @@ class MutilMutateLoop(BaseLoop):
     """
 
     def __init__(self, *args, **kwargs):
+        """See also BaseLoop"""
         super(MutilMutateLoop, self).__init__(*args, **kwargs)
 
         self.register("mutate0", mutNodeReplacementVerbose, pset=self.cpset, personal_map=self.personal_map)
@@ -402,6 +403,7 @@ class OnePointMutateLoop(BaseLoop):
     """
 
     def __init__(self, *args, **kwargs):
+        """See also BaseLoop"""
         super(OnePointMutateLoop, self).__init__(*args, **kwargs)
 
         self.register("mutate0", mutNodeReplacementVerbose, pset=self.cpset, personal_map=self.personal_map)
@@ -432,6 +434,7 @@ class DimForceLoop(MutilMutateLoop):
     """Force select the individual with target dim for next generation"""
 
     def __init__(self, *args, **kwargs):
+        """See also BaseLoop"""
         super(DimForceLoop, self).__init__(*args, **kwargs)
         assert self.cal_dim == True, "For DimForceLoop type, the 'cal_dim' must be True"
 

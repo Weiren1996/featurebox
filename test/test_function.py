@@ -5,7 +5,9 @@ import sympy
 from sympy.core.numbers import oo as Inf
 from sympy.core.numbers import nan
 
-from featurebox.symbol.calculation.function import NewArray, sym_map, syk_map
+from featurebox.symbol.functions.gsymfunc import NewArray
+from featurebox.symbol.functions.gsymfunc import gsym_map as sym_map
+
 
 
 class MyTestCase(unittest.TestCase):
@@ -133,7 +135,7 @@ class MyTestCase(unittest.TestCase):
     def test_conv(self):
         f = sym_map()["Conv"]
         self.assertEqual(f(self.arr3), self.arr3)
-        self.assertEqual(True,all((f(NewArray([self.y,self.z]))==NewArray([self.z,self.y]))))
+        assert True==(f(NewArray([self.y,self.z]))==NewArray([self.z,self.y]))
     def test_msub(self):
         f = sym_map()["MSub"]
         self.assertEqual(f(self.arr3), self.arr3)

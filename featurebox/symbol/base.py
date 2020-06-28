@@ -18,11 +18,10 @@ import numpy as np
 import sympy
 from sklearn.utils import check_X_y, check_array
 
-from featurebox.combination.dim import dless
 from featurebox.symbol.calculation.scores import calcualte_dim_score, \
     calculate_score, calculate_collect, compile_context
 from featurebox.symbol.calculation.translate import group_str
-from featurebox.symbol.functions.dimfunc import dim_map, Dim, dnan
+from featurebox.symbol.functions.dimfunc import dim_map, Dim, dnan, dless
 from featurebox.symbol.functions.gsymfunc import gsym_map, NewArray
 from featurebox.symbol.functions.npfunc import np_map
 from featurebox.symbol.functions.symfunc import sym_vector_map, sym_dispose_map
@@ -43,7 +42,7 @@ class SymbolTerminal:
         Parameters
         ----------
         name: str
-            Represent name. Default "xi"
+            Represent name. Default "xi".
         init_name: str
             Just for show, rather than calculate.\n
             Examples:\n
@@ -137,12 +136,14 @@ def tsum(*ters, name="gx0"):
 
     Parameters
     ----------
-    ters:tuple of SymbolTerminalDetail
-    name
+    ters: tuple of SymbolTerminalDetail
+        SymbolTerminalDetail
+    name: str
+        sepcific the name of results.
 
     Returns
     -------
-
+    SymbolTerminalDetail
     """
 
     for i in ters:
@@ -304,6 +305,8 @@ class SymbolSet(object):
             numpy function or function constructed by numpy function
         dim_func: Callable
             function to calculate Dim
+        sym_func: Callable
+            function to calculate group sympy.Expr
         """
 
         if prob is None:
@@ -339,6 +342,8 @@ class SymbolSet(object):
             numpy function or function constructed by numpy function
         dim_func: Callable
             function to calculate Dim
+        sym_func: Callable
+            function to calculate group sympy.Expr
         """
 
         if prob is None:
@@ -383,15 +388,15 @@ class SymbolSet(object):
 
     def register(self, primitives_dict="all", dispose_dict="all", ter_con_dict="all"):
         """
-
+        Register and capsule for simpify.
+        
         Parameters
         ----------
         primitives_dict:None,str,dict
+        
         dispose_dict:None,str,dict
+        
         ter_con_dict:None,str,dict
-
-        Returns
-        -------
 
         """
         if primitives_dict == "all":
@@ -504,6 +509,32 @@ class SymbolSet(object):
 
         Parameters
         ----------
+
+        power_categories: Sized,tuple, None
+            Examples:(0.5,2,3)
+        categories: tuple of str
+            map table:
+                    {"Add": sympy.Add, 'Sub': Sub, 'Mul': sympy.Mul, 'Div': Div}
+
+                    {"sin": sympy.sin, 'cos': sympy.cos, 'exp': sympy.exp, 'ln': sympy.ln,
+
+                    {'Abs': sympy.Abs, "Neg": functools.partial(sympy.Mul, -1.0),
+                    
+                    "Rec": functools.partial(sympy.Pow, e=-1.0)}
+
+                    Others:  \n
+                    "Rem":  f(x)=1-x,if x true \n
+                    "Self":  f(x)=x,if x true \n
+
+        power_categories_prob:"balance", float
+            float in (0,1]
+            probability of power categories, "balance" is 1/n_power_cat
+        categories_prob: "balance", float
+            float in (0,1]
+            probabilityty of categories, except (+,-*,/), "balance" is 1/n_categories.\n
+            Notes: the  (+,-*,/) are set as 1 to be a standard.
+        special_prob: None or dict
+            Examples: {"Mul":0.6,"Add":0.4,"exp":0.1}
         self_categories:list of dict,None
             the dict can be generate from newfuncV or defination self.
             the function at least containing:
@@ -514,28 +545,6 @@ class SymbolSet(object):
             np_func:numpy function
             dim_func:dimension function
             sym_func:NewArray function. (unpack the group,used just for shown)
-        power_categories: Sized,tuple, None
-            Examples:(0.5,2,3)
-        categories: tuple of str
-            map table:
-                    {"Add": sympy.Add, 'Sub': Sub, 'Mul': sympy.Mul, 'Div': Div}
-
-                    {"sin": sympy.sin, 'cos': sympy.cos, 'exp': sympy.exp, 'ln': sympy.ln,
-
-                    {'Abs': sympy.Abs, "Neg": functools.partial(sympy.Mul, -1.0),
-                    "Rec": functools.partial(sympy.Pow, e=-1.0)}
-
-                    Others:  \n
-                    "Rem":  f(x)=1-x,if x true \n
-                    "Self":  f(x)=x,if x true \n
-
-        power_categories_prob:" balance" or float (0,1]
-            probability of power categories, "balance" is 1/n_power_cat
-        categories_prob: "balance" or float (0,1]
-            probabilityty of categories, except (+,-*,/), "balance" is 1/n_categories.
-            Notes: the  (+,-*,/) are set as 1 to be a standard.
-        special_prob: None or dict
-            Examples: {"Mul":0.6,"Add":0.4,"exp":0.1}
         Returns
         -------
         SymbolSet
@@ -610,7 +619,7 @@ class SymbolSet(object):
             the dict can be generate from newfuncD or defination self.
             the function at least containing:
             {"func": func, "name": name, "np_func": npf, "dim_func": dimf, "sym_func": gsymf}
-            func:sympy.Function(name) object
+            func:sympy.Function(name) object,which need add attributes: is_jump,keep.
             name:name
             np_func:numpy function
             dim_func:dimension function
@@ -681,6 +690,8 @@ class SymbolSet(object):
     def add_tree_to_features(self, Tree, prob=0.3):
         """
         Add the individual as a new feature to initial features.
+        not sure add seccess,because the value and name should be check and
+        different to exist.
 
         Parameters
         ----------

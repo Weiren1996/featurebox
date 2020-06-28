@@ -47,6 +47,16 @@ def calculate_y(expr01, x, y, terminals, add_coef=True,
 
     return pre_y, expr01
 
+def calculate_y_unpack(expr01, x, terminals):
+    try:
+        func0 = sympy.utilities.lambdify(terminals, expr01)
+        pre_y = func0(*x)
+        pre_y = pre_y.ravel()
+        pre_y = check_array(pre_y, ensure_2d=False)
+
+    except (DataConversionWarning, AssertionError, ValueError, AttributeError, KeyError, ZeroDivisionError):
+        pre_y = None
+    return pre_y
 
 def uniform_score(score_pen=1):
     """return the worse score"""
@@ -151,6 +161,7 @@ def score_dim(dim_, dim_type, fuzzy=False):
             return 1 if dim_ == dim_type else 0
 
     else:
+        print(dim_type)
         raise TypeError("dim_type should be None,'coef','integer', special Dim or list of Dim")
 
 

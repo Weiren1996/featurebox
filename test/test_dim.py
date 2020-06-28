@@ -1,7 +1,7 @@
 import unittest
 
 import numpy as np
-from featurebox.symbol.calculation.dim import Dim, dless, dnan, dim_map
+from featurebox.symbol.functions.dimfunc import Dim, dless, dnan, dim_map
 
 
 class MyTestCase(unittest.TestCase):

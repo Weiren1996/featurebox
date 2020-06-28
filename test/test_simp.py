@@ -1,6 +1,6 @@
 import time
 
-from featurebox.symbol.calculation.dim import dless, Dim
+from featurebox.symbol.functions.dimfunc import dless, Dim
 from featurebox.symbol.calculation.scores import compile_context
 from numpy import random
 from sklearn.datasets import load_boston

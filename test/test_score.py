@@ -4,10 +4,10 @@ from numpy import random
 from sklearn.datasets import load_boston
 
 from featurebox.symbol.base import SymbolSet, SymbolTree, CalculatePrecisionSet
-from featurebox.symbol.calculation.dim import dless, Dim
-from featurebox.symbol.calculation.function import np_map
+from featurebox.symbol.functions.dimfunc import dless, Dim
+from featurebox.symbol.functions.npfunc import np_map
 from featurebox.symbol.calculation.scores import compile_context, calculate_y
-from featurebox.symbol.calculation.translate import group_str, simple
+
 
 if __name__ == "__main__":
     # data
