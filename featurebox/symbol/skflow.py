@@ -1,5 +1,3 @@
-from inspect import isclass
-
 from sklearn.base import BaseEstimator, TransformerMixin, MultiOutputMixin
 from sklearn.metrics import check_scoring
 
@@ -7,11 +5,17 @@ from featurebox.symbol import flow
 from featurebox.symbol.base import SymbolSet
 from featurebox.symbol.calculation.scores import calculate_y_unpack
 from featurebox.symbol.calculation.translate import general_expr
-from featurebox.symbol.flow import MutilMutateLoop, BaseLoop
+from featurebox.symbol.flow import MutilMutateLoop
+from featurebox.symbol.functions.dimfunc import Dim
 
 
 class SymbolLearning(BaseEstimator, MultiOutputMixin, TransformerMixin):
-    """The SymbolLearning is time costing and are not suit for GridSearchCV"""
+    """One simplify API for flow.\n
+    The detailed functions should turn to the loop of featurebox.symbol.flow.\n
+    The SymbolLearning is time costing and are not suit for GridSearchCV"""
+
+    def __str__(self):
+        return str(self.loop)
 
     def __init__(self, *args, loop=None, **kwargs):
         """
@@ -119,27 +123,49 @@ class SymbolLearning(BaseEstimator, MultiOutputMixin, TransformerMixin):
                     return c
         """
         self.args = args
-        self.kargs = kwargs
+        self.kwargs = kwargs
         if loop is None:
             loop = MutilMutateLoop
-        elif isinstance(loop, str):
+        if isinstance(loop, str):
             loop = getattr(flow, loop)
-        elif isclass(loop):
-            pass
-        elif isinstance(loop, BaseLoop):
-            self.args = ()
-            self.kwargs = {}
+
         self.loop = loop
 
-    def fit(self, X, y, c=None, x_group=None, pset=None):
+    def fit(self, X=None, y=None, c=None, x_group=None, pset=None):
+        """
+
+        If pset is None, one simple pset are generate with no dimension calculation, But just with x_group.\n
+        If need more self-definition, use one defined SymbolSet object to pset.\n
+        Examples:
+            pset = SymbolSet()\n
+            pset.add_features_and_constants(...)\n
+            pset.add_operations(...)\n
+            ...\n
+            ...SymbolLearning().fit(pset=pset)\n
+
+        Parameters
+        ----------
+        X:np.ndarray
+        
+        y:np.ndarray
+        
+        c:list of float
+        
+        x_group:list of list
+            Group of x.\n
+            See Also pset.add_features_and_constants
+        pset:SymbolSet
+            See Also SymbolSet
+
+        """
         if pset is None:
             pset = SymbolSet()
             pset.add_features_and_constants(X, y, c, x_dim=1, y_dim=1, c_dim=1, x_prob=None,
-                                            c_prob=None, x_group=x_group, feature_name=None)
+                                            c_prob=None, x_group=x_group, cal_dim=False, feature_name=None)
             pset.add_operations(power_categories=(2, 3, 0.5),
                                 categories=("Add", "Mul", "Sub", "Div"))
 
-        self.loop = self.loop(pset, self.args, self.kwargs)
+        self.loop = self.loop(pset, *self.args, **self.kwargs)
         hall = self.loop.run()
         self.best_one = hall.items[0]
         expr = general_expr(self.best_one.coef_expr, self.loop.cpset, simplifying=True)
@@ -148,14 +174,11 @@ class SymbolLearning(BaseEstimator, MultiOutputMixin, TransformerMixin):
         self.fitness = self.best_one.fitness.values[0]
 
     def predict(self, X):
-        symbol = self.loop.cpset.free_symbol[1]
-        xn = [i for i in symbol if "x" in i.name]
-        cn = [i for i in symbol if "c" in i.name]
-        xn.sort()
-        cn.sort()
-        terminals = xn + cn
-
+        terminals = self.loop.cpset.init_free_symbol
+        indexs = [int(i.name.replace("x", "")) for i in terminals if "x" in i.name]
         X = [xi for xi in X.T]
+        X = [X[indexi] for indexi in indexs]
+
         c = []
         for i in self.loop.cpset.data_x_dict.keys():
             if "c" in i:
@@ -184,3 +207,27 @@ class SymbolLearning(BaseEstimator, MultiOutputMixin, TransformerMixin):
             sc_all = None
 
         return sc_all
+
+
+# if __name__ == "__main__":
+#     # data
+#     from sklearn.datasets import load_boston
+#     from featurebox.symbol.functions.dimfunc import dless
+#     data = load_boston()
+#     x = data["data"]
+#     y = data["target"]
+#     c = [6, 3, 4]
+#     # unit
+#     from sympy.physics.units import kg
+#
+#     x_u = [kg] * 13
+#     y_u = kg
+#     c_u = [dless, dless, dless]
+#
+#     x, x_dim = Dim.convert_x(x, x_u, target_units=None, unit_system="SI")
+#     y, y_dim = Dim.convert_xi(y, y_u)
+#     c, c_dim = Dim.convert_x(c, c_u)
+#
+#     sl = SymbolLearning(pop=50, gen=2, cal_dim=True, re_hall=2, add_coef=True)
+#     sl.fit(x, y, c=c, x_group=[[1, 3], [0, 2], [4, 7]])
+#     score = sl.score(x, y)

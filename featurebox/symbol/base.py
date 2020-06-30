@@ -13,6 +13,7 @@ Notes:
 
 import copy
 import functools
+from collections.abc import Iterable
 
 import numpy as np
 import sympy
@@ -234,6 +235,7 @@ class SymbolSet(object):
     """
 
     def __init__(self, name="PSet"):
+        """Definite the preparation set of operations, features, and fixed constants."""
         self.arguments = []  # for translate
         self.name = name
         self.y = None  # data y
@@ -465,6 +467,8 @@ class SymbolSet(object):
             indexes = [_ for _ in range(self.terms_count)]
             x_group = [indexes[i:i + x_group] for i in range(0, len(indexes), x_group)]
 
+        x_group = [x_groupi for x_groupi in x_group if len(x_groupi)>=2]
+
         for i, gi in enumerate(x_group):
             len_gi = len(gi)
             if len_gi > 0:
@@ -545,6 +549,7 @@ class SymbolSet(object):
             np_func:numpy function
             dim_func:dimension function
             sym_func:NewArray function. (unpack the group,used just for shown)
+            See Also featurebox.symbol.newfunc.newfuncV
         Returns
         -------
         SymbolSet
@@ -624,6 +629,7 @@ class SymbolSet(object):
             np_func:numpy function
             dim_func:dimension function
             sym_func:NewArray function. (unpack the group,used just for shown)
+            See Also featurebox.symbol.newfunc.newfuncV
         special_prob: None or dict
             Examples: {"MAdd":0.5,"Self":0.5}
 
@@ -971,6 +977,17 @@ class SymbolSet(object):
         fea_zip = old+s
         fea_unpack = new+s
         return fea_zip,fea_unpack
+
+    @property
+    def init_free_symbol(self):
+        symbols = self.free_symbol[1]
+        symbol = []
+        [symbol.extend(tuple(i)) if isinstance(i, Iterable) else symbol.append(i) for i in symbols]
+
+        xn = [i for i in symbol if "x" in i.name]
+        cn = [i for i in symbol if "c" in i.name]
+        terminals = xn + cn
+        return terminals
 
 
 class _ExprTree(list):

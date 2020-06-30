@@ -129,7 +129,7 @@ class Dim(numeric.ndarray):
 
     def __new__(cls, data):
 
-        assert isinstance(data, (numeric.ndarray, list))
+        assert isinstance(data, (numeric.ndarray, (list, tuple)))
         dtype = np.float16
 
         arr = numeric.array(data, dtype=dtype, copy=True)

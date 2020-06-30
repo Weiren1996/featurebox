@@ -33,13 +33,13 @@ from featurebox.tools.packbox import Toolbox
 class BaseLoop(Toolbox):
     """Base loop"""
 
-    def __init__(self, pset, pop=500, gen=20, mutate_prob=0.1, mate_prob=0.5, hall=1, re_hall=None,
-                 re_Tree=None, initial_min=None, initial_max=3, max_value=10,
+    def __init__(self, pset, pop=500, gen=20, mutate_prob=0.5, mate_prob=0.8, hall=1, re_hall=None,
+                 re_Tree=None, initial_min=None, initial_max=3, max_value=5,
                  scoring=(r2_score,), score_pen=(1,),filter_warning=True,
                  add_coef=True, inter_add=True, inner_add=False, vector_add=False,
-                 cal_dim=True, dim_type=None, fuzzy=False, n_jobs=1, batch_size=40,
+                 cal_dim=False, dim_type=None, fuzzy=False, n_jobs=1, batch_size=40,
                  random_state=None, stats=None, verbose=True,
-                 tq=True, store=True, personal_map=False, stop_condition=None):
+                 tq=True, store=False, personal_map=False, stop_condition=None):
         """
 
         Parameters
@@ -203,7 +203,7 @@ class BaseLoop(Toolbox):
             if cal_dim:
                 stats = {"fitness_dim_max": ("max",), "dim_is_target": ("sum",)}
             else:
-                stats = {"fitness": ("max",), }
+                stats = {"fitness": ("max",)}
 
         self.stats = Statis_func(stats=stats)
         logbook = Logbook()

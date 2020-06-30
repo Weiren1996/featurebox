@@ -42,14 +42,14 @@ def newfuncD(operation, name="Fc", keep=True, is_jump=False, check=True):
     Parameters
     ----------
     operation : callable
-        the detail of opearation only accept +,-,*,/,abs,-(negative),x^n
+        the detail of opearation only accept +,-,*,/,-(negative),x^n
     name:str
         name
     keep:bool
         the group size after this function. true is the input size,and false is 1.
     is_jump:bool
         the bool means the rem and rem_dim can be treat 2+ domension problems or not.
-    check:str
+    check:bool
         check the function building
     """
 
@@ -102,7 +102,7 @@ def newfuncD(operation, name="Fc", keep=True, is_jump=False, check=True):
                 return dim
             elif dim.shape[0] == 2:
                 if keep:
-                    return dim
+                    return Dim(operation(*dim))
                 else:
                     return Dim(operation(*dim))
             else:
@@ -121,32 +121,34 @@ def newfuncD(operation, name="Fc", keep=True, is_jump=False, check=True):
     return res
 
 
-def check_funcD(funcs, self_grpup=1):
+def check_funcD(funcs, self_grpup=2):
+    """self_group>=2"""
+
     def test_npf():
         a = 1
         b = np.array([1, 2, 3, 4, 5])
         c = np.array([[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]])
         d = np.array([[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]])
-        e = np.array([[[1, 2, 3, 4, 5]] * self_grpup])
+        e = np.array([[1, 2, 3, 4, 5] * self_grpup])
         np_func = funcs["np_func"]
         np_func(a)
         np_func(b)
         np_func(c)
-        np_func(d)
-        np_func(e)
+        s = np_func(d)
+        s = np_func(e)
 
     def test_dim_func():
         a = 1
         b = Dim(np.array([1, 2, 3, 4, 5]))
         c = Dim(np.array([[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]))
         d = Dim(np.array([[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]))
-        e = Dim(np.array([[[1, 2, 3, 4, 5]] * self_grpup]))
+        e = Dim(np.array([[1, 2, 3, 4, 5] * self_grpup]))
         dim_func = funcs["dim_func"]
         dim_func(a)
         dim_func(b)
         dim_func(c)
-        dim_func(d)
-        dim_func(e)
+        s = dim_func(d)
+        s = dim_func(e)
 
     def test_sym_func():
         a = 1
@@ -158,9 +160,31 @@ def check_funcD(funcs, self_grpup=1):
         sym_func(a)
         sym_func(b)
         sym_func(c)
-        sym_func(d)
-        sym_func(e)
+        s = sym_func(d)
+        s = sym_func(e)
 
     test_npf()
     test_dim_func()
     test_sym_func()
+
+
+if __name__ == "__main__":
+    def funcs(*arg):
+        return sum(arg)
+
+
+    newfuncD(funcs, name="Fc", keep=False, is_jump=False, check=True)
+
+
+    def funcs(*arg):
+        return arg[0] ** 2 + arg[1]
+
+
+    newfuncD(funcs, name="Fc", keep=False, is_jump=True, check=True)
+
+
+    def funcs(*arg):
+        return tuple([2.5 * argi ** 2 for argi in arg])
+
+
+    newfuncD(funcs, name="Fc", keep=True, is_jump=False, check=True)
