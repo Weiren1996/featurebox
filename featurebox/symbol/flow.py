@@ -11,17 +11,15 @@ import operator
 import os
 import time
 
-
 from deap.base import Fitness
 from deap.tools import HallOfFame, Logbook
 from numpy import random
-
 from sklearn.metrics import r2_score
 
 from featurebox.symbol.base import CalculatePrecisionSet
 from featurebox.symbol.base import SymbolSet
 from featurebox.symbol.base import SymbolTree
-from featurebox.symbol.functions.dimfunc import dless, Dim
+from featurebox.symbol.functions.dimfunc import Dim
 from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, selKbestDim, \
     selTournament, Statis_func, mutUniform, mutShrink, varAndfus, \
     mutDifferentReplacementVerbose, mutNodeReplacementVerbose, selBest, genFull
@@ -35,7 +33,7 @@ class BaseLoop(Toolbox):
 
     def __init__(self, pset, pop=500, gen=20, mutate_prob=0.5, mate_prob=0.8, hall=1, re_hall=None,
                  re_Tree=None, initial_min=None, initial_max=3, max_value=5,
-                 scoring=(r2_score,), score_pen=(1,),filter_warning=True,
+                 scoring=(r2_score,), score_pen=(1,), filter_warning=True, cv=1,
                  add_coef=True, inter_add=True, inner_add=False, vector_add=False,
                  cal_dim=False, dim_type=None, fuzzy=False, n_jobs=1, batch_size=40,
                  random_state=None, stats=None, verbose=True,
@@ -81,6 +79,8 @@ class BaseLoop(Toolbox):
             if multiply score method, the scores must be turn to same dimension in preprocessing
             or weight by score_pen. Because the all the selection are stand on the mean(w_i*score_i)
             Examples: [r2_score] is [1],
+        cv=int,sklearn.model_selection._split._BaseKFold
+            default =1, means not cv
         filter_warning:bool
             filter warning or not
         add_coef:bool
@@ -168,7 +168,7 @@ class BaseLoop(Toolbox):
         self.cpset = CalculatePrecisionSet(pset, scoring=scoring, score_pen=score_pen,
                                            filter_warning=filter_warning, cal_dim=cal_dim,
                                            add_coef=add_coef, inter_add=inter_add, inner_add=inner_add,
-                                           vector_add=vector_add,
+                                           vector_add=vector_add, cv=cv,
                                            n_jobs=n_jobs, batch_size=batch_size, tq=tq,
                                            fuzzy=fuzzy, dim_type=dim_type,
                                            )
@@ -430,7 +430,6 @@ class OnePointMutateLoop(BaseLoop):
 
 
 class DimForceLoop(MutilMutateLoop):
-
     """Force select the individual with target dim for next generation"""
 
     def __init__(self, *args, **kwargs):
@@ -440,7 +439,6 @@ class DimForceLoop(MutilMutateLoop):
 
         self.register("select", selKbestDim,
                       dim_type=self.cpset.dim_type, fuzzy=self.cpset.fuzzy, force_number=True)
-
 
 # if __name__ == "__main__":
 #     # data

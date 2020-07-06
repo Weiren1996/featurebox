@@ -88,7 +88,7 @@ class PreMap(numeric.ndarray):
 
     def set_sigle_point(self, *sv):
         """
-        Rate the others and add the subbed value to the [index1,index2]
+        set the value of [index1,index2]
         the rate are [0,1)
             
         Parameters
@@ -108,7 +108,8 @@ class PreMap(numeric.ndarray):
 
     def set_ratio(self, *sv):
         """
-        Rate the [index1,index2] self and add the subbed value to the others
+        Rate the [index1,index2] to sum and add the subbed value to the others.
+        under check.
         Parameters
         
         ----------
@@ -139,7 +140,8 @@ class PreMap(numeric.ndarray):
 
     def set_ratio_point(self, *sv):
         """
-        Rate the [index1,index2] self and add the subbed value to the others
+        Rate the [index1,index2] to self and add the subbed value to the others.
+        under check.
         Parameters
         
         ----------

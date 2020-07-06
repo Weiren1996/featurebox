@@ -12,7 +12,7 @@ from featurebox.symbol.functions.dimfunc import Dim
 class SymbolLearning(BaseEstimator, MultiOutputMixin, TransformerMixin):
     """One simplify API for flow.\n
     The detailed functions should turn to the loop of featurebox.symbol.flow.\n
-    The SymbolLearning is time costing and are not suit for GridSearchCV"""
+    The SymbolLearning is time costing and are not suit for GridSearchCV, the cross_validate are builtin """
 
     def __str__(self):
         return str(self.loop)
@@ -61,6 +61,9 @@ class SymbolLearning(BaseEstimator, MultiOutputMixin, TransformerMixin):
             if multiply score method, the scores must be turn to same dimension in preprocessing
             or weight by score_pen. Because the all the selection are stand on the mean(w_i*score_i)
             Examples: [r2_score] is [1],
+        cv:sklearn.model_selection._split._BaseKFold,int
+            the shuffler must be False,
+            default=1 means no cv
         filter_warning:bool
             filter warning or not
         add_coef:bool
@@ -161,19 +164,26 @@ class SymbolLearning(BaseEstimator, MultiOutputMixin, TransformerMixin):
         if pset is None:
             pset = SymbolSet()
             pset.add_features_and_constants(X, y, c, x_dim=1, y_dim=1, c_dim=1, x_prob=None,
-                                            c_prob=None, x_group=x_group, cal_dim=False, feature_name=None)
+                                            c_prob=None, x_group=x_group, feature_name=None)
             pset.add_operations(power_categories=(2, 3, 0.5),
                                 categories=("Add", "Mul", "Sub", "Div"))
 
         self.loop = self.loop(pset, *self.args, **self.kwargs)
         hall = self.loop.run()
         self.best_one = hall.items[0]
-        expr = general_expr(self.best_one.coef_expr, self.loop.cpset, simplifying=True)
+        try:
+            expr = general_expr(self.best_one.coef_expr, self.loop.cpset)
+            self.expr_type = "single"
+        except (RecursionError, RuntimeWarning):
+            expr = self.best_one.coef_expr
+            self.expr_type = "group"
+
         self.expr = expr
         self.y_dim = self.best_one.y_dim
         self.fitness = self.best_one.fitness.values[0]
 
-    def predict(self, X):
+    def _predict_by_single(self, X):
+
         terminals = self.loop.cpset.init_free_symbol
         indexs = [int(i.name.replace("x", "")) for i in terminals if "x" in i.name]
         X = [xi for xi in X.T]
@@ -187,19 +197,33 @@ class SymbolLearning(BaseEstimator, MultiOutputMixin, TransformerMixin):
         pre_y = calculate_y_unpack(self.expr, X_and_c, terminals)
         return pre_y
 
-    def score(self, X, y, scoring=None):
+    def _predict_by_group(self, X):
+        from copy import deepcopy
+        cpset_new = deepcopy(self.loop.cpset)
+        se = cpset_new.replace(X)
+
+        res = se.calculate_score(self.expr)
+        score, expr01, pre_y = res
+        return pre_y
+
+    def predict(self, X):
+        if self.expr_type == "group":
+            return self._predict_by_group(X)
+        else:
+            return self._predict_by_single(X)
+
+    def score(self, X, y, scoring):
 
         y_pred = self.predict(X)
-        if scoring is not None:
-            scoring = check_scoring(self, scoring=scoring, allow_none=False)
-        else:
-            scoring = self.loop.cpset.scoring
+
+        scoring = check_scoring(self, scoring=scoring)
+
         if not isinstance(scoring, (list, tuple)):
             scoring = [scoring, ]
         try:
             sc_all = []
             for si in scoring:
-                sc = si(y, y_pred)
+                sc = si(self, y, y_pred)
                 sc_all.append(sc)
 
         except (ValueError, RuntimeWarning):
@@ -208,26 +232,24 @@ class SymbolLearning(BaseEstimator, MultiOutputMixin, TransformerMixin):
 
         return sc_all
 
+    def cv_result(self, refit=True):
+        if self.loop.cpset.cv != 1:
+            self.loop.cpset.refit = refit
+            return self.loop.cpset.calculate_cv_score(self.best_one.expr)
+        else:
+            return None
 
-# if __name__ == "__main__":
-#     # data
-#     from sklearn.datasets import load_boston
-#     from featurebox.symbol.functions.dimfunc import dless
-#     data = load_boston()
-#     x = data["data"]
-#     y = data["target"]
-#     c = [6, 3, 4]
-#     # unit
-#     from sympy.physics.units import kg
-#
-#     x_u = [kg] * 13
-#     y_u = kg
-#     c_u = [dless, dless, dless]
-#
-#     x, x_dim = Dim.convert_x(x, x_u, target_units=None, unit_system="SI")
-#     y, y_dim = Dim.convert_xi(y, y_u)
-#     c, c_dim = Dim.convert_x(c, c_u)
-#
-#     sl = SymbolLearning(pop=50, gen=2, cal_dim=True, re_hall=2, add_coef=True)
-#     sl.fit(x, y, c=c, x_group=[[1, 3], [0, 2], [4, 7]])
-#     score = sl.score(x, y)
+
+if __name__ == "__main__":
+    # data
+    from sklearn.datasets import load_boston
+
+    data = load_boston()
+    x = data["data"]
+    y = data["target"]
+    c = [6, 3, 4]
+
+    sl = SymbolLearning(pop=50, gen=2, cal_dim=True, re_hall=2, add_coef=True, cv=2, random_state=0
+                        )
+    sl.fit(x, y, c=c, x_group=[[1, 3], [0, 2], [4, 7]])
+    score = sl.score(x, y, "r2")

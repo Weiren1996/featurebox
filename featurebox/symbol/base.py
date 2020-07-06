@@ -20,7 +20,7 @@ import sympy
 from sklearn.utils import check_X_y, check_array
 
 from featurebox.symbol.calculation.scores import calcualte_dim_score, \
-    calculate_score, calculate_collect, compile_context
+    calculate_collect, compile_context, calculate_cv_score
 from featurebox.symbol.calculation.translate import group_str
 from featurebox.symbol.functions.dimfunc import dim_map, Dim, dnan, dless
 from featurebox.symbol.functions.gsymfunc import gsym_map, NewArray
@@ -117,7 +117,7 @@ class SymbolTerminalDetail(SymbolTerminal):
             init_name="[x1,x2]" , if is compact features, need[]\n
             init_name="(x1*x4-x3)", if is expr, need ()
         """
-        super(SymbolTerminalDetail,self).__init__(name, init_name)
+        super(SymbolTerminalDetail, self).__init__(name, init_name)
         if prob is None:
             prob = 1
         if dim is None:
@@ -152,7 +152,7 @@ def tsum(*ters, name="gx0"):
     assert all(ters[0].dim == i.dim for i in ters)
     values = np.array([i.value for i in ters])
     dim = Dim(np.array([i.dim for i in ters]))
-    sym = NewArray([i.sym for i in ters],shape=(len(ters),))
+    sym = NewArray([i.sym for i in ters], shape=(len(ters),))
     name = str(name)
     prob = sum([i.prob for i in ters]) / len(ters)
     res = SymbolTerminalDetail(values, name, dim=dim, prob=prob,
@@ -227,8 +227,6 @@ class SymbolPrimitiveDetail(SymbolPrimitive):
         return SymbolPrimitive(self.name, self.arity)
 
 
-
-
 class SymbolSet(object):
     """
     Definite the operations, features, and fixed constants.
@@ -281,6 +279,7 @@ class SymbolSet(object):
         self.terminals_fea_map = {}  # for terminals Latex feature name show.
 
         self.premap = PreMap.from_shape(3)
+        self.x_group = [[]]
 
     def __repr__(self):
         return self.name
@@ -453,21 +452,21 @@ class SymbolSet(object):
 
                     if t.init_name:
                         self.terminals_init_map[t.name] = t.init_name
-                        if isinstance(t.init_sym, (np.ndarray,NewArray)):
+                        if isinstance(t.init_sym, (np.ndarray, NewArray)):
                             self.terminals_symbol_map[t.name] = t.init_sym
                         else:
                             self.expr_init_map[t.name] = t.init_sym
                     self.ter_con_dict[t.name] = self.ter_con_dict[t.name].capsule()
 
-    def _group(self, x_group):
+    def _group(self, x_group=None):
         if not x_group:
-            x_group = [[]]
+            x_group = self.x_group
         if isinstance(x_group, int):
             assert self.terms_count > x_group > 1, "the len of group should in (2,x.shape[1]]"
             indexes = [_ for _ in range(self.terms_count)]
             x_group = [indexes[i:i + x_group] for i in range(0, len(indexes), x_group)]
 
-        x_group = [x_groupi for x_groupi in x_group if len(x_groupi)>=2]
+        x_group = [x_groupi for x_groupi in x_group if len(x_groupi) >= 2]
 
         for i, gi in enumerate(x_group):
             len_gi = len(gi)
@@ -582,7 +581,7 @@ class SymbolSet(object):
 
         for i in categories:
             if categories_prob is "balance":
-                ca_new = [_ for _ in categories if _ not in  ("Add", 'Sub' 'Mul', 'Div')]
+                ca_new = [_ for _ in categories if _ not in ("Add", 'Sub' 'Mul', 'Div')]
                 if len(ca_new) >= 1:
                     prob1 = 1 / len(ca_new)
                 else:
@@ -601,8 +600,8 @@ class SymbolSet(object):
         if self_categories:
             for i in self_categories:
                 prob = change(i, 0.2)
-                i["prob"]=prob
-                i["arity"]=1
+                i["prob"] = prob
+                i["arity"] = 1
                 self._add_dispose(*i)
         self.register(primitives_dict="all", dispose_dict=None, ter_con_dict=None)
         return self
@@ -647,10 +646,10 @@ class SymbolSet(object):
         if not categories:
             if self.types == 1:
                 categories = ["Self"]
-            elif self.types ==2: # classification detail
+            elif self.types == 2:  # classification detail
                 categories = ["Self", "MAdd", "MSub", "MMul", "MDiv", "Conv"]
             else:
-                categories = ["Self", "MAdd",  "MMul"]
+                categories = ["Self", "MAdd", "MMul"]
             # else:
             #     categories = ["Self", "MAdd", "MSub", "MMul", "MDiv", "Conv"]
         if isinstance(categories, str):
@@ -687,8 +686,8 @@ class SymbolSet(object):
         if self_categories:
             for i in self_categories:
                 prob = change(i, 0.2)
-                i["prob"]=prob
-                i["arity"]=1
+                i["prob"] = prob
+                i["arity"] = 1
                 self._add_dispose(*i)
         self.register(primitives_dict=None, dispose_dict="all", ter_con_dict=None)
         return self
@@ -737,7 +736,7 @@ class SymbolSet(object):
             t_map_va = list(self.expr_init_map.keys())
             t_map_va.reverse()
             for i in t_map_va:
-                init_name1 =init_name1.subs(sympy.Symbol(i), self.expr_init_map[i])
+                init_name1 = init_name1.subs(sympy.Symbol(i), self.expr_init_map[i])
 
         except(AssertionError, NameError, ValueError):
             pass
@@ -808,10 +807,27 @@ class SymbolSet(object):
             for i, j in enumerate(feature_name):
                 self.terminals_fea_map["x%s" % i] = j
 
+        self.x_group = x_group
         self._group(x_group)
 
         self.register(primitives_dict=None, dispose_dict=None, ter_con_dict="all")
         self.premap = PreMap.from_shape(len(self.ter_con_dict))
+        return self
+
+    def replace(self, X):
+        old = self.terms_count
+        self.terms_count = 0
+        # self.ter_con_dict={}
+        n = X.shape[1]
+        for i in range(n):
+            self._add_terminal(np.array(X.T[i]), name="x%s" % i)
+
+        self._group(self.x_group)
+
+        assert old == self.terms_count, "the new X (test,predict) should be with the " \
+                                        "same shape[1] with old X (fit,train)"
+
+        self.register(primitives_dict=None, dispose_dict=None, ter_con_dict="all")
         return self
 
     def add_constants(self, c, c_dim=1, c_prob=None):
@@ -971,12 +987,12 @@ class SymbolSet(object):
         name = self.terminals_symbol_map.keys()
         old = [sympy.Symbol(si) for si in name]
 
-        new =list(init_sub)
+        new = list(init_sub)
         s = self.terminals_and_constants_repr
         s = [i for i in s if i not in old]
-        fea_zip = old+s
-        fea_unpack = new+s
-        return fea_zip,fea_unpack
+        fea_zip = old + s
+        fea_unpack = new + s
+        return fea_zip, fea_unpack
 
     @property
     def init_free_symbol(self):
@@ -1213,8 +1229,8 @@ class CalculatePrecisionSet(SymbolSet):
     def __hash__(self):
         return hash(self.hasher(self))
 
-    def __init__(self, pset, scoring=None, score_pen=(1,), filter_warning=True,
-                 cal_dim=True, dim_type=None,fuzzy=False, add_coef=True, inter_add=True,
+    def __init__(self, pset, scoring=None, score_pen=(1,), filter_warning=True, cv=1,
+                 cal_dim=True, dim_type=None, fuzzy=False, add_coef=True, inter_add=True,
                  inner_add=False, vector_add=False, n_jobs=1, batch_size=20,
                  tq=True):
         """
@@ -1251,9 +1267,16 @@ class CalculatePrecisionSet(SymbolSet):
             batch size, advice batch_size*n_jobs = inds/n
         tq:bool
             bool
+        cv:sklearn.model_selection._split._BaseKFold,int
+            the shuffler must be False
+            use cv spilt for score,return the mean_test_score.
+            use cv spilt for predict,return the cv_predict_y.(not be used)
+            Notes:
+            if cv and refit, all the data is refit to determination the coefficients.
+            Thus the expression is not compact with the this scores, when re-calculated by this expression
 
         """
-        super(CalculatePrecisionSet,self).__init__()
+        super(CalculatePrecisionSet, self).__init__()
         self.__dict__.update(copy.deepcopy(pset.__dict__))
         self.name = "CPSet"
         self.cal_dim = cal_dim
@@ -1269,6 +1292,29 @@ class CalculatePrecisionSet(SymbolSet):
         self.tq = tq
         self.fuzzy = fuzzy
         self.dim_type = dim_type if dim_type is not None else self.y_dim
+        self.refit = True
+        self.cv = cv
+
+    def calculate_cv_score(self, ind):
+        if isinstance(ind, SymbolTree):
+            expr = compile_context(ind.capsule, self.context, self.gro_ter_con)
+        elif isinstance(ind, sympy.Expr):
+            expr = ind
+        else:
+            raise TypeError("must be SymbolTree or sympy.Expr")
+        score, expr01, pre_y = calculate_cv_score(expr, self.data_x, self.y,
+                                                  self.terminals_and_constants_repr,
+                                                  cv=self.cv, refit=self.refit,
+                                                  add_coef=self.add_coef, inter_add=self.inter_add,
+                                                  inner_add=self.inner_add, vector_add=self.vector_add,
+                                                  scoring=self.scoring, score_pen=self.score_pen,
+                                                  filter_warning=self.filter_warning,
+                                                  np_maps=self.np_map)
+        return score, expr01, pre_y
+
+    def calculate_score(self, ind):
+        self.cv = 1
+        return self.calculate_cv_score(ind)
 
     def calculate_detail(self, ind):
         """
@@ -1283,13 +1329,14 @@ class CalculatePrecisionSet(SymbolSet):
         """
         ind = self.calculate_simple(ind)
 
-        score, expr01, pre_y = calculate_score(ind.expr, self.data_x, self.y,
-                                               self.terminals_and_constants_repr,
-                                               add_coef=self.add_coef, inter_add=self.inter_add,
-                                               inner_add=self.inner_add, vector_add=self.vector_add,
-                                               scoring=self.scoring, score_pen=self.score_pen,
-                                               filter_warning=self.filter_warning,
-                                               np_maps=self.np_map)
+        score, expr01, pre_y = calculate_cv_score(ind.expr, self.data_x, self.y,
+                                                  self.terminals_and_constants_repr,
+                                                  cv=self.cv, refit=self.refit,
+                                                  add_coef=self.add_coef, inter_add=self.inter_add,
+                                                  inner_add=self.inner_add, vector_add=self.vector_add,
+                                                  scoring=self.scoring, score_pen=self.score_pen,
+                                                  filter_warning=self.filter_warning,
+                                                  np_maps=self.np_map)
 
         # this group should be get onetime and get all.
         ind.coef_expr = expr01
@@ -1318,13 +1365,14 @@ class CalculatePrecisionSet(SymbolSet):
             expr = ind
         else:
             raise TypeError("must be SymbolTree or sympy.Expr")
-        score, expr01, pre_y = calculate_score(expr, self.data_x, self.y,
-                                               self.terminals_and_constants_repr,
-                                               add_coef=False, inter_add=False,
-                                               inner_add=False, vector_add=False,
-                                               scoring=self.scoring, score_pen=self.score_pen,
-                                               filter_warning=self.filter_warning,
-                                               np_maps=self.np_map)
+        score, expr01, pre_y = calculate_cv_score(expr, self.data_x, self.y,
+                                                  self.terminals_and_constants_repr,
+                                                  cv=self.cv, refit=self.refit,
+                                                  add_coef=False, inter_add=False,
+                                                  inner_add=False, vector_add=False,
+                                                  scoring=self.scoring, score_pen=self.score_pen,
+                                                  filter_warning=self.filter_warning,
+                                                  np_maps=self.np_map)
         if self.cal_dim:
             dim, dim_score = calcualte_dim_score(expr, self.terminals_and_constants_repr,
                                                  self.dim_ter_con_list, self.dim_type,
@@ -1355,7 +1403,7 @@ class CalculatePrecisionSet(SymbolSet):
 
         calls = functools.partial(calculate_collect, context=self.context, x=self.data_x, y=self.y,
                                   terminals_and_constants_repr=self.terminals_and_constants_repr,
-                                  gro_ter_con=self.gro_ter_con,
+                                  gro_ter_con=self.gro_ter_con, cv=self.cv, refit=self.refit,
                                   dim_ter_con_list=self.dim_ter_con_list, dim_type=self.dim_type,
                                   fuzzy=self.fuzzy,
                                   scoring=self.scoring, score_pen=self.score_pen,
@@ -1370,7 +1418,6 @@ class CalculatePrecisionSet(SymbolSet):
                                      tq=self.tq, batch_size=self.batch_size)
 
         return score_dim_list
-
 
 # from sklearn.datasets import load_boston
 #
