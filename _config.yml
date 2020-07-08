@@ -1,1 +1,10 @@
 theme: jekyll-theme-cayman
+baseurl: /docs
+destination: /docs
+collections:
+ common:
+  output: true
+  permalink: /doc/part1.md
+ ui:
+  output: true
+  permalink: /dpc/part2.md
