@@ -3,9 +3,9 @@ theme: jekyll-theme-cayman
 #destination: /doc
 
 menu:
-  - title: 首页
+  - title: title
     url: /
-  - title: 归类
+  - title: name
     url: /doc/part2.md
-  - title: 搜索
+  - title: nam2
     url: /doc/part1.md
