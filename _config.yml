@@ -1,6 +1,6 @@
 theme: jekyll-theme-cayman
-baseurl: /doc
-destination: /doc
+#baseurl: /doc
+#destination: /doc
 
 menu:
   - title: 首页
