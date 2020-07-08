@@ -56,4 +56,4 @@ pip install featurebox
 ```
 License
 ----------------------
-GUN
+GNU
