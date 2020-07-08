@@ -1,10 +1,11 @@
 theme: jekyll-theme-cayman
-baseurl: /docs
-destination: /docs
-collections:
- common:
-  output: true
-  permalink: /doc/part1.md
- ui:
-  output: true
-  permalink: /dpc/part2.md
+baseurl: /doc
+destination: /doc
+
+menu:
+  - title: 首页
+    url: /
+  - title: 归类
+    url: /doc/part2.md
+  - title: 搜索
+    url: /doc/part1.md
