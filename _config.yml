@@ -1,11 +1,1 @@
-#theme: jekyll-theme-cayman
-baseurl: /doc
-destination: /doc
-
-menu:
-  - title: title
-    url: /
-  - title: name
-    url: /doc/part2.md
-  - title: nam2
-    url: /doc/part1.md
+theme: jekyll-theme-cayman
