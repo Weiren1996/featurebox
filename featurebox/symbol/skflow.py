@@ -249,7 +249,8 @@ if __name__ == "__main__":
     y = data["target"]
     c = [6, 3, 4]
 
-    sl = SymbolLearning(pop=50, gen=2, cal_dim=True, re_hall=2, add_coef=True, cv=2, random_state=0
+    sl = SymbolLearning(pop=50, gen=3, cal_dim=True, re_hall=2, add_coef=True, cv=2, random_state=1
                         )
     sl.fit(x, y, c=c, x_group=[[1, 3], [0, 2], [4, 7]])
     score = sl.score(x, y, "r2")
+    print(sl.expr)
