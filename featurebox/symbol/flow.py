@@ -11,15 +11,18 @@ import operator
 import os
 import time
 
+import sympy
 from deap.base import Fitness
 from deap.tools import HallOfFame, Logbook
 from numpy import random
+from sklearn.datasets import load_boston
 from sklearn.metrics import r2_score
 
 from featurebox.symbol.base import CalculatePrecisionSet
 from featurebox.symbol.base import SymbolSet
 from featurebox.symbol.base import SymbolTree
-from featurebox.symbol.functions.dimfunc import Dim
+from featurebox.symbol.calculation.translate import compile_context, general_expr
+from featurebox.symbol.functions.dimfunc import Dim, dless
 from featurebox.symbol.gp import cxOnePoint, varAnd, genGrow, staticLimit, selKbestDim, \
     selTournament, Statis_func, mutUniform, mutShrink, varAndfus, \
     mutDifferentReplacementVerbose, mutNodeReplacementVerbose, selBest, genFull
@@ -440,64 +443,64 @@ class DimForceLoop(MutilMutateLoop):
         self.register("select", selKbestDim,
                       dim_type=self.cpset.dim_type, fuzzy=self.cpset.fuzzy, force_number=True)
 
-# if __name__ == "__main__":
-#     # data
-#     data = load_boston()
-#     x = data["data"]
-#     y = data["target"]
-#     c = [6, 3, 4]
-#     # unit
-#     from sympy.physics.units import kg
-#
-#     x_u = [kg] * 13
-#     y_u = kg
-#     c_u = [dless, dless, dless]
-#
-#     x, x_dim = Dim.convert_x(x, x_u, target_units=None, unit_system="SI")
-#     y, y_dim = Dim.convert_xi(y, y_u)
-#     c, c_dim = Dim.convert_x(c, c_u)
-#
-#     z = time.time()
-#
-#     # symbolset
-#     pset0 = SymbolSet()
-#     pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, x_group=[[1, 2], [3, 4], [5, 6]])
-#     pset0.add_constants(c, c_dim=c_dim, c_prob=None)
-#     pset0.add_operations(power_categories=(2, 3, 0.5),
-#                          categories=("Add", "Mul", "Sub", "Div", "exp", "Abs"))
-#
-#     # a = time.time()
-#     bl = MutilMutateLoop(pset=pset0, gen=4, pop=10, hall=2, batch_size=40, re_hall=2,
-#                          n_jobs=1, mate_prob=1, max_value=10, initial_max=3,
-#                          mutate_prob=0.8, tq=True, dim_type="coef",
-#                          re_Tree=2, store=False, random_state=1,
-#                          stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"], "height": ["mean"]},
-#                          add_coef=True, cal_dim=True, inner_add=False, vector_add=True, personal_map=False)
-#     # b = time.time()
-#     bl.run()
-#     population = [bl.PTree(bl.genFull()) for _ in range(30)]
-#     pset = bl.cpset
-#     for i in population:
-#         # i.ppprint(bl.cpset)
-#         # i = "exp(gx0/gx1)"
-#
-#         i = compile_context(i, pset.context, pset.gro_ter_con, simplify=False)
-#         # print(i)
-#         # print(i)
-#         # fun = Coef("V", np.array([1.4,1.3]))
-#         # i = fun(i)
-#         # f = Function("MAdd")
-#         # i = f(i)
-#         try:
-#             # group_str(i,pset)
-#             # i=general_expr(i, pset, simplifying=True)
-#             i = general_expr(i, pset, simplifying=False)
-#             # print(i)
-#             # print(i)
-#             # pprint(i)
-#         except NotImplementedError as e:
-#             print(e)
-#     # c = time.time()
-#     # print(c - b, b - a, a - z)
-#     a, b, c = sympy.Symbol("a"), sympy.Symbol("b"), sympy.Symbol("c")
-#     print(sympy.simplify((a + (b + 1)) * c) == sympy.simplify(a * c + b * c + c))
+if __name__ == "__main__":
+    # data
+    data = load_boston()
+    x = data["data"]
+    y = data["target"]
+    c = [6, 3, 4]
+    # unit
+    from sympy.physics.units import kg
+
+    x_u = [kg] * 13
+    y_u = kg
+    c_u = [dless, dless, dless]
+
+    x, x_dim = Dim.convert_x(x, x_u, target_units=None, unit_system="SI")
+    y, y_dim = Dim.convert_xi(y, y_u)
+    c, c_dim = Dim.convert_x(c, c_u)
+
+    z = time.time()
+
+    # symbolset
+    pset0 = SymbolSet()
+    pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, x_group=[[1, 2], [3, 4], [5, 6]])
+    pset0.add_constants(c, c_dim=c_dim, c_prob=None)
+    pset0.add_operations(power_categories=(2, 3, 0.5),
+                         categories=("Add", "Mul", "Sub", "Div", "exp", "Abs"))
+
+    # a = time.time()
+    bl = MutilMutateLoop(pset=pset0, gen=4, pop=10, hall=2, batch_size=40, re_hall=2,
+                         n_jobs=1, mate_prob=1, max_value=10, initial_max=3,
+                         mutate_prob=0.8, tq=True, dim_type="coef",
+                         re_Tree=2, store=False, random_state=1,
+                         stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"], "height": ["mean"]},
+                         add_coef=True, cal_dim=True, inner_add=False, vector_add=True, personal_map=False)
+    # b = time.time()
+    bl.run()
+    population = [bl.PTree(bl.genFull()) for _ in range(30)]
+    pset = bl.cpset
+    for i in population:
+        # i.ppprint(bl.cpset)
+        # i = "exp(gx0/gx1)"
+
+        i = compile_context(i, pset.context, pset.gro_ter_con, simplify=False)
+        # print(i)
+        # print(i)
+        # fun = Coef("V", np.array([1.4,1.3]))
+        # i = fun(i)
+        # f = Function("MAdd")
+        # i = f(i)
+        try:
+            # group_str(i,pset)
+            # i=general_expr(i, pset, simplifying=True)
+            i = general_expr(i, pset, simplifying=False)
+            # print(i)
+            # print(i)
+            # pprint(i)
+        except NotImplementedError as e:
+            print(e)
+    # c = time.time()
+    # print(c - b, b - a, a - z)
+    a, b, c = sympy.Symbol("a"), sympy.Symbol("b"), sympy.Symbol("c")
+    print(sympy.simplify((a + (b + 1)) * c) == sympy.simplify(a * c + b * c + c))

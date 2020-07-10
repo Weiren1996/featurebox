@@ -1,26 +1,18 @@
-import collections
-import functools
-from itertools import chain, product
-
-from sklearn.utils import shuffle
-
-
-from sklearn.utils import shuffle
 import numpy as np
-from featurebox.symbol.base import SymbolSet, SymbolTree
+from sklearn.utils import shuffle
+
+from featurebox.symbol.base import SymbolSet
+from featurebox.symbol.calculation.translate import general_expr_dict
+from featurebox.symbol.flow import OnePointMutateLoop
 from featurebox.symbol.functions.dimfunc import Dim, dless
-from featurebox.symbol.calculation.translate import group_str, compile_context, general_expr_dict
-from featurebox.symbol.flow import MutilMutateLoop, OnePointMutateLoop
 from featurebox.symbol.preprocess import MagnitudeTransformer
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
-from featurebox.tools.tool import tt
 
 if __name__ == "__main__":
     import os
 
     os.chdir(r'band_gap')
-
     data = Call()
     all_import = data.csv().all_import
     name_and_abbr = data.csv().name_and_abbr
@@ -31,18 +23,19 @@ if __name__ == "__main__":
     data225_import = data_import
 
     select = ['cell volume', 'cell density',
-              'lattice constants a', 'lattice constants c', 'covalent radii','ionic radii(shannon)','core electron distance(schubert)',
+              'lattice constants a', 'lattice constants c', 'covalent radii', 'ionic radii(shannon)',
+              'core electron distance(schubert)',
               'fusion enthalpy', 'cohesive energy(Brewer)', 'total energy',
               'effective nuclear charge(slater)', 'valence electron number', 'electronegativity(martynov&batsanov)',
               'atomic volume(villars,daams)']
     from sympy.physics.units import eV, pm, nm
 
-    select_unit = [100**3*pm**3,100**-3*pm**-3, 100*pm,100*pm,100*pm,100*pm,100*pm,eV,eV,eV, dless,dless,dless,10**-2*nm**3]
+    select_unit = [100 ** 3 * pm ** 3, 100 ** -3 * pm ** -3, 100 * pm, 100 * pm, 100 * pm, 100 * pm, 100 * pm, eV, eV,
+                   eV, dless, dless, dless, 10 ** -2 * nm ** 3]
 
-    fea_name = ['V_c', 'rho_c']+[name_and_abbr[j][1]+"_%i" % i for j in select[2:] for i in range(2)]
-    select = ['cell volume', 'cell density']+[j + "_%i" % i for j in select[2:] for i in range(2)]
-    x_u = [100**3*pm**3,100**-3*pm**-3]+[j for j in select_unit[2:] for i in range(2)]
-
+    fea_name = ['V_c', 'rho_c'] + [name_and_abbr[j][1] + "_%i" % i for j in select[2:] for i in range(2)]
+    select = ['cell volume', 'cell density'] + [j + "_%i" % i for j in select[2:] for i in range(2)]
+    x_u = [100 ** 3 * pm ** 3, 100 ** -3 * pm ** -3] + [j for j in select_unit[2:] for i in range(2)]
 
     X_frame = data225_import[select]
     y_frame = data225_import['exp_gap']
@@ -70,24 +63,25 @@ if __name__ == "__main__":
     # symbolset
     pset0 = SymbolSet()
     x_g = np.arange(x.shape[1])
-    x_g = x_g.reshape(-1,2)
+    x_g = x_g.reshape(-1, 2)
     x_g = list(x_g[1:])
     pset0.add_features(x, y, x_dim=x_dim, y_dim=y_dim, x_group=x_g, feature_name=fea_name)
     pset0.add_constants(c, c_dim=c_dim, c_prob=0.05)
     pset0.add_operations(power_categories=(2, 3, 0.5),
-                         categories=("Add", "Mul", "Sub", "Div", "exp","ln"),
+                         categories=("Add", "Mul", "Sub", "Div", "exp", "ln"),
                          self_categories=None)
 
-    height=2
+    height = 2
 
     # stop = None
     stop = lambda ind: ind.fitness.values[0] >= 0.880963
     bl = OnePointMutateLoop(pset=pset0, gen=10, pop=1000, hall=1, batch_size=40, re_hall=3,
-                         n_jobs=12, mate_prob=0.9, max_value=5,initial_min=1, initial_max=2,
-                         mutate_prob=0.8, tq=True, dim_type="coef",stop_condition=stop,
-                         re_Tree=0, store=False, random_state=1,verbose=True,
-                         stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"]},
-                         add_coef=True,inter_add=True, inner_add=False, cal_dim=True,vector_add=False, personal_map=False)
+                            n_jobs=12, mate_prob=0.9, max_value=5, initial_min=1, initial_max=2,
+                            mutate_prob=0.8, tq=True, dim_type="coef", stop_condition=stop,
+                            re_Tree=0, store=False, random_state=1, verbose=True,
+                            stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"]},
+                            add_coef=True, inter_add=True, inner_add=False, cal_dim=True, vector_add=False,
+                            personal_map=False)
     pset = bl.cpset
     """show all under 2"""
     # def find_best():
@@ -128,4 +122,3 @@ if __name__ == "__main__":
     expr = ind.expr
     expr = general_expr_dict(expr, pset.expr_init_map, pset.free_symbol,
                              pset.gsym_map, simplifying=True)
-
