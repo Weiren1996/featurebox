@@ -1,10 +1,2 @@
 theme: jekyll-theme-cayman
-
 show_downloads: "true"
-
-exclude:
-  - readme.md
-  - LICENSE
-
-include:
-  - Introduction.md
