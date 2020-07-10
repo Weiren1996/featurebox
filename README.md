@@ -1,4 +1,3 @@
-
 <div align="center">
   <img alt="featurebox" src="https://github.com/boliqq07/featureboxdocument/blob/master/img.jpg">
 </div>
