@@ -1,6 +1,6 @@
 
-<div>
-  <img alt="featurebox" src="https://github.com/boliqq07/featureboxdocument/img.jpg">
+<div align="center">
+  <img alt="featurebox" src="https://github.com/boliqq07/featureboxdocument/blob/master/img.jpg">
 </div>
 
 [![Python Versions](https://img.shields.io/pypi/pyversions/featurebox.svg)](https://pypi.org/project/featurebox/)
