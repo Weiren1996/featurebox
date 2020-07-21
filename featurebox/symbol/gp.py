@@ -562,6 +562,7 @@ def Statis_func(stats=None):
 
         "length": lambda ind: len(ind),
         "height": lambda ind: ind.height,
+        "h_GVP": lambda ind: (ind.height-1)/2,
 
         # mutil-target
         "weight_fitness": lambda ind: ind.fitness.wvalues,

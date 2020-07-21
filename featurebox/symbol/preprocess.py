@@ -91,7 +91,7 @@ class MagnitudeTransformer(TransformerMixin, BaseEstimator):
         if y is not None:
             y = y.astype(np.float32)
             y = check_array(y, ensure_2d=False)
-            assert isinstance(y,np.ndarray)
+            assert isinstance(y, np.ndarray)
             means = np.mean(y)
             scale = _scale(means)
             if self.tolerate:

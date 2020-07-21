@@ -20,7 +20,13 @@ class Coef(UndefinedFunction):
 
     def __new__(mcs, name, arr):
 
-        implementation = lambda x: arr * x
+        def lfun(x):
+            if isinstance(x,np.ndarray):
+                return arr * x
+            else:
+                return arr.ravel() * x
+
+        implementation = lfun
         f = super(Coef,mcs).__new__(mcs, name=name, _imp_=staticmethod(implementation))
         f.arr = arr
         f.name = name
@@ -50,7 +56,13 @@ class Const(UndefinedFunction):
 
     def __new__(mcs, name, arr):
 
-        implementation = lambda x: arr + x
+        def lfun(x):
+            if isinstance(x,np.ndarray):
+                return arr + x
+            else:
+                return arr.ravel() + x
+
+        implementation = lfun
         f = super(Const,mcs).__new__(mcs, name=name, _imp_=staticmethod(implementation))
         f.arr = arr
         f.name = name
@@ -223,8 +235,9 @@ def add_coefficient(expr01, inter_add=True, inner_add=False, vector_add=False):
                 cof_dict[Wi] = conu
                 expr01 = expr02
         else:
-            # conv=nan
-            pass
+            A = sympy.Symbol("A")
+            expr01 = sympy.Mul(expr01, A)
+            cof_list.append(A)
 
     else:
         A = sympy.Symbol("A")
@@ -421,7 +434,8 @@ def try_add_coef(expr01, x, y, terminals,
                 expr01 = expr01.xreplace({ai: choi})
 
     except (ValueError, KeyError, NameError, TypeError, ZeroDivisionError):
+
         expr01 = expr00
         pre_y =None
 
-    return pre_y,expr01
+    return pre_y, expr01

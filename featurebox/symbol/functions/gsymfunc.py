@@ -102,6 +102,9 @@ class NewArray(ImmutableDenseNDimArray):
     __truediv__ = __div__  # ?
     __rtruediv__ = __rdiv__  # ?
 
+    def as_coefficient(self,_):
+        return None
+
 
 def gsym_map():
     """user's sympy.expr to np.ndarray function"""
@@ -119,7 +122,7 @@ def gsym_map():
             return x
 
     def Diff(x):
-        if isinstance(x, (np.ndarray,NewArray)):
+        if isinstance(x, (np.ndarray, NewArray)):
             if x.shape[0] == 2:
                 return x[0] - x[1]
             else:
@@ -128,7 +131,7 @@ def gsym_map():
             return x
 
     def Quot(x):
-        if isinstance(x, (np.ndarray,NewArray)):
+        if isinstance(x, (np.ndarray, NewArray)):
             if x.shape[0] == 2:
                 return x[0] / x[1]
             else:
@@ -170,6 +173,7 @@ def gsym_map():
             return NewArray(result_list, x.shape)
         else:
             return sympy.ln(x)
+    my_log = my_ln
 
     def my_sin(x):
 
@@ -189,6 +193,6 @@ def gsym_map():
 
     return {"MAdd": Flat, "MMul": Comp, "MSub": Diff, "MDiv": Quot, "Conv": Conv,
             "Self": lambda x_: x_,
-            "Abs": my_abs, "exp": my_exp, "ln": my_ln, 'cos': my_cos, 'sin': my_sin,
+            "Abs": my_abs, "exp": my_exp, "ln": my_ln, 'cos': my_cos, 'sin': my_sin, "log":my_log,
             'sqrt': my_sqrt,
             }

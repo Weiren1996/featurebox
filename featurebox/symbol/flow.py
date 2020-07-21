@@ -181,11 +181,11 @@ class BaseLoop(Toolbox):
         # def produce
         if initial_min is None:
             initial_min = 2
-        self.register("genGrow", genGrow, pset=self.cpset, min_=initial_min, max_=initial_max,
+        self.register("genGrow", genGrow, pset=self.cpset, min_=initial_min, max_=initial_max+1,
                       personal_map=self.personal_map)
-        self.register("genFull", genFull, pset=self.cpset, min_=initial_min, max_=initial_max,
+        self.register("genFull", genFull, pset=self.cpset, min_=initial_min, max_=initial_max+1,
                       personal_map=self.personal_map)
-        self.register("gen_mu", genGrow, min_=1, max_=3, personal_map=self.personal_map)
+        self.register("gen_mu", genGrow, min_=1, max_=2+1, personal_map=self.personal_map)
         # def selection
 
         self.register("select", selTournament, tournsize=2)
@@ -199,8 +199,8 @@ class BaseLoop(Toolbox):
 
         self.register("mutate", mutUniform, expr=self.gen_mu, pset=self.cpset)
 
-        self.decorate("mate", staticLimit(key=operator.attrgetter("height"), max_value=2 * max_value))
-        self.decorate("mutate", staticLimit(key=operator.attrgetter("height"), max_value=2 * max_value))
+        self.decorate("mate", staticLimit(key=operator.attrgetter("height"), max_value=2 * (max_value+1)))
+        self.decorate("mutate", staticLimit(key=operator.attrgetter("height"), max_value=2 * (max_value+1)))
 
         if stats is None:
             if cal_dim:

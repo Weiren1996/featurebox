@@ -4,9 +4,9 @@ from sklearn.utils import shuffle
 from sklearn.utils import shuffle
 
 from featurebox.symbol.base import SymbolSet
-from featurebox.symbol.calculation.dim import Dim, dless
-from featurebox.symbol.calculation.translate import group_str
+from featurebox.symbol.calculation.translate import group_str, general_expr
 from featurebox.symbol.flow import MutilMutateLoop
+from featurebox.symbol.functions.dimfunc import Dim, dless
 from featurebox.symbol.preprocess import MagnitudeTransformer
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
@@ -14,7 +14,7 @@ from featurebox.tools.imports import Call
 if __name__ == "__main__":
     import os
 
-    os.chdir(r'band_gap')
+    os.chdir(r'../../Instances/Instance1_bandgap/band_gap')
 
     data = Call()
     all_import = data.csv().all_import
@@ -116,11 +116,11 @@ if __name__ == "__main__":
 
         # a = time.time()
         dicts={}
-        for i in range(10):
+        for i in range(12):
             bl = MutilMutateLoop(pset=pset0, gen=20, pop=1000, hall=1, batch_size=40, re_hall=3,
                                  n_jobs=12, mate_prob=0.9, max_value=5,
                                  mutate_prob=0.8, tq=False, dim_type="coef",
-                                 re_Tree=0, store=False, random_state=i,verbose=True,
+                                 re_Tree=0, store=False, random_state=12, verbose=True,
                                  stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"]},
                                  add_coef=True, inner_add=False, cal_dim=True,vector_add=True, personal_map=False)
             # b = time.time()

@@ -24,7 +24,7 @@ def sym_vector_map():
     def rem(ax):
         return 1 - ax
 
-    functions1 = {"sin": sympy.sin, 'cos': sympy.cos, 'exp': sympy.exp, 'ln': sympy.ln,
+    functions1 = {"sin": sympy.sin, 'cos': sympy.cos, 'exp': sympy.exp, 'ln': sympy.ln,"log": sympy.ln,
                   'Abs': sympy.Abs, "Neg": functools.partial(sympy.Mul, -1.0),
                   "Rec": functools.partial(sympy.Pow, e=-1.0), "Self": lambda x: x,
                   "Rem": rem}

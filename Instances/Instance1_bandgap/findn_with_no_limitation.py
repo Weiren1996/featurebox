@@ -2,13 +2,12 @@ import numpy as np
 from sklearn.utils import shuffle
 
 from featurebox.symbol.base import SymbolSet
-from featurebox.symbol.calculation.translate import general_expr_dict, group_str
+from featurebox.symbol.calculation.translate import general_expr_dict, group_str, general_expr
 from featurebox.symbol.flow import MutilMutateLoop
 from featurebox.symbol.functions.dimfunc import Dim, dless
 from featurebox.symbol.preprocess import MagnitudeTransformer
 from featurebox.tools.exports import Store
 from featurebox.tools.imports import Call
-from featurebox.tools.show import BasePlot
 
 if __name__ == "__main__":
     import os
@@ -41,9 +40,8 @@ if __name__ == "__main__":
     X_frame = data225_import[select]
     y_frame = data225_import['exp_gap']
     X = X_frame.values
-    Y = y_frame.values
-    X, Y = shuffle(X, Y, random_state=5)
-    x, y = X, Y
+    y = y_frame.values
+    x, y = shuffle(X, y, random_state=5)
 
     # y_unit
     from sympy.physics.units import eV, elementary_charge, m, pm
@@ -59,7 +57,6 @@ if __name__ == "__main__":
     c, c_dim = Dim.convert_x(c, c_u)
 
     scal = MagnitudeTransformer(tolerate=1)
-
     group = 2
     n = X.shape[1]
     indexes = [_ for _ in range(n)]
@@ -78,30 +75,38 @@ if __name__ == "__main__":
                          categories=("Add", "Mul", "Sub", "Div", "exp", "ln"),
                          self_categories=None)
 
-    total_height = 3
-    h_GVP = 2
+    total_height = 4
 
     # stop = None
-    for i in range(20):
-        stop = lambda ind: ind.fitness.values[0] >= 0.95
-        bl = MutilMutateLoop(pset=pset0, gen=10, pop=1000, hall=1, batch_size=40, re_hall=3,
-                             n_jobs=12, mate_prob=0.9, max_value=h_GVP, initial_min=2, initial_max=h_GVP,
-                             mutate_prob=0.8, tq=False, dim_type="coef", stop_condition=stop,
-                             re_Tree=0, store=False, random_state=i, verbose=False,
-                             stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"], "h_GVP": ["mean"]},
-                             add_coef=True, inter_add=True, inner_add=False, cal_dim=True, vector_add=True,
-                             personal_map=False)
-        pset = bl.cpset
 
-        bl.run()
-        ind = bl.hall.items[0]
-        expr = ind.coef_expr
-        print( ind.fitness, expr)
-
-    # scale = Y/y
-    # p = BasePlot(font=None)
-    # p.scatter(y*scale, ind.coef_pre_y*scale, strx='Experimental $E_{gap}$', stry='Calculated $E_{gap}$')
-    # import matplotlib.pyplot as plt
+    # stop = lambda ind: ind.fitness.values[0] >= 0.95
+    # bl = MutilMutateLoop(pset=pset0, gen=20, pop=1000, hall=1, batch_size=40, re_hall=3,
+    #                      n_jobs=12, mate_prob=0.9, max_value=7, initial_min=2, initial_max=4,
+    #                      mutate_prob=0.8, tq=False, dim_type="coef", stop_condition=stop,
+    #                      re_Tree=0, store=False, random_state=1, verbose=True,
+    #                      stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"], "h_GVP": ["mean"]},
+    #                      add_coef=True, inter_add=True, inner_add=True, cal_dim=True, vector_add=True,
+    #                      personal_map=False)
+    # pset = bl.cpset
     #
-    # plt.show()
+    # bl.run()
+    # ind = bl.hall.items[0]
+    # expr = ind.coef_expr
+    # exprr = general_expr(expr, pset, simplifying=True)
+
+
+    stop = lambda ind: ind.fitness.values[0] >= 0.99
+    bl = MutilMutateLoop(pset=pset0, gen=20, pop=1000, hall=1, batch_size=40, re_hall=3,
+                         n_jobs=12, mate_prob=0.9, max_value=7, initial_min=2, initial_max=4,
+                         mutate_prob=0.8, tq=False, dim_type="coef", stop_condition=stop,
+                         re_Tree=0, store=False, random_state=1, verbose=True,
+                         stats={"fitness_dim_max": ["max"], "dim_is_target": ["sum"], "h_GVP": ["mean"]},
+                         add_coef=True, inter_add=True, inner_add=True, cal_dim=False, vector_add=True,
+                         personal_map=False)
+    pset = bl.cpset
+
+    bl.run()
+    ind = bl.hall.items[0]
+    expr = ind.coef_expr
+
 

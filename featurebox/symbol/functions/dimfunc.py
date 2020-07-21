@@ -103,9 +103,9 @@ def dim_map():
         else:
             return dim
 
-    my_ln = my_cos = my_sin = my_exp
+    my_log = my_ln = my_cos = my_sin = my_exp
 
-    my_funcs = {"Abs": my_abs, "exp": my_exp, "ln": my_ln, 'cos': my_cos, 'sin': my_sin,
+    my_funcs = {"Abs": my_abs, "exp": my_exp, "ln": my_ln, 'cos': my_cos, 'sin': my_sin, "log": my_log,
                 'sqrt': my_sqrt, "MAdd": my_flat, "MMul": my_comp, "MSub": my_diff,
                 "MDiv": my_quot, "Self": my_self, "Conv": my_conv}
     return my_funcs
